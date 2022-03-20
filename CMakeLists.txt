@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22.3)
+cmake_minimum_required(VERSION 3.16.3)
 
 project(CT-compiler VERSION 1.0)
 
@@ -41,3 +41,4 @@ target_compile_options(${PROJECT_NAME}
         ${C_FLAGS}
 )
 
+target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_NAME}-main)

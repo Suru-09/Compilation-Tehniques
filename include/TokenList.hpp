@@ -5,12 +5,14 @@
 #include "Node.hpp"
 
 class TokenList {
-public:  
-    TokenList() : head{nullptr} {}
+public:
+    ~TokenList() = default;
+    TokenList() : head(nullptr) {}
+    
     void push(Node& node);
 
 private:
-    std::unique_ptr<Node> head;
+    std::shared_ptr<Node> head;
 
 };
 

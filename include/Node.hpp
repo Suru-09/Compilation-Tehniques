@@ -10,9 +10,11 @@ class Node {
 private:
     Token token;
 public:
-    std::unique_ptr<Node> next;
-    Node(Token& token) : token{std::move(token)}, next{nullptr} {}
-    // ~Node() = default;
+    std::shared_ptr<Node> next;
+    Node(Token token) : token{std::move(token)}, next{nullptr} {}
+
+    explicit Node();
+    ~Node() = default;
     
 };
 
