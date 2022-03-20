@@ -2,14 +2,18 @@
 #include "Token.hpp"
 #include "TokenList.hpp"
 
+
+#include <string>
+
+
 int LexicalAnalyzer::get_next_token() {
     int state = 0, nCh;
     char ch;
     const char *pStartCh;
-    Token *tk;
+    TokenList list;
 
     while(1){ // infinite loop
-        ch=*pCrtCh;
+        ch = *pCrtCh;
 
 		//switch cu toate starile din diagrama
 		printf("#%d %c(%d)\n", s, *pch, *pch); // testare/debbuging
