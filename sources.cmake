@@ -10,4 +10,5 @@ set(SOURCES_LIST
     src/Token.cpp
     src/TokenList.cpp
     src/LexicalAnalyzer.cpp
+    src/ReadFile.cpp
 )
