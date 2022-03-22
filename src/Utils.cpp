@@ -1,18 +1,11 @@
-#include<iostream>
-#include<fstream>
-#include<string>
-#include <vector>
-#include<stdlib.h>
 
-#include "Token.hpp"
-#include "TokenList.hpp"
-#include "Node.hpp"
+#include "Utils.hpp"
 
 namespace utils {
 
-    std::vector<std::string> read_file(const std::string& file_name) {
-        std::vector<std::string> arr;
-        std::string temp;
+    std::vector<char> read_file(const std::string& file_name) {
+        std::vector<char> arr;
+        char tmp;
 
         std::ifstream in(file_name);
         if(!in) {
@@ -21,12 +14,14 @@ namespace utils {
         }
 
         while(1) {
-            in >> temp;
-            arr.push_back(temp);
+            in >> tmp;
             if(in.eof())
                 break;
+            arr.push_back(tmp);
+            tmp = 0;
         }
         
+        in.close();
         return arr;
     }
 

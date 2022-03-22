@@ -27,6 +27,9 @@ public:
     text(value_double),
     line(line) {};
 
+    Token(const int& code)
+    : code(code) {};
+
     explicit Token() = default;
 };
 

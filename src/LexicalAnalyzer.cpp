@@ -7,187 +7,193 @@
 
 
 int LexicalAnalyzer::get_next_token() {
-    int state = 0, nCh;
-    char ch;
-    const char *pStartCh;
-    TokenList list;
+    int state = 0, start = 0;
+	int count = 0;
 
-    while(1){ // infinite loop
-        ch = *pCrtCh;
+    while(1){
+		count++;
+		// if(count > 15)
+		// 	return -1;
 
-		//switch cu toate starile din diagrama
-		printf("#%d %c(%d)\n", s, *pch, *pch); // testare/debbuging
-		switch (s){
-		case(0) :
-			if (*pch == ' ' || *pch == '\t' || *pch == '\r' || *pch == '\n'){
-				if (*pch == '\n') {
-					line++;
+		if(i > given_text.size() - 1)
+			return -1;
+
+		std::cout << "I am i: " << i << " size: " << given_text.size() - 1 << "\n";
+		std::cout << "I am state : " << state << " with ch = (" << given_text[i] << ")\n";
+		switch (state){
+			case(0):
+				if (given_text[i] == ' ' || given_text[i] == '\t' ||
+					given_text[i] == '\r' || given_text[i] == '\n'){
+					
+					if (given_text[i] == '\n') {
+						line++;
+					}
+					i++;
 				}
-				pch++;
+				else if(given_text[i] == ',') {
+					i++;
+					return COMMA;
+				}
+				else if(given_text[i] == ';') {
+					i++;
+					return SEMICOLON;
+				}
+				else if(given_text[i] == '(') {
+					i++;
+					return LPAR;
+				}
+				else if(given_text[i] == ')') {
+					i++;
+					return RPAR;
+				}
+				else if(given_text[i] == '[') {
+					i++;
+					return LBRACKET;
+				}
+				else if(given_text[i] == ']') {
+					i++;
+					return RBRACKET;
+				}
+				else if(given_text[i] == '{') {
+					i++;
+					return LACC;
+				}
+				else if(given_text[i] == '}') {
+					i++;
+					return RACC;
+				}
+				else if(given_text[i] == '+') {
+					i++;
+					return ADD;
+				}
+				else if(given_text[i] == '-') {
+					i++;
+					return SUB;
+				}
+				else if(given_text[i] == '*') {
+					i++;
+					return MUL;
+				}
+				else if(given_text[i] == '/') {
+					i++;
+					if(given_text[i] == '/') {
+						i++;
+						state = 28;
+					}
+				}
+				else if(given_text[i] == '.') {
+					i++;
+					return DOT;
+				}
+				else if(given_text[i] == '&') {
+					i++;
+					if(given_text[i] == '&') {
+						i++;
+						return AND;
+					}
+				}
+				else if(given_text[i] == '|') {
+					i++;
+					if(given_text[i] == '|') {
+						i++;
+						return OR;
+					}
+				}
+				else if(given_text[i] == '!') {
+					//std::cout << "Eu sunt i in !: " << i << "ch = ( " << given_text[i] << ")\n";
+					i++;
+					if(given_text[i] == '=') {
+						i++;
+						return NOTEQ;
+					}
+					else {
+						return NOT;
+					}
+				}
+				else if(given_text[i] == '<') {
+					i++;
+					if(given_text[i] == '=') {
+						i++;
+						return LESSEQ;
+					}
+					else {
+						return LESS;
+					}
+				}
+				else if(given_text[i] == '>') {
+					i++;
+					if(given_text[i] == '=') {
+						i++;
+						return GREATEREQ;
+					}
+					else {
+						return GREATER;
+					}
+				}
+				else if(isdigit(given_text[i]) && given_text[i] != '0') {
+					i++;
+					state = 32;
+				}
+				else if(given_text[i] == '\'') {
+					i++;
+					if(given_text[i] != '\'') {
+						i++;
+					}
+					else {
+						i++;
+						return 47;
+					}
+				}
+				else if (isalpha(given_text[i]) || given_text[i] == '_'){
+					state = 51;
+					start = i++;
+				}
+				break;
+			case 2:
+				break;
+			case(28):
+				break;
+			case(32):
+				if(isdigit(given_text[i])) {
+					i++;
+				}
+				return 32;
+				break;
+			case(51):
+				if (isalnum(given_text[i]) || given_text[i] == '_'){
+					i++;
+				}
+				else {
+					state = 52;
+				}
+				break;
+			case(ID):
+				return ID;
+			default:
+				printf("Given state doesn't exist : %d (character = %c)\n", state, given_text[i]);
 			}
-			else if (isalpha(*pch) || *pch == '_'){
-				s = 1;
-				start = pch++;
-			}
-			else if (*pch == '='){
-				s = 3;
-				pch++;
-			}
-			else if (*pch == ','){
-				s = 6;
-				pch++;
-			}
-			else if (*pch == ';'){
-				s = 7;
-				pch++;
-			}
-			else if (*pch == '('){
-				s = 8;
-				pch++;
-			}
-			else if (*pch == ')'){
-				s = 9;
-				pch++; 
-			}
-			else if (*pch == '['){
-				s = 10;
-				pch++;
-			}
-			else if (*pch == ']'){
-				s = 11;
-				pch++;
-			}
-			else if (*pch == '{'){
-				s = 12;
-				pch++;
-			}
-			else if (*pch == '}'){
-				s = 13;
-				pch++;
-			}
-			else if (*pch == '\0'){
-				addTk(END);
-				return END;
-			}
-			else if (*pch == '+'){
-				s = 15;
-				pch++;
-			}
-			else if (*pch == '-'){
-				s = 16;
-				pch++;
-			}
-			else if (*pch == '*'){
-				s = 17;
-				pch++;
-			}
-			else if (*pch == '/'){
-				s = 18;
-				pch++;
-			}
-			else if (*pch == '.'){
-				s = 21;
-				pch++;
-			}
-			else if (*pch == '&'){
-				s = 22;
-				pch++;
-			}
-			else if (*pch == '|'){
-				s = 24;
-				pch++;
-			}
-			else if (*pch == '!'){
-				s = 26;
-				pch++;
-			}
-			else if (*pch == '<'){
-				s = 29;
-				pch++;
-			}
-			else if (*pch == '>'){
-				s = 32;
-				pch++;
-			}
-			else if (isdigit(*pch)){
-				s = 35;
-				pch++;
-			}
-			else if (*pch == '\''){
-				s = 43;
-				pch++;
-			}
-			else if (*pch == '"'){
-				s = 46;
-				pch++;
-			}
-			break;
-		case(1) :
-			if (isalnum(*pch) || *pch == '_'){
-				pch++;
-			}
-			else{
-				s = 2; // nu consuma nimic 
-			}
-			break;
-		case(2) :
-			//pch pe primul caract de dupa ID => ID = [start, pch)
-			tk = addTk(ID);
-			tk->text = extract(start, pch);
-			if (strcmp("break", tk->text) == 0){
-				tk->code = BREAK;
-			}
-			else if (strcmp("char", tk->next) == 0){
-				tk->code = CHAR;
-			}
-			else if (strcmp("double", tk->next) == 0){
-				tk->code = DOUBLE;
-			}
-			else if (strcmp("else", tk->next) == 0){
-				tk->code = ELSE;
-			}
-			else if (strcmp("for", tk->next) == 0){
-				tk->code = FOR;
-			}
-			else if (strcmp("if", tk->next) == 0){
-				tk->code = IF;
-			}
-			else if (strcmp("int", tk->next) == 0){
-				tk->code = INT;
-			}
-			else if (strcmp("return", tk->next) == 0){
-				tk->code = RETURN;
-			}
-			else if (strcmp("struct", tk->next) == 0){
-				tk->code = STRUCT;
-			}
-			else if (strcmp("void", tk->next) == 0){
-				tk->code = VOID;
-			}
-			else if (strcmp("while", tk->next) == 0){
-				tk->code = WHILE;
-			}
-			return tk->code;
-			break;
-		case(3) :
-			if (*pch == '='){
-				s = 5;
-				pch++;
-			}
-			else{
-				s = 4;
-			}
-			break;
-		case(4) :
-			addTk(ASSIGN);
-			return ASSIGN;
-			break;
-		case(5) :
-			addTk(EQUAL);
-			return EQUAL;
-			break;
-		default:
-			printf("Stare inexistenta: %d (ch = %c)\n", s, *pch);
-		}
 	}
+}
+
+std::vector<char> LexicalAnalyzer::extract(int start, const int& end) {
+        std::vector<char> arr;
+        while(start < end) {
+            arr.push_back(given_text[start]);
+        }
+        return arr;
+}
+
+void LexicalAnalyzer::get_all_tokens() {
+	auto x = get_next_token();
+	while(x != -1) {
+		std::cout << x << "\n";
+		x = get_next_token();
+	}
+}
+
+LexicalAnalyzer::LexicalAnalyzer(const std::vector<char>& text) 
+: given_text(text),
+i(0),
+line(0)
+{
 }
