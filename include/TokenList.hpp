@@ -7,13 +7,13 @@
 class TokenList {
 public:
     ~TokenList() = default;
-    TokenList() : head(nullptr) {}
+    TokenList();
     
     void push(Node& node);
+    void print_list();
 
 private:
     std::shared_ptr<Node> head;
-
 };
 
 #endif

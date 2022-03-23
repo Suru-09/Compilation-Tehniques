@@ -6,14 +6,14 @@
 #include<memory>
 
 class Node {
-
-private:
-    Token token;
 public:
+    Token token;
     std::shared_ptr<Node> next;
-    Node(Token token) : token{std::move(token)}, next{nullptr} {}
+    Node(Token& token);
 
-    explicit Node();
+    Node& operator=(const Node& node );
+
+    Node() = default;
     ~Node() = default;
     
 };

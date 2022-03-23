@@ -1,6 +1,7 @@
 #include "LexicalAnalyzer.hpp"
 #include "Token.hpp"
 #include "TokenList.hpp"
+#include "Node.hpp"
 
 
 #include <string>
@@ -9,17 +10,15 @@
 int LexicalAnalyzer::get_next_token() {
     int state = 0, start = 0;
 	int count = 0;
+	std::string id_text;
 
     while(1){
 		count++;
 		// if(count > 15)
 		// 	return -1;
 
-		if(i > given_text.size() - 1)
-			return -1;
-
-		std::cout << "I am i: " << i << " size: " << given_text.size() - 1 << "\n";
-		std::cout << "I am state : " << state << " with ch = (" << given_text[i] << ")\n";
+		// std::cout << "I am i: " << i << " size: " << given_text.size() - 1 << "\n";
+		// std::cout << "I am state : " << state << " with ch = (" << given_text[i] << ")\n";
 		switch (state){
 			case(0):
 				if (given_text[i] == ' ' || given_text[i] == '\t' ||
@@ -29,6 +28,9 @@ int LexicalAnalyzer::get_next_token() {
 						line++;
 					}
 					i++;
+				}
+				else if(given_text[i] == '\0') {
+					return END;
 				}
 				else if(given_text[i] == ',') {
 					i++;
@@ -130,6 +132,10 @@ int LexicalAnalyzer::get_next_token() {
 						return GREATER;
 					}
 				}
+				else if(given_text[i] == '0') {
+					i++;
+					state = 31;
+				}
 				else if(isdigit(given_text[i]) && given_text[i] != '0') {
 					i++;
 					state = 32;
@@ -149,16 +155,145 @@ int LexicalAnalyzer::get_next_token() {
 					start = i++;
 				}
 				break;
-			case 2:
-				break;
 			case(28):
+				break;
+			case(31):
+				if(isdigit(given_text[i]) && given_text[i] <= '7') {
+					i++;
+					state = 33;
+				}
+				else if(isdigit(given_text[i]) &&  given_text[i] >= '8') {
+					i++;
+					state = 37;
+				}
+				else if(given_text[i] == 'x' || given_text[i] == 'X') {
+					i++;
+					state = 34;
+				}
+				else if(given_text[i] == '.') {
+					i++;
+					state = 38;
+				}
+				else {
+					return -1;
+				}
 				break;
 			case(32):
 				if(isdigit(given_text[i])) {
+					++i;
+				}
+				else if(given_text[i] == 'e' || given_text[i] == 'E') {
+					++i;
+					state = 40;
+				}
+				else if(given_text[i] == '.') {
+					++i;
+					state = 38;
+				}
+				else {
+					state = CT_INT;
+				}
+				break;
+			case(33):
+				if(isdigit(given_text[i]) && given_text[i] <= '7') {
+					++i;
+				}
+				else if(given_text[i] == 'e' || given_text[i] == 'E') {
+					++i;
+					state = 40;
+				}
+				else {
+					state = CT_INT;
+				}
+				break;
+			case(34):
+				if(isdigit(given_text[i]) || (given_text[i] >= 'a' && given_text[i] <= 'f')
+					|| (given_text[i] >= 'A' && given_text[i] <= 'F') ) {
+					
+					++i;
+					state = 35;
+				}
+				break;
+			case(35):
+				if(isdigit(given_text[i]) || (given_text[i] >= 'a' && given_text[i] <= 'f')
+				|| (given_text[i] >= 'A' && given_text[i] <= 'F') ) {
+				
+				++i;
+				}
+				else {
+					state = CT_INT;
+				}
+				break;
+			case(CT_INT):
+				return CT_INT;
+			case(37):
+				if( isdigit(given_text[i]) ) {
 					i++;
 				}
-				return 32;
+				else if(given_text[i] == 'e' || given_text[i] == 'E') {
+					++i;
+					state = 40;
+				}
+				else if(given_text[i] == '.') {
+					i++;
+					state = 38;
+				}
+				else {
+					return -1;
+				}
 				break;
+			case(38):
+				if( isdigit(given_text[i])) {
+					i++;
+					state = 39;
+				}
+				break;
+			case(39):
+				if(isdigit(given_text[i])) {
+					i++;
+				}
+				else if(given_text[i] == 'e' || given_text[i] == 'E') {
+					i++;
+					state = 40;
+				}
+				else {
+					state = CT_REAL;
+				}
+				break;
+			case(40):
+				if(isdigit(given_text[i])) {
+					++i;
+					state = 41;
+				}
+				else if(given_text[i] == '+' || given_text[i] == '-') {
+					++i;
+					state = 42;
+				}
+				break;
+			case(41):
+				if(isdigit(given_text[i])) {
+					++i;
+				}
+				else {
+					state = CT_REAL;
+				}
+				break;
+			case(42):
+				if(isdigit(given_text[i])) {
+					++i;
+					state = 43;
+				}
+				break;
+			case(43):
+				if(isdigit(given_text[i])) {
+					++i;
+				}
+				else {
+					state = CT_REAL;
+				}
+				break;
+			case(CT_REAL):
+				return CT_REAL;
 			case(51):
 				if (isalnum(given_text[i]) || given_text[i] == '_'){
 					i++;
@@ -168,27 +303,44 @@ int LexicalAnalyzer::get_next_token() {
 				}
 				break;
 			case(ID):
+				id_text =  extract(start, i);
+				// std::cout << "Textul de la ID: " << id_text << "\n";
+				add_token(ID, id_text, line);
 				return ID;
+				break;
 			default:
 				printf("Given state doesn't exist : %d (character = %c)\n", state, given_text[i]);
+				break;
 			}
 	}
 }
 
-std::vector<char> LexicalAnalyzer::extract(int start, const int& end) {
+std::string LexicalAnalyzer::extract(int start, const int& end) {
         std::vector<char> arr;
         while(start < end) {
             arr.push_back(given_text[start]);
+			start++;
         }
-        return arr;
+        return std::string(arr.begin(), arr.end());
 }
 
 void LexicalAnalyzer::get_all_tokens() {
+	int count_tokens = 1;
 	auto x = get_next_token();
-	while(x != -1) {
-		std::cout << x << "\n";
+	std::cout << x << "\n";
+
+	while(1) {
 		x = get_next_token();
+		if(x == -1)
+			break;
+		std::cout << x << "\n";
+		count_tokens++;
 	}
+
+	std::cout << "Number of tokens: " << count_tokens << "\n";
+	std::cout << "Eu sunt lista de token-uri: ";
+	token_list.print_list();
+	std::cout << "\n";
 }
 
 LexicalAnalyzer::LexicalAnalyzer(const std::vector<char>& text) 
@@ -196,4 +348,22 @@ LexicalAnalyzer::LexicalAnalyzer(const std::vector<char>& text)
 i(0),
 line(0)
 {
+}
+
+void LexicalAnalyzer::add_token(const int& code, const std::string& text, const int& line) {
+	Token token{code, text, line};
+	Node node{token};
+	token_list.push(node);
+}
+
+void LexicalAnalyzer::add_token(const int& code, const long int& text, const int& line) {
+	Token token{code, text, line};
+	Node node{token};
+	token_list.push(node);
+}
+
+void LexicalAnalyzer::add_token(const int& code, const double& text, const int& line) {
+	Token token{code, text, line};
+	Node node{token};
+	token_list.push(node);
 }

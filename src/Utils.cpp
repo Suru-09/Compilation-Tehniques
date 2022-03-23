@@ -14,13 +14,14 @@ namespace utils {
         }
 
         while(1) {
-            in >> tmp;
+            in.get(tmp);
+            arr.push_back(tmp);
             if(in.eof())
                 break;
-            arr.push_back(tmp);
             tmp = 0;
         }
         
+        arr.push_back(EOF);
         in.close();
         return arr;
     }

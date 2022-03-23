@@ -7,28 +7,16 @@
 
 class Token {
 
-private:
-        int code;
-        std::variant<std::vector<char>, long int, double> text;
-        int line;
 public:
-    Token(const int& code, const long int& value_int, const int& line)
-    : code(code),
-    text(value_int),
-    line(line) {};
+    int code;
+    std::variant<std::string, long int, double> text;
+    int line;
 
-    Token(const int& code, const std::vector<char>& text, const int& line)
-    : code(code),
-    text(text),
-    line(line) {};
-
-    Token(const int& code, const double& value_double, const int& line)
-    : code(code),
-    text(value_double),
-    line(line) {};
-
-    Token(const int& code)
-    : code(code) {};
+    Token(const int& code, const long int& value_int, const int& line);
+    Token(const int& code, const std::string& text, const int& line);
+    Token(const int& code, const double& value_double, const int& line);
+    Token& operator=(const Token& token);
+    Token(const int& code);
 
     explicit Token() = default;
 };
