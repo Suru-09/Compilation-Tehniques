@@ -1,0 +1,1 @@
+"abcdef" "Eu sunt ceva" "\a cdefg" "\a"

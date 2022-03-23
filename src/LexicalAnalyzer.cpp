@@ -82,6 +82,13 @@ int LexicalAnalyzer::get_next_token() {
 						i++;
 						state = 28;
 					}
+					else if(given_text[i] == '*') {
+						++i;
+						state = 29;
+					}
+					else {
+						return DIV;
+					}
 				}
 				else if(given_text[i] == '.') {
 					i++;
@@ -140,22 +147,67 @@ int LexicalAnalyzer::get_next_token() {
 					i++;
 					state = 32;
 				}
-				else if(given_text[i] == '\'') {
+				else if(given_text[i] == '=') {
 					i++;
-					if(given_text[i] != '\'') {
-						i++;
+					if(given_text[i] == '=') {
+						++i;
+						return EQUAL;
 					}
 					else {
-						i++;
-						return 47;
+						return ASSIGN;
 					}
 				}
+				else if(given_text[i] == '\'') {
+					i++;
+					if(given_text[i] == '\\') {
+						++i;
+						state = 49;
+					}
+					else if(given_text[i] != '\\' && given_text[i] != '\'') {
+						++i;
+						state = 50;
+					}
+				}
+				else if(given_text[i] == '"') {
+					++i;
+					state = 52;
+				}
 				else if (isalpha(given_text[i]) || given_text[i] == '_'){
-					state = 51;
+					state = 56;
 					start = i++;
 				}
 				break;
 			case(28):
+				if(given_text[i] != '\n' && given_text[i] != '\r'
+					&& given_text[i] != '\0') {
+					
+					++i;
+				}
+				else {
+					state = 0;
+				}
+				break;
+			case(29):
+				if(given_text[i] == '*') {
+					i++;
+					state = 30;
+				}
+				else {
+					i++;
+				}
+				break;
+			case(30):
+				if(given_text[i] != '*' && given_text[i] != '/') {
+					++i;
+					state = 29;
+				}
+				else if(given_text[i] == '*') {
+					++i;
+				}
+				else if(given_text[i] == '/'){
+					++i;
+					state = 0;
+				}
 				break;
 			case(31):
 				if(isdigit(given_text[i]) && given_text[i] <= '7') {
@@ -294,12 +346,65 @@ int LexicalAnalyzer::get_next_token() {
 				break;
 			case(CT_REAL):
 				return CT_REAL;
-			case(51):
+			case(49):
+				if(given_text[i] == 'a' || given_text[i] == 'b' ||
+					given_text[i] == '?' || given_text[i] == 'f'||
+					given_text[i] == 'n' || given_text[i] == 'n' ||
+					given_text[i] == 't' || given_text[i] == 'v' ||
+					given_text[i] == '"' || given_text[i] == '\\' ||
+					given_text[i] == '\0') {
+
+					++i;
+					state = 50;
+				}
+				break;
+			case 50:
+				if(given_text[i] == '\'') {
+					++i;
+					state = CT_CHAR;
+				}
+				break;
+			case(52):
+				if(given_text[i] == '\\') {
+					i++;
+					state = 53;
+				}
+				else if(given_text[i] != '"') {
+					++i;
+					state = 54;
+				}
+				break;
+			case(53):
+				if(given_text[i] == 'a' || given_text[i] == 'b' ||
+					given_text[i] == '?' || given_text[i] == 'f'||
+					given_text[i] == 'n' || given_text[i] == 'n' ||
+					given_text[i] == 't' || given_text[i] == 'v' ||
+					given_text[i] == '"' || given_text[i] == '\\' ||
+					given_text[i] == '\0') {
+
+					++i;
+					state = 54;
+				}
+				break;
+			case(54):
+				if(given_text[i] == '"') {
+					++i;
+					state  = CT_STRING;
+				}
+				else {
+					state = 52;
+				}
+				break;
+			case(CT_CHAR):
+				return CT_CHAR;
+			case(CT_STRING):
+				return CT_STRING;
+			case(56):
 				if (isalnum(given_text[i]) || given_text[i] == '_'){
 					i++;
 				}
 				else {
-					state = 52;
+					state = ID;
 				}
 				break;
 			case(ID):
