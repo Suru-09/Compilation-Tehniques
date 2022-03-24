@@ -2,7 +2,8 @@
 
 Node::Node(Token& token) 
 : token{std::move(token)},
-next{nullptr} 
+next{nullptr},
+class_name("Node")
 {}
 
 Node& Node::operator=(const Node& node ) {

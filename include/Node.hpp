@@ -2,8 +2,11 @@
 #define NODE_HPP
 
 #include <iostream>
-#include "Token.hpp"
 #include<memory>
+
+#include "Token.hpp"
+#include "Logger.hpp"
+
 
 class Node {
 public:
@@ -15,7 +18,10 @@ public:
 
     Node() = default;
     ~Node() = default;
-    
+
+private:
+    std::string class_name;
+    Logger logger;    
 };
 
 #endif

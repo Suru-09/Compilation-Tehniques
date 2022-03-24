@@ -3,24 +3,28 @@
 Token::Token(const int& code, const long int& value_int, const int& line)
 : code(code),
 text(value_int),
-line(line) 
+line(line),
+class_name("Token")
 {}
 
 Token::Token(const int& code, const std::string& text, const int& line)
 : code(code),
 text(text),
-line(line) 
+line(line),
+class_name("Token")
 {}
 
 Token::Token(const int& code, const double& value_double, const int& line)
 : code(code),
 text(value_double),
-line(line) 
+line(line),
+class_name("Token")
 {}
 
 Token::Token(const int& code, const int& line)
 : code(code),
-line(line)
+line(line),
+class_name("Token")
 {}
 
 Token& Token::operator=(const Token& token) {
@@ -32,5 +36,6 @@ Token& Token::operator=(const Token& token) {
 }
 
 Token::Token(const int& code)
-: code(code) 
+: code(code),
+class_name("Token")
 {}

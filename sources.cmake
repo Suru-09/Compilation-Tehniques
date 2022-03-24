@@ -4,6 +4,7 @@ set(HEADERS_LIST
     include/TokenList.hpp
     include/LexicalAnalyzer.hpp
     include/VariadicTable.hpp
+    include/Logger.hpp
 )
 
 set(SOURCES_LIST
@@ -13,4 +14,5 @@ set(SOURCES_LIST
     src/LexicalAnalyzer.cpp
     src/Utils.cpp
     src/main.cpp
+    src/Logger.cpp
 )

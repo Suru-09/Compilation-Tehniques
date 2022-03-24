@@ -14,6 +14,8 @@ public:
 
 private:
     std::shared_ptr<Node> head, last;
+    std::string class_name{""};
+    Logger logger;
 };
 
 #endif

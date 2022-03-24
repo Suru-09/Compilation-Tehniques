@@ -8,13 +8,13 @@
 
 int LexicalAnalyzer::get_next_token() {
     int state = 0, start = 0;
-	int count = 0;
 	std::string id_text, actual_id_text;
 
     while(1){
-		count++;
-		// if(count > 15)
-		// 	return -1;
+		if(i > given_text.size() - 1) {
+			std::cout << "There was an error while processing state = (" << state << ")\n";
+			return END;
+		}
 
 		// std::cout << "I am i: " << i << " size: " << given_text.size() - 1 << "\n";
 		// std::cout << "I am state : " << state << " with ch = (" << given_text[i] << ")\n";
@@ -373,6 +373,7 @@ int LexicalAnalyzer::get_next_token() {
 				}
 				break;
 			case(CT_REAL):
+				// std::cout << "CT_REAL: " <<  stod(extract(start, i)) << "\n";
 				add_token(CT_REAL, std::stod(extract(start, i)), line);
 				return CT_REAL;
 			case(49):
@@ -444,7 +445,7 @@ int LexicalAnalyzer::get_next_token() {
 				break;
 			case(ID):
 				actual_id_text = extract(start, i);
-				// std::cout << "Textul de la ID: " << id_text << "\n";
+				std::cout << logger <<  "Textul de la ID: " << id_text << "\n";
 				id_text = return_keyword(actual_id_text);
 				if( id_text == "NONE") {
 					add_token(ID, actual_id_text, line);
@@ -453,6 +454,7 @@ int LexicalAnalyzer::get_next_token() {
 					add_token(ID, line);
 				}
 				return ID;
+				break;
 			default:
 				printf("Given state doesn't exist : %d (character = %c)\n", state, given_text[i]);
 				break;
@@ -612,12 +614,17 @@ void LexicalAnalyzer::init_map() {
 LexicalAnalyzer::LexicalAnalyzer(const std::vector<char>& text) 
 : given_text(text),
 i(0),
-line(0)
-{
+line(0),
+class_name("LexicalAnalyzer")
+{	
+	logger = Logger{class_name};
 	init_map();
 }
 
-LexicalAnalyzer::LexicalAnalyzer() {
+LexicalAnalyzer::LexicalAnalyzer()
+: class_name("LexicalAnalyzer")
+{	
+	logger = Logger{class_name};
 	init_map();
 }
 

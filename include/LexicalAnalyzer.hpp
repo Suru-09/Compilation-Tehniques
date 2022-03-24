@@ -21,9 +21,11 @@ private:
     std::map<TYPES, std::string> pretty_map;
 
     TokenList token_list;
+    Logger logger;
     std::vector<char> given_text;
-    int i;
+    long unsigned int i;
     int line;
+    std::string class_name;
 
     void add_token(const int& code, const std::string& text, const int& line);
     void add_token(const int& code, const long int& text, const int& line);

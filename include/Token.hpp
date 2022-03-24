@@ -6,6 +6,8 @@
 #include <variant>
 
 class Token {
+private:
+    std::string class_name;
 
 public:
     int code;
