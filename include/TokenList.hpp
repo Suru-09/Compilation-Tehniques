@@ -13,7 +13,7 @@ public:
     void print_list();
 
 private:
-    std::shared_ptr<Node> head;
+    std::shared_ptr<Node> head, last;
 };
 
 #endif

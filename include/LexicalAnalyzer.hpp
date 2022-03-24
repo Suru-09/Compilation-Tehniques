@@ -18,6 +18,8 @@ private:
             RETURN = 67, STRUCT = 68, VOID = 69, WHILE = 70
     };
 
+    std::map<TYPES, std::string> pretty_map;
+
     TokenList token_list;
     std::vector<char> given_text;
     int i;
@@ -26,13 +28,18 @@ private:
     void add_token(const int& code, const std::string& text, const int& line);
     void add_token(const int& code, const long int& text, const int& line);
     void add_token(const int& code, const double& text, const int& line);
-
+    void add_token(const int& code, const int& line);
+    void init_map();
+    std::string return_keyword(const std::string &str);
+    
 public:
     LexicalAnalyzer(const std::vector<char>& text);
+    LexicalAnalyzer();
 
     int get_next_token();
     void get_all_tokens();
     std::string extract(int start, const int& end);
+    std::string print_pretty(int id);
 };
 
 #endif

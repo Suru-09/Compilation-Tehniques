@@ -18,6 +18,11 @@ text(value_double),
 line(line) 
 {}
 
+Token::Token(const int& code, const int& line)
+: code(code),
+line(line)
+{}
+
 Token& Token::operator=(const Token& token) {
     code = token.code;
     text = token.text;

@@ -12,7 +12,7 @@
 int main() {
 
     std::cout << "Print something so that I know my script is working!\n";
-    auto arr = utils::read_file("../testing_files/block_comment.txt");
+    auto arr = utils::read_file("../testing_files/1.c");
 
     int i = 0;
     for(auto const &x: arr) {

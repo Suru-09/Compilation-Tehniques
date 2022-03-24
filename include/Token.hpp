@@ -14,6 +14,7 @@ public:
 
     Token(const int& code, const long int& value_int, const int& line);
     Token(const int& code, const std::string& text, const int& line);
+    Token(const int& code, const int& line);
     Token(const int& code, const double& value_double, const int& line);
     Token& operator=(const Token& token);
     Token(const int& code);

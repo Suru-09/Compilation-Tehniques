@@ -1,21 +1,31 @@
 #include "TokenList.hpp"
+#include "LexicalAnalyzer.hpp"
 
 void TokenList::push(Node& node) {
 
     auto temp{std::make_shared<Node>(std::move(node))};
-    if(head) {
-        temp->next = std::move(head);
-        head = std::move(temp);
+
+    // std::cout << "\nSPL: " << temp->token.code << "\n";
+
+    if(last) {
+        last->next = temp;
+        //last = std::move(temp);  
     }
-    else {
-        head = std::move(temp);    
+    else if(!last) {
+        head = temp;
+        //last = head;
     }
+    last = std::move(temp);
+    // std::cout << "HEAD: " << head->token.code << "\n";
+    // std::cout << "LAST: " << last->token.code << "\n";
 }
 
 void TokenList::print_list() {
+    LexicalAnalyzer lexic;
+
     auto copy = head;
     while(copy) {
-        std::cout << "Token with code: " << copy->token.code << "\nLine: " << copy->token.line << "\n";
+        std::cout << "Token with code: " << lexic.print_pretty(copy->token.code) << "\nLine: " << copy->token.line << "\n";
         try {
             std::string text = std::get<std::string> (copy->token.text);
             std::cout << "Text: " << text << "\n\n";
@@ -41,5 +51,6 @@ void TokenList::print_list() {
 }
 
 TokenList::TokenList() 
-: head(nullptr) 
+: head(nullptr),
+last(nullptr)
 {}
