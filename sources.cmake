@@ -3,6 +3,7 @@ set(HEADERS_LIST
     include/Token.hpp
     include/TokenList.hpp
     include/LexicalAnalyzer.hpp
+    include/VariadicTable.hpp
 )
 
 set(SOURCES_LIST

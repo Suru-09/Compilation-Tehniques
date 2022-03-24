@@ -1,5 +1,10 @@
 #include "TokenList.hpp"
 #include "LexicalAnalyzer.hpp"
+#include "VariadicTable.hpp"
+
+#include<string>
+#include<vector>
+#include<iostream>
 
 void TokenList::push(Node& node) {
 
@@ -23,22 +28,34 @@ void TokenList::push(Node& node) {
 void TokenList::print_list() {
     LexicalAnalyzer lexic;
 
+    std::vector<std::string> headers{"Count", "Code", "Text", "Line"};
+    VariadicTable<int, std::string, std::string, int> vt(headers);
+    int counter = 0;
+
     auto copy = head;
     while(copy) {
-        std::cout << "Token with code: " << lexic.print_pretty(copy->token.code) << "\nLine: " << copy->token.line << "\n";
+        counter++;
+        std::string code = lexic.print_pretty(copy->token.code);
+        int line = copy->token.line;
+        //std::cout << "Token with code: " << lexic.print_pretty(copy->token.code) << "\nLine: " << copy->token.line << "\n";
         try {
             std::string text = std::get<std::string> (copy->token.text);
-            std::cout << "Text: " << text << "\n\n";
+            if(text == "")
+                text = "---";
+            //std::cout << "Text: " << text << "\n\n";
+            vt.addRow(counter, code, text , line);
         }
         catch(...) {
             try {
                 long int integer = std::get<long int> (copy->token.text);
-                std::cout << "Long int: " << integer << "\n\n";
+                //std::cout << "Long int: " << integer << "\n\n";
+                vt.addRow(counter, code, std::to_string(integer) , line);
             }
             catch(...) {
                 try {
                     double dbl = std::get<double> (copy->token.text);
-                    std::cout << "Double : " << dbl << "\n\n";
+                    // std::cout << "Double : " << dbl << "\n\n";
+                    vt.addRow(counter, code, std::to_string(dbl) , line);
                 }
                 catch(...) {
                     std::cout << "Error while printing the list of tokens!\n";
@@ -48,6 +65,8 @@ void TokenList::print_list() {
         
         copy = copy->next;
     }
+
+    vt.print(std::cout);
 }
 
 TokenList::TokenList() 

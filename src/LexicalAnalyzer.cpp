@@ -9,7 +9,7 @@
 int LexicalAnalyzer::get_next_token() {
     int state = 0, start = 0;
 	int count = 0;
-	std::string id_text;
+	std::string id_text, actual_id_text;
 
     while(1){
 		count++;
@@ -161,13 +161,13 @@ int LexicalAnalyzer::get_next_token() {
 					}
 				}
 				else if(given_text[i] == '0') {
-					i++;
 					start = i;
+					i++;
 					state = 31;
 				}
 				else if(isdigit(given_text[i]) && given_text[i] != '0') {
-					i++;
 					start = i;
+					i++;
 					state = 32;
 				}
 				else if(given_text[i] == '=') {
@@ -183,8 +183,8 @@ int LexicalAnalyzer::get_next_token() {
 					}
 				}
 				else if(given_text[i] == '\'') {
-					i++;
 					start = i;
+					i++;
 					if(given_text[i] == '\\') {
 						++i;
 						state = 49;
@@ -195,8 +195,8 @@ int LexicalAnalyzer::get_next_token() {
 					}
 				}
 				else if(given_text[i] == '"') {
-					++i;
 					start = i;
+					++i;
 					state = 52;
 				}
 				else if (isalpha(given_text[i]) || given_text[i] == '_'){
@@ -381,7 +381,7 @@ int LexicalAnalyzer::get_next_token() {
 					given_text[i] == 'n' || given_text[i] == 'n' ||
 					given_text[i] == 't' || given_text[i] == 'v' ||
 					given_text[i] == '"' || given_text[i] == '\\' ||
-					given_text[i] == '\\0') {
+					given_text[i] == '\0') {
 
 					++i;
 					state = 50;
@@ -413,7 +413,7 @@ int LexicalAnalyzer::get_next_token() {
 					given_text[i] == 'n' || given_text[i] == 'n' ||
 					given_text[i] == 't' || given_text[i] == 'v' ||
 					given_text[i] == '"' || given_text[i] == '\\' ||
-					given_text[i] == '\\0') {
+					given_text[i] == '\0') {
 
 					++i;
 					state = 54;
@@ -443,11 +443,14 @@ int LexicalAnalyzer::get_next_token() {
 				}
 				break;
 			case(ID):
-				id_text = extract(start, i);
+				actual_id_text = extract(start, i);
 				// std::cout << "Textul de la ID: " << id_text << "\n";
-				id_text = return_keyword(id_text);
+				id_text = return_keyword(actual_id_text);
 				if( id_text == "NONE") {
-					add_token(ID, id_text, line);
+					add_token(ID, actual_id_text, line);
+				}
+				else {
+					add_token(ID, line);
 				}
 				return ID;
 			default:
@@ -458,10 +461,6 @@ int LexicalAnalyzer::get_next_token() {
 }
 
 std::string LexicalAnalyzer::extract(int start, const int& end) {
-		if(start == end) {
-			std::cout << "PORTOCOALA" << '\n';
-		}
-
         std::vector<char> arr;
         while(start < end) {
             arr.push_back(given_text[start]);
@@ -473,18 +472,18 @@ std::string LexicalAnalyzer::extract(int start, const int& end) {
 void LexicalAnalyzer::get_all_tokens() {
 	int count_tokens = 1;
 	auto x = get_next_token();
-	std::cout << x << "\n";
+	// std::cout << x << "\n";
 
 	while(1) {
 		x = get_next_token();
-		std::cout << x << "\n";
+		// std::cout << x << "\n";
 		if(x == -1)
 			break;
 		count_tokens++;
 	}
 
-	std::cout << "Number of tokens: " << count_tokens << "\n";
-	std::cout << "Eu sunt lista de token-uri: ";
+	// std::cout << "Number of tokens: " << count_tokens << "\n";
+	std::cout << "Eu sunt lista de token-uri: \n";
 	token_list.print_list();
 	std::cout << "\n";
 }
@@ -578,7 +577,7 @@ void LexicalAnalyzer::init_map() {
 	pretty_map[RACC] = "RACC";
 	pretty_map[ADD] = "ADD";
 	pretty_map[MUL] = "MUL";
-	pretty_map[ADD] = "ADD";
+	pretty_map[SUB] = "SUB";
 	pretty_map[DOT] = "DOT";
 	pretty_map[AND] = "AND";
 	pretty_map[OR] = "OR";

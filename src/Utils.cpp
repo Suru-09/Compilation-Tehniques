@@ -1,5 +1,9 @@
 
 #include "Utils.hpp"
+#include "LexicalAnalyzer.hpp"
+#include "TokenList.hpp"
+#include "Token.hpp"
+#include "Node.hpp"
 
 namespace utils {
 
@@ -26,39 +30,29 @@ namespace utils {
         return arr;
     }
 
-    void test_token_list() {
-        
-    {
-    TokenList list;
-    
-    Token token1(2, 3L, 4);
-    Token token2(2, 3L, 5);
-    Token token3(2, 3L, 6);
-    Token token4(2, 3L, 7);
-    Token token5(2, 3L, 8);
-    Token token6(2, 3L, 9);
-    Token token7(2, 3L, 10);
-    Token token8(2, 3L, 11);
+    void test_file(const std::string& file_name) {
+        std::cout << "Testing " << file_name << ":\n";
+        auto arr = read_file(file_name);
 
-    Node node1(token1);
-    Node node2(token1);
-    Node node3(token1);
-    Node node4(token1);
-    Node node5(token1);
-    Node node6(token1);
-    Node node7(token1);
-    Node node8(token1);
+        // int i = 0;
+        // for(auto const &x: arr) {
+        //     std::cout << i << " " << x << "    ";
+        //     ++i;
+        // }
+        // std::cout << "\n\n";
 
-    list.push(node1);
-    list.push(node2);
-    list.push(node3);
-    list.push(node4);
-    list.push(node5);
-    list.push(node6);
-    list.push(node7);
-    list.push(node8);
+        LexicalAnalyzer lexic_int{arr};
+        lexic_int.get_all_tokens(); 
     }
-    
-    std::cout << "I am out of scope!\n";
+
+    void test_diagrams() {
+     
+        test_file("../testing_files/dfa/ct_int.txt");
+        test_file("../testing_files/dfa/ct_real.txt");
+        test_file("../testing_files/dfa/ct_string.txt");
+        test_file("../testing_files/dfa/ct_char.txt");
+        test_file("../testing_files/dfa/delimiters+operators.txt");
+        test_file("../testing_files/dfa/line_comment.txt");
+        test_file("../testing_files/dfa/block_comment.txt");
     }
 }

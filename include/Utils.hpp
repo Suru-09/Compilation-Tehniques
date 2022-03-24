@@ -14,7 +14,8 @@
 namespace utils {
 
     std::vector<char> read_file(const std::string& file_name);
-    void test_token_list();
+    void test_file(const std::string& file_name);
+    void test_diagrams();
 }
 
 #endif
