@@ -27,4 +27,4 @@
 # NOTE
 
 - In order to print my TokenList I am using a github project called: "VariadicTabel.hpp" which
-can be found on the following link: https://github.com/friedmud/variadic_table
+can be find on the following link: https://github.com/friedmud/variadic_table

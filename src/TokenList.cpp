@@ -54,7 +54,7 @@ void TokenList::print_list() {
             catch(...) {
                 try {
                     double dbl = std::get<double> (copy->token.text);
-                    std::cout << logger << "Double : " << dbl << "\n\n";
+                    // std::cout << logger << "Double : " << dbl << "\n\n";
                     std::ostringstream strs;
                     strs  << std::setprecision(15) << dbl;
                     std::string str = strs.str();

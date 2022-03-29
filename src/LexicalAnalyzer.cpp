@@ -12,7 +12,7 @@ int LexicalAnalyzer::get_next_token() {
 
     while(1){
 		if(i > given_text.size() - 1) {
-			std::cout << "There was an error while processing state = (" << state << ")\n";
+			std::cout << logger << "There was an error while processing state = (" << state << ")\n";
 			return END;
 		}
 
@@ -436,7 +436,7 @@ int LexicalAnalyzer::get_next_token() {
 				add_token(CT_STRING, extract(start, i), line);
 				return CT_STRING;
 			case(56):
-				if (isalnum(given_text[i]) || given_text[i] == '_'){
+				if (isdigit(given_text[i]) || isalnum(given_text[i]) || given_text[i] == '_'){
 					i++;
 				}
 				else {
@@ -445,14 +445,12 @@ int LexicalAnalyzer::get_next_token() {
 				break;
 			case(ID):
 				actual_id_text = extract(start, i);
-				std::cout << logger <<  "Textul de la ID: " << id_text << "\n";
 				id_text = return_keyword(actual_id_text);
+
 				if( id_text == "NONE") {
 					add_token(ID, actual_id_text, line);
 				}
-				else {
-					add_token(ID, line);
-				}
+
 				return ID;
 				break;
 			default:
@@ -485,7 +483,7 @@ void LexicalAnalyzer::get_all_tokens() {
 	}
 
 	// std::cout << "Number of tokens: " << count_tokens << "\n";
-	std::cout << "Eu sunt lista de token-uri: \n";
+	std::cout << logger << "Eu sunt lista de token-uri: \n";
 	token_list.print_list();
 	std::cout << "\n";
 }

@@ -1,19 +1,18 @@
 
 #include "Utils.hpp"
 #include "LexicalAnalyzer.hpp"
-#include "TokenList.hpp"
-#include "Token.hpp"
-#include "Node.hpp"
+#include "Logger.hpp"
 
 namespace utils {
 
     std::vector<char> read_file(const std::string& file_name) {
+        Logger logger{"Utils"};
         std::vector<char> arr;
         char tmp;
 
         std::ifstream in(file_name);
         if(!in) {
-            std::cout << "There was an error while opening the file with name: " <<
+            std::cout << logger << "There was an error while opening the file with name: " <<
                 file_name;
         }
 
@@ -31,7 +30,8 @@ namespace utils {
     }
 
     void test_file(const std::string& file_name) {
-        std::cout << "Testing " << file_name << ":\n";
+        Logger logger{"Utils"};
+        std::cout << logger << "Testing " << file_name << ":\n";
         auto arr = read_file(file_name);
 
         // int i = 0;
@@ -54,5 +54,6 @@ namespace utils {
         test_file("../testing_files/dfa/delimiters+operators.txt");
         test_file("../testing_files/dfa/line_comment.txt");
         test_file("../testing_files/dfa/block_comment.txt");
+        test_file("../testing_files/input.txt");
     }
 }

@@ -8,11 +8,11 @@ set(HEADERS_LIST
 )
 
 set(SOURCES_LIST
+    src/main.cpp
     src/Node.cpp
     src/Token.cpp
     src/TokenList.cpp
     src/LexicalAnalyzer.cpp
     src/Utils.cpp
-    src/main.cpp
     src/Logger.cpp
 )

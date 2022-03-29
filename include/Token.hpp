@@ -6,9 +6,6 @@
 #include <variant>
 
 class Token {
-private:
-    std::string class_name;
-
 public:
     int code;
     std::variant<std::string, long int, double> text;
@@ -22,6 +19,8 @@ public:
     Token(const int& code);
 
     explicit Token() = default;
+private:
+    std::string class_name;
 };
 
 #endif

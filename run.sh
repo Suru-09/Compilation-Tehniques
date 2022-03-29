@@ -11,9 +11,8 @@ cmake ../;
 if cmake --build .; then 
 echo "Build succeded!";
 else 
-echo "Buil failed, operation will be aborted!";
+echo "Build failed, operation will be aborted!";
 exit
 fi
-
 
 ./CT-compiler

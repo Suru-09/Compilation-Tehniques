@@ -26,4 +26,3 @@ target_compile_options(${PROJECT_NAME}
     PRIVATE
         ${C_FLAGS}
 )
-
