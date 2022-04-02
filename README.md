@@ -6,23 +6,14 @@
 
 ## DFA's
 ----------------------
-- ## **ID**: 
-![plot](./images/ID.png)
-- ## **Delimiters**: 
-![plot](./images/delimiters.png)
-
-- ## **Operators + Comments**: 
-![plot](./images/operators_comments.png)
-
-- ## **CT_REAL + CT_INT**:
-![plot](./images/ct_real_int_copy.jpg)
-
-- ## **CT_CHAR**:
-![plot](./images/ct_char.png)
-
-- ## **CT_STRING**:
-![plot](./images/ct_string.png)
-
+<details>
+  <summary> ** DFA diagrams images **</summary>
+  <img src="./images/ID.png" name="image-name1">
+  <img src="./images/delimiters.png" name="image-name2">
+  <img src="./images/ct_real_int_copy.jpg" name="image-name3">
+  <img src="./images/ct_char.png" name="image-name3">
+  <img src="./images/ct_string.png" name="image-name3">
+</details>
 
 # NOTE
 
