@@ -2,6 +2,7 @@
 #include<map>
 
 #include "Utils.hpp"
+#include "SyntacticAnalyzer.hpp"
 
 
 int main() {

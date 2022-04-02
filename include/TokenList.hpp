@@ -2,6 +2,8 @@
 #define TOKENLIST_HPP
 
 #include<iostream>
+
+#include "Token.hpp"
 #include "Node.hpp"
 
 class TokenList {
@@ -10,6 +12,7 @@ public:
     TokenList();
     
     void push(Node& node);
+    std::shared_ptr<Node> get_head();
     void print_list();
 
 private:

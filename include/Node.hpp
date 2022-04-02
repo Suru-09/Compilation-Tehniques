@@ -4,8 +4,8 @@
 #include <iostream>
 #include<memory>
 
-#include "Token.hpp"
 #include "Logger.hpp"
+#include "Token.hpp"
 
 
 class Node {

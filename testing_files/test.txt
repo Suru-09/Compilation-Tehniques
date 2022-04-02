@@ -1,0 +1,24 @@
+int a;
+
+double a , b , c;
+
+struct mere {
+    int a;
+    double b;
+    char c;
+};
+
+int main() {
+
+    while(1 + 2 ) {
+        int a, b, c;
+        return 2.3e5;
+    }
+
+    struct abc {
+        int ab;
+        char c;
+    };
+
+    return 5;
+}

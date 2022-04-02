@@ -1,6 +1,7 @@
 
 #include "Utils.hpp"
 #include "LexicalAnalyzer.hpp"
+#include "SyntacticAnalyzer.hpp"
 #include "Logger.hpp"
 
 namespace utils {
@@ -43,17 +44,28 @@ namespace utils {
 
         LexicalAnalyzer lexic_int{arr};
         lexic_int.get_all_tokens(); 
+
+        SyntacticAnalyzer syn{lexic_int};
+        std::cout << logger << "Starting the syntactic analysis: \n";
+        syn.unit();
     }
 
     void test_diagrams() {
      
-        test_file("../testing_files/dfa/ct_int.txt");
-        test_file("../testing_files/dfa/ct_real.txt");
-        test_file("../testing_files/dfa/ct_string.txt");
-        test_file("../testing_files/dfa/ct_char.txt");
-        test_file("../testing_files/dfa/delimiters+operators.txt");
-        test_file("../testing_files/dfa/line_comment.txt");
-        test_file("../testing_files/dfa/block_comment.txt");
-        test_file("../testing_files/input.txt");
+        // test_file("../testing_files/dfa/ct_int.txt");
+        // test_file("../testing_files/dfa/ct_real.txt");
+        // test_file("../testing_files/dfa/ct_string.txt");
+        // test_file("../testing_files/dfa/ct_char.txt");
+        // test_file("../testing_files/dfa/delimiters+operators.txt");
+        // test_file("../testing_files/dfa/line_comment.txt");
+        // test_file("../testing_files/dfa/block_comment.txt");
+        // test_file("../testing_files/input.txt");
+        test_file("../testing_files/test.txt");
+    }
+
+    std::string log_error(const int& line, const std::string& message) {
+        std::string tmp;
+        tmp = message + " at line: " + std::to_string(line) + "\n";
+        return tmp;
     }
 }

@@ -612,7 +612,7 @@ void LexicalAnalyzer::init_map() {
 LexicalAnalyzer::LexicalAnalyzer(const std::vector<char>& text) 
 : given_text(text),
 i(0),
-line(0),
+line(1),
 class_name("LexicalAnalyzer")
 {	
 	logger = Logger{class_name};

@@ -7,7 +7,7 @@
 #include "TokenList.hpp"
 
 class LexicalAnalyzer {
-private:
+public:
     enum TYPES {
         	COMMA = 1, SEMICOLON = 2, LPAR = 3, RPAR = 4, LBRACKET = 5, RBRACKET = 6,
             LACC = 7, RACC = 8, ADD = 9, SUB = 10, MUL = 11, DOT = 13, AND = 15, OR = 17,

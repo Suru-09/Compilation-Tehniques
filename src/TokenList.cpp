@@ -1,4 +1,6 @@
 #include "TokenList.hpp"
+
+
 #include "LexicalAnalyzer.hpp"
 #include "VariadicTable.hpp"
 
@@ -76,4 +78,8 @@ last(nullptr),
 class_name("TokenList")
 {
     logger = Logger{class_name};
+}
+
+std::shared_ptr<Node> TokenList::get_head() {
+        return head;
 }
