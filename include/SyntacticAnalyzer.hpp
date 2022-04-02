@@ -16,13 +16,30 @@ private:
     int stm_block();
     int stm();
 
+    // EXPRESSIONS
     int expr();
-    void term();
+    int expr_assign();
+    int expr_or();
+    int expr_and();
+    int expr_eq();
+    int expr_rel();
+    int expr_add();
+    int expr_mul();
+    int expr_cast();
+    int expr_unary();
+    int expr_postfix();
+    int exp_primary();
+    
+    int term();
     int match(const int& code);
 
     //  KEYWORDS
     int r_while();
     int r_return();
+    int r_if();
+    int r_for();
+    int r_break();
+    int r_optional_expr();
 
     int array_decl();
     int type_base();

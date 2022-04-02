@@ -20,5 +20,24 @@ int main() {
         char c;
     };
 
-    return 5;
+    for ( 2 + 2 ;  ; 5) {
+        return 5;
+    }
+
+    if ( 5 + 2 ) {
+        return 5;
+    }
+    else {
+        break;
+    }
+
+    int arr[20];
+
+    break;
+}
+
+int some_function();
+
+int * add() {
+    int a;
 }

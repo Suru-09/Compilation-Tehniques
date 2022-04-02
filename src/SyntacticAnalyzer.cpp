@@ -14,21 +14,21 @@ SyntacticAnalyzer::SyntacticAnalyzer()
     logger = Logger{class_name};
 }
 
-void SyntacticAnalyzer::term() {
+int SyntacticAnalyzer::term() {
     if(current_token->token.code == lex.CT_INT) {
         std::cout << logger << " ----> ";
         current_token->token.print_text();
         match(lex.CT_INT);
+        return 1;
     }
     else if(current_token->token.code == lex.CT_REAL) {
         std::cout << logger << " ----> ";
         current_token->token.print_text();
         match(lex.CT_REAL);
+        return 1;
     }
-    else {
-        std::cout << logger << "The term read is not a CT_INT nor a CT_REAL!!\n";
-        exit(1);
-    }
+
+    return 0;
 }
 
 int SyntacticAnalyzer::expr() {
@@ -116,7 +116,11 @@ int SyntacticAnalyzer::r_return() {
 
 int SyntacticAnalyzer::stm() {
 
-    if(stm_block() == 1) {
+    if(r_optional_expr() == 1) {
+        std::cout << logger << "Found OPTIONAL EXPR statement!\n";
+        return 1;        
+    }
+    else if(stm_block() == 1) {
         std::cout << logger << "Am gasit while in LACC () RACC!\n";
         return 1;
     }
@@ -128,11 +132,29 @@ int SyntacticAnalyzer::stm() {
         std::cout << logger << "Found RETURN statement!\n";
         return 1;
     }
+    else if(r_for() == 1) {
+        std::cout << logger << "Found FOR statement!\n";
+        return 1;
+    }
+    else if(r_if() == 1) {
+        std::cout << logger << "Found IF statement!\n";
+        return 1;
+    }
+    else if(r_break() == 1) {
+        std::cout << logger << "Found BREAK statement!\n";
+        return 1;
+    }
+
 
     return 0;
 }
 
 int SyntacticAnalyzer::stm_block() {
+
+    if( match(lex.SEMICOLON) ) {
+        return 1;
+    }
+
     if(!match(lex.LACC)) {
         // std::cout << logger << utils::log_error(current_token->token.line, "Missing { ");
         return 0;
@@ -205,6 +227,7 @@ int SyntacticAnalyzer::array_decl() {
         exit(lex.RBRACKET);
     }
 
+    std::cout << logger << "Found an ARRAY ! \n";
     return 1;
 }
 
@@ -223,6 +246,11 @@ int SyntacticAnalyzer::decl_var() {
     // std::cout << logger << "Am intrat in DECL_VAR : " << lex.print_pretty(consumed_token->token.code) << "\n";
 
     if(!type_base() ) {
+        return 0;
+    }
+
+    if(match(lex.MUL)) {
+        current_token = consumed_token;
         return 0;
     }
 
@@ -309,8 +337,7 @@ int SyntacticAnalyzer::decl_func() {
         match(lex.MUL);
     }
     else if(!match(lex.VOID)) {
-        std::cout << logger << utils::log_error(current_token->token.line, "Missing identifier at function declation ");
-        exit(lex.VOID);
+        return 0;
     }
 
     if(!match(lex.ID)) {
@@ -356,4 +383,152 @@ int SyntacticAnalyzer::decl_func() {
     std::cout << logger << "Found a FUNCTION!\n";
     return 1;
 }
+
+int SyntacticAnalyzer::r_for() {
+
+    if(!match(lex.FOR)) {
+        return 0;
+    }
+
+    if(!match(lex.LPAR)) {
+        std::cout << logger << utils::log_error(current_token->token.line, "Missing ( ");
+        exit(lex.LPAR);
+    }
+
+    int cnt = 3;
+    while(cnt--) {
+        std::cout << logger << "  " << cnt << '\n';
+        expr();
+
+        if(cnt > 0) {
+            if(!match(lex.SEMICOLON)) {
+                std::cout << logger << utils::log_error(current_token->token.line, "Missing ; in for ");
+                exit(lex.SEMICOLON);
+            }
+        }
+    }
+
+    if(!match(lex.RPAR)) {
+        std::cout << logger << utils::log_error(current_token->token.line, "Missing ) ");
+        exit(lex.RPAR);
+    }
+
+    if(!stm()) {
+        std::cout << logger << utils::log_error(current_token->token.line, "Missing statement ");
+        exit(-1);
+    }
+
+    return 1;
+}
+
+int SyntacticAnalyzer::r_if() {
+
+    if(!match(lex.IF)) {
+        return 0;
+    }
+
+    if(!match(lex.LPAR)) {
+        std::cout << logger << utils::log_error(current_token->token.line, "Missing ( ");
+        exit(lex.LPAR);
+    }
+
+    if(!expr()) {
+        std::cout << logger << utils::log_error(current_token->token.line, "Missing expression ");
+        exit(-1);       
+    }
+
+    if(!match(lex.RPAR)) {
+        std::cout << logger << utils::log_error(current_token->token.line, "Missing ) ");
+        exit(lex.RPAR);
+    }
+
+    if(!stm()) {
+        std::cout << logger << utils::log_error(current_token->token.line, "Missing statement ");
+        exit(-1);
+    }
+
+    if(match(lex.ELSE)) {
+        if(!stm()) {
+            std::cout << logger << utils::log_error(current_token->token.line, "Else with empty body ");
+            exit(lex.ELSE);
+        }
+    }
+
+    return 1;
+}
+
+int SyntacticAnalyzer::r_break() {
+
+    if(!match(lex.BREAK)) {
+        return 0;
+    }
+
+    if(!match(lex.SEMICOLON)) {
+        std::cout << logger << utils::log_error(current_token->token.line, "Missing ; in for ");
+        exit(lex.SEMICOLON);
+    }
+
+    return 1;
+
+}
+
+int SyntacticAnalyzer::r_optional_expr() {
+
+    expr();
+
+    if(!match(lex.SEMICOLON)) {
+        return 0;   
+    }
+
+    return 1;
+}
+
+int SyntacticAnalyzer::expr_primary() {
+
+    consumed_token = std::make_shared<Node> (*current_token);
+
+    if(match(lex.CT_INT)) {
+        return 1;
+    }
+    else if(match(lex.CT_REAL)){
+        return 1;
+    }
+    else if(match(lex.CT_CHAR)) {
+        return 1;
+    }
+    else if(match(lex.CT_STRING)) {
+        return 1;
+    }
+    else if(match(lex.LPAR) && expr() && match(lex.RPAR)){
+        return 1;
+    }
+
+    current_token = consumed_token;
+    
+    if(!match(lex.ID)) {
+        return 0;
+    }
+
+   match(lex.LPAR);
+
+    if(expr()) {
+            if(!match(lex.COMMA) && !expr())
+                break;
+
+            if(match(lex.COMMA) && !expr()) {
+                std::cout << logger << utils::log_error(current_token->token.line, "Missing COMMA ");
+                exit(lex.COMMA);
+            }
+
+            if(!match(lex.COMMA) && expr()) {
+                std::cout << logger << utils::log_error(current_token->token.line, "Missing expression ");
+                exit(-1);
+            }
+    }
+
+   match(lex.RPAR);
+    
+    return 1;
+}
+
 
