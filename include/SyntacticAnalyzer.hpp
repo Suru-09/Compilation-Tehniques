@@ -28,7 +28,8 @@ private:
     int expr_cast();
     int expr_unary();
     int expr_postfix();
-    int exp_primary();
+    int expr_postfix_bracket();
+    int expr_primary();
     
     int term();
     int match(const int& code);

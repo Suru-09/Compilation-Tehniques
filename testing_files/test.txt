@@ -1,4 +1,4 @@
-int a;
+/*int a;
 
 double a , b , c;
 
@@ -10,7 +10,7 @@ struct mere {
 
 int main() {
 
-    while(1 + 2 ) {
+    while(1 * 2 ) {
         int a, b, c;
         return 2.3e5;
     }
@@ -20,11 +20,11 @@ int main() {
         char c;
     };
 
-    for ( 2 + 2 ;  ; 5) {
+    for ( 2 / 2 ;  ; 5) {
         return 5;
     }
 
-    if ( 5 + 2 ) {
+    if ( 5 / 2 ) {
         return 5;
     }
     else {
@@ -40,4 +40,22 @@ int some_function();
 
 int * add() {
     int a;
+}
+*/
+
+int main() {
+    banana(5);
+    banana(5.23);
+    banana("Vali");
+    banana('V');
+
+    5;
+    'V';
+    "Vali";
+    6.29e5;
+    (bannaa(1));
+
+    banana[5];
+
+    return 5;
 }

@@ -32,31 +32,32 @@ int SyntacticAnalyzer::term() {
 }
 
 int SyntacticAnalyzer::expr() {
-    term();
+    // term();
     while(true) {
-        if(current_token->token.code == lex.ADD) {
-            match(lex.ADD);
-            term();
-            std::cout << logger << " + \n";
-        }
-        else if(current_token->token.code == lex.SUB) {
-            match(lex.SUB);
-            term();
-            std::cout << logger << " - \n";
-        }
-        else if(current_token->token.code == lex.DIV) {
-            match(lex.DIV);
-            term();
-            std::cout << logger << " - \n";
-        }
-        else if(current_token->token.code == lex.MUL) {
-            match(lex.MUL);
-            term();
-            std::cout << logger << " - \n";
-        }
-        else {
+        if(expr_primary()) {
+            std::cout << logger << "Am gasit expresie primara!\n";
             return 1;
         }
+        if(expr_postfix() ) {
+            std::cout << logger << "Am gasit expresie POSTFIX!\n";
+            return 1;
+        }
+        // if(expr_unary()) {
+        //     std::cout << logger << "Am gasit expresie UNARY!\n";
+        //     return 1;
+        // }
+        // if(expr_cast()) {
+        //     std::cout << logger << "Am gasit expresie CAST!\n";
+        //     return 1;
+        // }
+        // if(expr_mul()) {
+        //     std::cout << logger << "Am gasit expresie MUL!\n";
+        //     return 1;
+        // }
+        else {
+            return 0;
+        }
+        
     }
 }
 
@@ -117,7 +118,7 @@ int SyntacticAnalyzer::r_return() {
 int SyntacticAnalyzer::stm() {
 
     if(r_optional_expr() == 1) {
-        std::cout << logger << "Found OPTIONAL EXPR statement!\n";
+        std::cout << logger << "Found EXPR statement!\n";
         return 1;        
     }
     else if(stm_block() == 1) {
@@ -160,7 +161,9 @@ int SyntacticAnalyzer::stm_block() {
         return 0;
     }
 
-   while( stm() ||  decl_struct() || decl_var() ) {}
+   while( stm() ||  decl_struct() || decl_var() ) {
+    //    std::cout << logger << "STM_BLOCK a ramas in bucla infinita!\n";
+   }
 
     if(!match(lex.RACC)) {
         std::cout << logger << utils::log_error(current_token->token.line, "Missing } ");
@@ -185,6 +188,8 @@ void SyntacticAnalyzer::unit() {
         else if ( decl_func() == 1) {
             // std::cout << logger << "Found a function!\n";
         }
+
+        // std::cout << logger << "Bucla infinita in UNIT!\n";
     }
 }
 
@@ -485,8 +490,6 @@ int SyntacticAnalyzer::r_optional_expr() {
 
 int SyntacticAnalyzer::expr_primary() {
 
-    consumed_token = std::make_shared<Node> (*current_token);
-
     if(match(lex.CT_INT)) {
         return 1;
     }
@@ -503,32 +506,163 @@ int SyntacticAnalyzer::expr_primary() {
         return 1;
     }
 
-    current_token = consumed_token;
-    
+
     if(!match(lex.ID)) {
         return 0;
     }
 
-   match(lex.LPAR);
+    if(match(lex.LPAR) ) {
+            if(expr()) {
+                    if(!match(lex.COMMA) && !expr()) {
 
-    if(expr()) {
-            if(!match(lex.COMMA) && !expr())
-                break;
+                    }
+                    else {
+                        if(match(lex.COMMA) && !expr()) {
+                            std::cout << logger << utils::log_error(current_token->token.line, "Missing COMMA ");
+                            exit(lex.COMMA);
+                        }
 
-            if(match(lex.COMMA) && !expr()) {
-                std::cout << logger << utils::log_error(current_token->token.line, "Missing COMMA ");
-                exit(lex.COMMA);
+                        if(!match(lex.COMMA) && expr()) {
+                            std::cout << logger << utils::log_error(current_token->token.line, "Missing expression ");
+                            exit(-1);
+                        }
+                    }
+            }
+            else {
+                std::cout << logger << utils::log_error(current_token->token.line, "Missing EXPRESSION ");
+                exit(-1);
             }
 
-            if(!match(lex.COMMA) && expr()) {
-                std::cout << logger << utils::log_error(current_token->token.line, "Missing expression ");
-                exit(-1);
+            if(!match(lex.RPAR) ) {
+                std::cout << logger << utils::log_error(current_token->token.line, "Missing ) ");
+                exit(lex.RPAR);
             }
     }
 
-   match(lex.RPAR);
-    
     return 1;
+}
+
+int SyntacticAnalyzer::expr_postfix_bracket() {
+
+    if(expr_primary()) {
+        return 1;
+    }
+
+
+    if(!expr_postfix()) {
+        return 0;
+    }
+    
+    if(!match(lex.LBRACKET)) {
+       if(!match(lex.DOT)) {
+           std::cout << logger << utils::log_error(current_token->token.line, "Missing both [ OR DOT ");
+           exit(lex.DOT);
+       }
+
+       if(!match(lex.ID)) {
+           std::cout << logger << utils::log_error(current_token->token.line, "Missing ID after DOT");
+           exit(lex.ID);
+       }
+    }
+
+    if(!expr()) {
+        std::cout << logger << utils::log_error(current_token->token.line, "Missing expression ");
+        exit(-1);
+    }
+
+    return 1;
+}
+
+int SyntacticAnalyzer::expr_postfix() {
+
+    std::cout << logger << "Loop infinit ? !\n";
+
+    if(expr_postfix_bracket() == 1) {
+        return 1;
+    }
+
+    if(!expr_primary()) {
+        return 0;
+    }
+
+    return 1;
+}
+
+int SyntacticAnalyzer::expr_unary() {
+    if(!match(lex.SUB) && !match(lex.NOT)) {
+        if(!(expr_postfix())) {
+            return 0;
+        }
+    }
+    else if(match(lex.SUB)) {
+        if(!expr_unary()) {
+            return 0;
+        }
+    }
+    else if(match(lex.NOT)) {
+        if(!expr_unary()) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+int SyntacticAnalyzer::expr_cast() {
+
+    if(expr_unary()) {
+        return 1;
+    }
+
+    if(!match(lex.LPAR)) {
+        return 0;
+    }
+
+    if(!type_name()) {
+        std::cout << logger << utils::log_error(current_token->token.line, "Missing type  ");
+        exit(-1);       
+    }
+
+    if(!match(lex.RPAR)) {
+        std::cout << logger << utils::log_error(current_token->token.line, "Missing ) ");
+        exit(lex.RPAR);
+    }
+
+    if(expr_cast()) {
+        return 1;
+    }
+
+    return 0;
+}
+
+int SyntacticAnalyzer::expr_mul() {
+    if(expr_cast()) {
+        return 1;
+    }
+
+    if(expr_mul()) {
+        if(!match(lex.MUL) && !match(lex.DIV)) {
+            std::cout << logger << utils::log_error(current_token->token.line, "Missing both MUL and DIV ");
+            exit(lex.MUL);
+        }
+        else if(match(lex.MUL)) {
+            if(!expr_cast()) {
+                std::cout << logger << utils::log_error(current_token->token.line, "Missing EXPR_CAST ");
+                exit(lex.MUL);
+            }
+        }
+        else if(match(lex.DIV)) {
+            if(!expr_cast()) {
+                std::cout << logger << utils::log_error(current_token->token.line, "Missing EXPR_CAST ");
+                exit(lex.MUL);
+            }
+        }
+        else {
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 
