@@ -25,6 +25,7 @@ private:
     int expr_rel();
     int expr_add();
     int expr_mul();
+    int expr_mul_helper();
     int expr_cast();
     int expr_unary();
     int expr_postfix();

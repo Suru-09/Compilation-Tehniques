@@ -32,32 +32,34 @@ int SyntacticAnalyzer::term() {
 }
 
 int SyntacticAnalyzer::expr() {
-    // term();
-    while(true) {
-        if(expr_primary()) {
-            std::cout << logger << "Am gasit expresie primara!\n";
-            return 1;
-        }
-        if(expr_postfix() ) {
-            std::cout << logger << "Am gasit expresie POSTFIX!\n";
-            return 1;
-        }
-        // if(expr_unary()) {
-        //     std::cout << logger << "Am gasit expresie UNARY!\n";
-        //     return 1;
-        // }
-        // if(expr_cast()) {
-        //     std::cout << logger << "Am gasit expresie CAST!\n";
-        //     return 1;
-        // }
-        // if(expr_mul()) {
-        //     std::cout << logger << "Am gasit expresie MUL!\n";
-        //     return 1;
-        // }
-        else {
-            return 0;
-        }
-        
+
+    consumed_token = std::make_shared<Node> (*current_token);
+    std::cout << logger << "eu sunt EXPR: " << lex.print_pretty(current_token->token.code) << "\n";
+
+   
+    // if(expr_primary()) {
+    //     std::cout << logger << "Am gasit expresie primara!\n";
+    //     return 1;
+    // }
+    // else if(expr_postfix() ) {
+    //     std::cout << logger << "Am gasit expresie POSTFIX!\n";
+    //     return 1;
+    // }
+    // else if(expr_unary()) {
+    //     std::cout << logger << "Am gasit expresie UNARY!\n";
+    //     return 1;
+    // }
+    // else if(expr_cast()) {
+    //     std::cout << logger << "Am gasit expresie CAST!\n";
+    //     return 1;
+    // }
+    if(expr_mul()) {
+        std::cout << logger << "Am gasit expresie MUL!\n";
+        return 1;
+    }
+    else {
+        current_token = consumed_token;
+        return 0;
     }
 }
 
@@ -117,6 +119,8 @@ int SyntacticAnalyzer::r_return() {
 
 int SyntacticAnalyzer::stm() {
 
+    consumed_token = std::make_shared<Node>(*current_token);
+
     if(r_optional_expr() == 1) {
         std::cout << logger << "Found EXPR statement!\n";
         return 1;        
@@ -146,7 +150,7 @@ int SyntacticAnalyzer::stm() {
         return 1;
     }
 
-
+    current_token = consumed_token;
     return 0;
 }
 
@@ -195,7 +199,6 @@ void SyntacticAnalyzer::unit() {
 
 int SyntacticAnalyzer::type_base() {
     consumed_token = std::make_shared<Node>(*current_token);
-    // std::cout << logger << "Am intrat in TYPE_BASE : " << lex.print_pretty(consumed_token->token.code) << "\n";
 
     if(match(lex.INT)) {
         return lex.INT;
@@ -211,7 +214,6 @@ int SyntacticAnalyzer::type_base() {
             return lex.STRUCT;
         }
         else {
-            // std::cout << logger << "Am intrat in STRUCT : " << lex.print_pretty(consumed_token->token.code) << "\n";
             current_token = consumed_token;
             return 0;
         }
@@ -221,6 +223,7 @@ int SyntacticAnalyzer::type_base() {
 }
 
 int SyntacticAnalyzer::array_decl() {
+
     if(!match(lex.LBRACKET)) {
         return 0;
     }
@@ -248,7 +251,6 @@ int SyntacticAnalyzer::type_name() {
 
 int SyntacticAnalyzer::decl_var() {
     consumed_token = std::make_shared<Node>(*current_token);
-    // std::cout << logger << "Am intrat in DECL_VAR : " << lex.print_pretty(consumed_token->token.code) << "\n";
 
     if(!type_base() ) {
         return 0;
@@ -296,7 +298,10 @@ int SyntacticAnalyzer::decl_var() {
 }
 
 int SyntacticAnalyzer::decl_struct() {
+    consumed_token = std::make_shared<Node>(*current_token);
+
     if(!match(lex.STRUCT) || !match(lex.ID)) {
+        current_token = consumed_token;
         return 0;
     }
 
@@ -322,6 +327,7 @@ int SyntacticAnalyzer::decl_struct() {
 }
 
 int SyntacticAnalyzer::func_arg() {
+
     if(!type_base()) {
         return 0;
     }
@@ -337,7 +343,9 @@ int SyntacticAnalyzer::func_arg() {
 }
 
 int SyntacticAnalyzer::decl_func() {
-    
+
+    // std::cout << logger << "Sunt in DECL_FUNC: " <<  lex.print_pretty(current_token->token.code) << " at line: " << current_token->token.line << "\n";
+
     if( type_base()) {
         match(lex.MUL);
     }
@@ -428,6 +436,8 @@ int SyntacticAnalyzer::r_for() {
 
 int SyntacticAnalyzer::r_if() {
 
+    std::cout << logger << "Sunt in expression R_IF: " << lex.print_pretty(current_token->token.code) << "\n";
+
     if(!match(lex.IF)) {
         return 0;
     }
@@ -489,6 +499,7 @@ int SyntacticAnalyzer::r_optional_expr() {
 }
 
 int SyntacticAnalyzer::expr_primary() {
+    consumed_token = std::make_shared<Node> (*current_token);
 
     if(match(lex.CT_INT)) {
         return 1;
@@ -502,10 +513,23 @@ int SyntacticAnalyzer::expr_primary() {
     else if(match(lex.CT_STRING)) {
         return 1;
     }
-    else if(match(lex.LPAR) && expr() && match(lex.RPAR)){
-        return 1;
+    else if(match(lex.LPAR)){
+        if(!type_name()) {
+            if(expr()) {
+                if(match(lex.RPAR)) {
+                    return 1;
+                }
+            }
+        }
+        else if( match(lex.RPAR) ) {
+
+            while(expr_cast()) {}
+            std::cout << logger << "Found a CAST EXPRESSION! \n";
+            return 1;
+        }
     }
 
+    current_token = consumed_token;
 
     if(!match(lex.ID)) {
         return 0;
@@ -538,83 +562,105 @@ int SyntacticAnalyzer::expr_primary() {
                 exit(lex.RPAR);
             }
     }
+    else {
+        consumed_token = std::make_shared<Node>(*current_token);
+        if(match(lex.LBRACKET) == 1) {
+            current_token = consumed_token;
+            if(expr_postfix_bracket() == 1) {
+                return 1;
+            }
+        }
+        else if(match(lex.DOT) == 1) {
+            current_token = consumed_token;
+            if(expr_postfix_bracket() == 1) {
+                return 1;
+            }
+        }
+    }
 
     return 1;
 }
 
 int SyntacticAnalyzer::expr_postfix_bracket() {
 
+    consumed_token = std::make_shared<Node> (*current_token);
+
     if(expr_primary()) {
+        std::cout << logger << "Found a POSTFIX!\n";
         return 1;
     }
 
-
-    if(!expr_postfix()) {
-        return 0;
-    }
-    
     if(!match(lex.LBRACKET)) {
-       if(!match(lex.DOT)) {
-           std::cout << logger << utils::log_error(current_token->token.line, "Missing both [ OR DOT ");
-           exit(lex.DOT);
-       }
+        if(!match(lex.DOT)) {
+            return 0;
+        }
 
-       if(!match(lex.ID)) {
-           std::cout << logger << utils::log_error(current_token->token.line, "Missing ID after DOT");
-           exit(lex.ID);
-       }
+        if(!match(lex.ID)) {
+            return 0;
+        }
     }
+    else {
+        while(expr_postfix_bracket()) {}
 
-    if(!expr()) {
-        std::cout << logger << utils::log_error(current_token->token.line, "Missing expression ");
-        exit(-1);
+        if(!match(lex.RBRACKET)) {
+            current_token = consumed_token;
+            return 0;
+        }
     }
 
     return 1;
 }
 
 int SyntacticAnalyzer::expr_postfix() {
+   
+   consumed_token = std::make_shared<Node> (*current_token);
 
-    std::cout << logger << "Loop infinit ? !\n";
-
-    if(expr_postfix_bracket() == 1) {
-        return 1;
-    }
-
-    if(!expr_primary()) {
-        return 0;
-    }
-
+   if(!expr_postfix_bracket()){
+       current_token = consumed_token;
+       return 0;
+   }
+    
+    std::cout << logger << "Found a POSTFIX!\n";
     return 1;
 }
 
 int SyntacticAnalyzer::expr_unary() {
-    if(!match(lex.SUB) && !match(lex.NOT)) {
-        if(!(expr_postfix())) {
-            return 0;
-        }
-    }
-    else if(match(lex.SUB)) {
-        if(!expr_unary()) {
-            return 0;
-        }
-    }
-    else if(match(lex.NOT)) {
-        if(!expr_unary()) {
-            return 0;
-        }
+
+    consumed_token = std::make_shared<Node> (*current_token);
+
+     if( expr_postfix() ) {
+        return 1;
     }
 
-    return 1;
+    if( match(lex.SUB) ) {
+       if( !expr_unary()) {
+           current_token = consumed_token;
+           return 0;
+       }
+       return 1;
+    }
+     if( match(lex.NOT) ) {
+        if( !expr_unary()) {
+           current_token = consumed_token;
+           return 0;
+       }
+       return 1;
+    }
+    
+    current_token = consumed_token;
+    return 0;
 }
 
 int SyntacticAnalyzer::expr_cast() {
+
+    consumed_token = std::make_shared<Node> (*current_token);
 
     if(expr_unary()) {
         return 1;
     }
 
     if(!match(lex.LPAR)) {
+        // current_token = consumed_token;
         return 0;
     }
 
@@ -635,33 +681,51 @@ int SyntacticAnalyzer::expr_cast() {
     return 0;
 }
 
-int SyntacticAnalyzer::expr_mul() {
-    if(expr_cast()) {
-        return 1;
-    }
+int SyntacticAnalyzer::expr_mul_helper() {
 
-    if(expr_mul()) {
-        if(!match(lex.MUL) && !match(lex.DIV)) {
-            std::cout << logger << utils::log_error(current_token->token.line, "Missing both MUL and DIV ");
-            exit(lex.MUL);
+    std::cout << logger << "Sunt in expression MUL HELPER: " << lex.print_pretty(current_token->token.code) << "\n";
+    
+    consumed_token = std::make_shared<Node> (*current_token);
+    
+    if(match(lex.MUL) || match(lex.DIV) ) {
+        if(!expr_cast()) {
+            current_token = consumed_token;
+            return 0;
         }
-        else if(match(lex.MUL)) {
-            if(!expr_cast()) {
-                std::cout << logger << utils::log_error(current_token->token.line, "Missing EXPR_CAST ");
-                exit(lex.MUL);
-            }
-        }
-        else if(match(lex.DIV)) {
-            if(!expr_cast()) {
-                std::cout << logger << utils::log_error(current_token->token.line, "Missing EXPR_CAST ");
-                exit(lex.MUL);
-            }
-        }
-        else {
+    }
+    else {
+        current_token = consumed_token;
+        return 0;
+    }
+   
+    while(expr_mul_helper() ) {}
+
+    std::cout << logger << "Sunt in expression MUL HELPER FINAL: " << lex.print_pretty(current_token->token.code) << "\n";
+    return 1;
+}
+
+
+int SyntacticAnalyzer::expr_mul() {
+    
+    std::cout << logger << "Sunt in expression MUL: " << lex.print_pretty(current_token->token.code) << "\n";
+    consumed_token = std::make_shared<Node> (*current_token);
+
+    int val = expr_cast();
+    
+    if(!expr_mul_helper()) {
+        if(val == 1) {
             return 1;
         }
+        else {
+            current_token = consumed_token;
+            return 0;
+        }
     }
-
+    else {
+        std::cout << logger << "Found a MUL expression!\n";
+        return 1;
+    }
+    
     return 0;
 }
 

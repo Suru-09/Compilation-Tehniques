@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED 14)
 set(C_FLAGS 
     -Wall
     -o3
+    -ggdb
 )
 
 add_executable(${PROJECT_NAME}
