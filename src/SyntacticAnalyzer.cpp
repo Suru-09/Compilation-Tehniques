@@ -57,7 +57,6 @@ int SyntacticAnalyzer::r_while() {
         std::cout << logger << utils::log_error(current_token->token.line, "Missing statement ");
         exit(-1);
     }
-
     return 1;
 }
 
@@ -82,9 +81,9 @@ int SyntacticAnalyzer::stm() {
     consumed_token = std::make_shared<Node>(*current_token);
 
     if(r_optional_expr() == 1) {
-        // std::cout << logger << "Found EXPR statement!\n";
         return 1;        
     }
+
     else if(stm_block() == 1) {
         return 1;
     }
@@ -108,7 +107,6 @@ int SyntacticAnalyzer::stm() {
         std::cout << logger << "Found BREAK statement!\n";
         return 1;
     }
-
     current_token = consumed_token;
     return 0;
 }
@@ -120,19 +118,18 @@ int SyntacticAnalyzer::stm_block() {
     }
 
     if(!match(lex.LACC)) {
-        // std::cout << logger << utils::log_error(current_token->token.line, "Missing { ");
         return 0;
     }
+    // int val = match(lex.LACC);
 
-   while( stm() ||  decl_struct() || decl_var() ) {
-    //    std::cout << logger << "STM_BLOCK a ramas in bucla infinita!\n";
-   }
+   while( stm() || decl_var() ) {}
 
     if(!match(lex.RACC)) {
-        std::cout << logger << utils::log_error(current_token->token.line, "Missing } ");
-        exit(lex.RACC);
+        // if(val == 1) {
+            std::cout << logger << utils::log_error(current_token->token.line, "Missing } ");
+            exit(lex.RACC);
+        // } 
     }
-
     return 1;
 }
 
@@ -142,15 +139,9 @@ void SyntacticAnalyzer::unit() {
             break;
         }
 
-        if( decl_struct() == 1) {
-
-        }
-        else if(decl_var() ) {
-
-        }
-        else if(decl_func()) {
-
-        }
+        if( decl_struct() == 1) {}
+        else if(decl_var() ) {}
+        else if(decl_func()) {}
     }
 }
 
@@ -175,7 +166,6 @@ int SyntacticAnalyzer::type_base() {
             return 0;
         }
     }
-
     return 0;
 }
 
@@ -227,7 +217,6 @@ int SyntacticAnalyzer::decl_var() {
 
     while(1) {
         if(!match(lex.COMMA)) {
-            // std::cout << logger << utils::log_error(current_token->token.line, "Missing COMMA ");
             break;
         }
 
@@ -241,7 +230,6 @@ int SyntacticAnalyzer::decl_var() {
 
     if(match(lex.LPAR)) {
         current_token = consumed_token;
-        // std::cout << logger << "Am intrat pe LPAR2: " << lex.print_pretty(consumed_token->token.code) << "\n";
         return 0;
     }
 
@@ -263,8 +251,12 @@ int SyntacticAnalyzer::decl_struct() {
     }
 
     if(!match(lex.LACC)) {
-        std::cout << logger << utils::log_error(current_token->token.line, "Missing { ");
-        exit(lex.LACC);
+        current_token = consumed_token;
+        if(!decl_var()) {
+            std::cout << logger << utils::log_error(current_token->token.line, "Missing { ");
+            exit(lex.LACC);
+        }
+        return 0;
     }
 
     while( decl_var() ) {}
@@ -300,9 +292,6 @@ int SyntacticAnalyzer::func_arg() {
 }
 
 int SyntacticAnalyzer::decl_func() {
-
-    // std::cout << logger << "Sunt in DECL_FUNC: " <<  lex.print_pretty(current_token->token.code) << " at line: " << current_token->token.line << "\n";
-
     if( type_base()) {
         match(lex.MUL);
     }
@@ -443,10 +432,12 @@ int SyntacticAnalyzer::r_break() {
 }
 
 int SyntacticAnalyzer::r_optional_expr() {
+    consumed_token = std::make_shared<Node> (*current_token);
 
     expr();
 
     if(!match(lex.SEMICOLON)) {
+        current_token = consumed_token;
         return 0;   
     }
 
@@ -496,25 +487,22 @@ int SyntacticAnalyzer::expr_primary() {
     }
 
     if(match(lex.LPAR) ) {
-            if(expr()) {
-                    if(!match(lex.COMMA) && !expr()) {
+            
+            expr();
+            
+            if(!match(lex.COMMA) && !expr()) {
 
-                    }
-                    else {
-                        if(match(lex.COMMA) && !expr()) {
-                            std::cout << logger << utils::log_error(current_token->token.line, "Missing COMMA ");
-                            exit(lex.COMMA);
-                        }
-
-                        if(!match(lex.COMMA) && expr()) {
-                            std::cout << logger << utils::log_error(current_token->token.line, "Missing expression ");
-                            exit(-1);
-                        }
-                    }
             }
             else {
-                std::cout << logger << utils::log_error(current_token->token.line, "Missing EXPRESSION ");
-                exit(-1);
+                if(match(lex.COMMA) && !expr()) {
+                    std::cout << logger << utils::log_error(current_token->token.line, "Missing COMMA ");
+                    exit(lex.COMMA);
+                }
+
+                if(!match(lex.COMMA) && expr()) {
+                    std::cout << logger << utils::log_error(current_token->token.line, "Missing expression ");
+                    exit(-1);
+                }
             }
 
             if(!match(lex.RPAR) ) {
@@ -551,6 +539,7 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
     }
 
     if(!match(lex.LBRACKET)) {
+        
         if(!match(lex.DOT)) {
             return 0;
         }
@@ -560,19 +549,18 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
         }
     }
     else {
-        while(expr_postfix_bracket()) {}
+        while(expr()) {}
 
         if(!match(lex.RBRACKET)) {
             current_token = consumed_token;
             return 0;
         }
+        expr_postfix_bracket();
     }
-
     return 1;
 }
 
 int SyntacticAnalyzer::expr_postfix() {
-   
    consumed_token = std::make_shared<Node> (*current_token);
 
    if(!expr_postfix_bracket()){
@@ -585,7 +573,6 @@ int SyntacticAnalyzer::expr_postfix() {
 }
 
 int SyntacticAnalyzer::expr_unary() {
-
     consumed_token = std::make_shared<Node> (*current_token);
 
      if( expr_postfix() ) {
@@ -612,7 +599,6 @@ int SyntacticAnalyzer::expr_unary() {
 }
 
 int SyntacticAnalyzer::expr_cast() {
-
     consumed_token = std::make_shared<Node> (*current_token);
 
     if(expr_unary()) {
@@ -620,7 +606,6 @@ int SyntacticAnalyzer::expr_cast() {
     }
 
     if(!match(lex.LPAR)) {
-        // current_token = consumed_token;
         return 0;
     }
 
@@ -642,9 +627,6 @@ int SyntacticAnalyzer::expr_cast() {
 }
 
 int SyntacticAnalyzer::expr_mul_helper() {
-
-    // std::cout << logger << "Sunt in expression MUL HELPER: " << lex.print_pretty(current_token->token.code) << "\n";
-    
     consumed_token = std::make_shared<Node> (*current_token);
     
     if(match(lex.MUL) || match(lex.DIV) ) {
@@ -659,17 +641,12 @@ int SyntacticAnalyzer::expr_mul_helper() {
     }
    
     while(expr_mul_helper() ) {}
-
-    // std::cout << logger << "Sunt in expression MUL HELPER FINAL: " << lex.print_pretty(current_token->token.code) << "\n";
     return 1;
 }
 
 
 int SyntacticAnalyzer::expr_mul() {
-    
-    // std::cout << logger << "Sunt in expression MUL: " << lex.print_pretty(current_token->token.code) << "\n";
     consumed_token = std::make_shared<Node> (*current_token);
-
     int val = expr_cast();
     
     if(!expr_mul_helper()) {
@@ -691,9 +668,6 @@ int SyntacticAnalyzer::expr_mul() {
 
 
 int SyntacticAnalyzer::expr_add_helper() {
-
-    // std::cout << logger << "Sunt in expression ADD HELPER: " << lex.print_pretty(current_token->token.code) << "\n";
-    
     consumed_token = std::make_shared<Node> (*current_token);
     
     if(match(lex.ADD) || match(lex.SUB) ) {
@@ -708,17 +682,12 @@ int SyntacticAnalyzer::expr_add_helper() {
     }
    
     while(expr_add_helper() ) {}
-
-    // std::cout << logger << "Sunt in expression ADD HELPER FINAL: " << lex.print_pretty(current_token->token.code) << "\n";
     return 1;
 }
 
 
 int SyntacticAnalyzer::expr_add() {
-    
-    // std::cout << logger << "Sunt in expression ADD: " << lex.print_pretty(current_token->token.code) << "\n";
     consumed_token = std::make_shared<Node> (*current_token);
-
     int val = expr_mul();
     
     if(!expr_add_helper()) {
@@ -739,9 +708,6 @@ int SyntacticAnalyzer::expr_add() {
 }
 
 int SyntacticAnalyzer::expr_rel_helper() {
-
-    // std::cout << logger << "Sunt in expression REL HELPER: " << lex.print_pretty(current_token->token.code) << "\n";
-    
     consumed_token = std::make_shared<Node> (*current_token);
     
     if(match(lex.LESS) || match(lex.LESSEQ) || match(lex.GREATER) || match(lex.GREATEREQ) ) {
@@ -756,17 +722,12 @@ int SyntacticAnalyzer::expr_rel_helper() {
     }
    
     while(expr_rel_helper() ) {}
-
-    // std::cout << logger << "Sunt in expression ADD HELPER FINAL: " << lex.print_pretty(current_token->token.code) << "\n";
     return 1;
 }
 
 
 int SyntacticAnalyzer::expr_rel() {
-    
-    // std::cout << logger << "Sunt in expression ADD: " << lex.print_pretty(current_token->token.code) << "\n";
     consumed_token = std::make_shared<Node> (*current_token);
-
     int val = expr_add();
     
     if(!expr_rel_helper()) {
@@ -807,7 +768,6 @@ int SyntacticAnalyzer::expr_eq_helper() {
 
 
 int SyntacticAnalyzer::expr_eq() {
-    
     consumed_token = std::make_shared<Node> (*current_token);
     int val = expr_rel();
     
@@ -849,7 +809,6 @@ int SyntacticAnalyzer::expr_and_helper() {
 
 
 int SyntacticAnalyzer::expr_and() {
-    
     consumed_token = std::make_shared<Node> (*current_token);
     int val = expr_eq();
     
@@ -891,7 +850,6 @@ int SyntacticAnalyzer::expr_or_helper() {
 
 
 int SyntacticAnalyzer::expr_or() {
-    
     consumed_token = std::make_shared<Node> (*current_token);
     int val = expr_and();
     
@@ -927,13 +885,10 @@ int SyntacticAnalyzer::expr_assign_helper() {
     }
 
     while(expr_eq_helper() ) {}
-
     return 1;
 }
 
-
 int SyntacticAnalyzer::expr_assign() {
-    
     consumed_token = std::make_shared<Node> (*current_token);
     int val = expr_or();
     
@@ -950,7 +905,5 @@ int SyntacticAnalyzer::expr_assign() {
         std::cout << logger << "Found an ASSIGN expression!\n";
         return 1;
     }
-    
     return 0;
 }
-
