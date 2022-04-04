@@ -18,12 +18,18 @@ private:
 
     // EXPRESSIONS
     int expr();
+    int expr_assign_helper();
     int expr_assign();
+    int expr_or_helper();
     int expr_or();
+    int expr_and_helper();
     int expr_and();
+    int expr_eq_helper();
     int expr_eq();
+    int expr_rel_helper();
     int expr_rel();
     int expr_add();
+    int expr_add_helper();
     int expr_mul();
     int expr_mul_helper();
     int expr_cast();
@@ -32,7 +38,7 @@ private:
     int expr_postfix_bracket();
     int expr_primary();
     
-    int term();
+    // MATCH A TOKEN
     int match(const int& code);
 
     //  KEYWORDS

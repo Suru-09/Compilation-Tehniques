@@ -14,47 +14,9 @@ SyntacticAnalyzer::SyntacticAnalyzer()
     logger = Logger{class_name};
 }
 
-int SyntacticAnalyzer::term() {
-    if(current_token->token.code == lex.CT_INT) {
-        std::cout << logger << " ----> ";
-        current_token->token.print_text();
-        match(lex.CT_INT);
-        return 1;
-    }
-    else if(current_token->token.code == lex.CT_REAL) {
-        std::cout << logger << " ----> ";
-        current_token->token.print_text();
-        match(lex.CT_REAL);
-        return 1;
-    }
-
-    return 0;
-}
-
 int SyntacticAnalyzer::expr() {
-
     consumed_token = std::make_shared<Node> (*current_token);
-    std::cout << logger << "eu sunt EXPR: " << lex.print_pretty(current_token->token.code) << "\n";
-
-   
-    // if(expr_primary()) {
-    //     std::cout << logger << "Am gasit expresie primara!\n";
-    //     return 1;
-    // }
-    // else if(expr_postfix() ) {
-    //     std::cout << logger << "Am gasit expresie POSTFIX!\n";
-    //     return 1;
-    // }
-    // else if(expr_unary()) {
-    //     std::cout << logger << "Am gasit expresie UNARY!\n";
-    //     return 1;
-    // }
-    // else if(expr_cast()) {
-    //     std::cout << logger << "Am gasit expresie CAST!\n";
-    //     return 1;
-    // }
-    if(expr_mul()) {
-        std::cout << logger << "Am gasit expresie MUL!\n";
+    if(expr_assign()) {
         return 1;
     }
     else {
@@ -64,8 +26,6 @@ int SyntacticAnalyzer::expr() {
 }
 
 int SyntacticAnalyzer::match(const int& code) {
-    // std::cout << logger << "Given code: " << code << "\n";
-    // std::cout << logger << "Actual code: " << current_token->token.code << "\n";
     if(current_token->token.code == code) {
         current_token = current_token->next;
         return 1;
@@ -122,11 +82,10 @@ int SyntacticAnalyzer::stm() {
     consumed_token = std::make_shared<Node>(*current_token);
 
     if(r_optional_expr() == 1) {
-        std::cout << logger << "Found EXPR statement!\n";
+        // std::cout << logger << "Found EXPR statement!\n";
         return 1;        
     }
     else if(stm_block() == 1) {
-        std::cout << logger << "Am gasit while in LACC () RACC!\n";
         return 1;
     }
     else if(r_while() == 1) {
@@ -183,17 +142,15 @@ void SyntacticAnalyzer::unit() {
             break;
         }
 
-        if ( decl_struct() == 1) {
-            // std::cout << logger << "Found a STRUCT!\n";
-        }
-        else if ( decl_var() == 1) {
-            // std::cout << logger << "Found a VARIABLE!\n";
-        }
-        else if ( decl_func() == 1) {
-            // std::cout << logger << "Found a function!\n";
-        }
+        if( decl_struct() == 1) {
 
-        // std::cout << logger << "Bucla infinita in UNIT!\n";
+        }
+        else if(decl_var() ) {
+
+        }
+        else if(decl_func()) {
+
+        }
     }
 }
 
@@ -436,8 +393,6 @@ int SyntacticAnalyzer::r_for() {
 
 int SyntacticAnalyzer::r_if() {
 
-    std::cout << logger << "Sunt in expression R_IF: " << lex.print_pretty(current_token->token.code) << "\n";
-
     if(!match(lex.IF)) {
         return 0;
     }
@@ -502,21 +457,26 @@ int SyntacticAnalyzer::expr_primary() {
     consumed_token = std::make_shared<Node> (*current_token);
 
     if(match(lex.CT_INT)) {
+        std::cout << logger << "Found a PRIMARY (CT_INT) !\n";
         return 1;
     }
     else if(match(lex.CT_REAL)){
+        std::cout << logger << "Found a PRIMARY (CT_REAL) \n";
         return 1;
     }
     else if(match(lex.CT_CHAR)) {
+        std::cout << logger << "Found a PRIMARY (CT_CHAR) !\n";
         return 1;
     }
     else if(match(lex.CT_STRING)) {
+        std::cout << logger << "Found a PRIMARY (CT_STRING)!\n";
         return 1;
     }
     else if(match(lex.LPAR)){
         if(!type_name()) {
             if(expr()) {
                 if(match(lex.RPAR)) {
+                    std::cout << logger << "Found a PRIMARY ( LPAR EXPR RPAR)!\n";
                     return 1;
                 }
             }
@@ -578,6 +538,7 @@ int SyntacticAnalyzer::expr_primary() {
         }
     }
 
+    std::cout << logger << "Found a PRIMARY EXPRESSION!\n";
     return 1;
 }
 
@@ -586,7 +547,6 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
     consumed_token = std::make_shared<Node> (*current_token);
 
     if(expr_primary()) {
-        std::cout << logger << "Found a POSTFIX!\n";
         return 1;
     }
 
@@ -620,7 +580,7 @@ int SyntacticAnalyzer::expr_postfix() {
        return 0;
    }
     
-    std::cout << logger << "Found a POSTFIX!\n";
+    // std::cout << logger << "Found a POSTFIX!\n";
     return 1;
 }
 
@@ -683,7 +643,7 @@ int SyntacticAnalyzer::expr_cast() {
 
 int SyntacticAnalyzer::expr_mul_helper() {
 
-    std::cout << logger << "Sunt in expression MUL HELPER: " << lex.print_pretty(current_token->token.code) << "\n";
+    // std::cout << logger << "Sunt in expression MUL HELPER: " << lex.print_pretty(current_token->token.code) << "\n";
     
     consumed_token = std::make_shared<Node> (*current_token);
     
@@ -700,14 +660,14 @@ int SyntacticAnalyzer::expr_mul_helper() {
    
     while(expr_mul_helper() ) {}
 
-    std::cout << logger << "Sunt in expression MUL HELPER FINAL: " << lex.print_pretty(current_token->token.code) << "\n";
+    // std::cout << logger << "Sunt in expression MUL HELPER FINAL: " << lex.print_pretty(current_token->token.code) << "\n";
     return 1;
 }
 
 
 int SyntacticAnalyzer::expr_mul() {
     
-    std::cout << logger << "Sunt in expression MUL: " << lex.print_pretty(current_token->token.code) << "\n";
+    // std::cout << logger << "Sunt in expression MUL: " << lex.print_pretty(current_token->token.code) << "\n";
     consumed_token = std::make_shared<Node> (*current_token);
 
     int val = expr_cast();
@@ -729,4 +689,268 @@ int SyntacticAnalyzer::expr_mul() {
     return 0;
 }
 
+
+int SyntacticAnalyzer::expr_add_helper() {
+
+    // std::cout << logger << "Sunt in expression ADD HELPER: " << lex.print_pretty(current_token->token.code) << "\n";
+    
+    consumed_token = std::make_shared<Node> (*current_token);
+    
+    if(match(lex.ADD) || match(lex.SUB) ) {
+        if(!expr_mul()) {
+            current_token = consumed_token;
+            return 0;
+        }
+    }
+    else {
+        current_token = consumed_token;
+        return 0;
+    }
+   
+    while(expr_add_helper() ) {}
+
+    // std::cout << logger << "Sunt in expression ADD HELPER FINAL: " << lex.print_pretty(current_token->token.code) << "\n";
+    return 1;
+}
+
+
+int SyntacticAnalyzer::expr_add() {
+    
+    // std::cout << logger << "Sunt in expression ADD: " << lex.print_pretty(current_token->token.code) << "\n";
+    consumed_token = std::make_shared<Node> (*current_token);
+
+    int val = expr_mul();
+    
+    if(!expr_add_helper()) {
+        if(val == 1) {
+            return 1;
+        }
+        else {
+            current_token = consumed_token;
+            return 0;
+        }
+    }
+    else {
+        std::cout << logger << "Found a ADD expression!\n";
+        return 1;
+    }
+    
+    return 0;
+}
+
+int SyntacticAnalyzer::expr_rel_helper() {
+
+    // std::cout << logger << "Sunt in expression REL HELPER: " << lex.print_pretty(current_token->token.code) << "\n";
+    
+    consumed_token = std::make_shared<Node> (*current_token);
+    
+    if(match(lex.LESS) || match(lex.LESSEQ) || match(lex.GREATER) || match(lex.GREATEREQ) ) {
+        if(!expr_add()) {
+            current_token = consumed_token;
+            return 0;
+        }
+    }
+    else {
+        current_token = consumed_token;
+        return 0;
+    }
+   
+    while(expr_rel_helper() ) {}
+
+    // std::cout << logger << "Sunt in expression ADD HELPER FINAL: " << lex.print_pretty(current_token->token.code) << "\n";
+    return 1;
+}
+
+
+int SyntacticAnalyzer::expr_rel() {
+    
+    // std::cout << logger << "Sunt in expression ADD: " << lex.print_pretty(current_token->token.code) << "\n";
+    consumed_token = std::make_shared<Node> (*current_token);
+
+    int val = expr_add();
+    
+    if(!expr_rel_helper()) {
+        if(val == 1) {
+            return 1;
+        }
+        else {
+            current_token = consumed_token;
+            return 0;
+        }
+    }
+    else {
+        std::cout << logger << "Found a REL expression!\n";
+        return 1;
+    }
+    
+    return 0;
+}
+
+int SyntacticAnalyzer::expr_eq_helper() {
+    consumed_token = std::make_shared<Node> (*current_token);
+    
+    if(match(lex.EQUAL) || match(lex.NOTEQ)  ) {
+        if(!expr_rel()) {
+            current_token = consumed_token;
+            return 0;
+        }
+    }
+    else {
+        current_token = consumed_token;
+        return 0;
+    }
+   
+    while(expr_eq_helper() ) {}
+
+    return 1;
+}
+
+
+int SyntacticAnalyzer::expr_eq() {
+    
+    consumed_token = std::make_shared<Node> (*current_token);
+    int val = expr_rel();
+    
+    if(!expr_eq_helper()) {
+        if(val == 1) {
+            return 1;
+        }
+        else {
+            current_token = consumed_token;
+            return 0;
+        }
+    }
+    else {
+        std::cout << logger << "Found an EQ expression!\n";
+        return 1;
+    }
+    
+    return 0;
+}
+
+int SyntacticAnalyzer::expr_and_helper() {
+    consumed_token = std::make_shared<Node> (*current_token);
+    
+    if(match(lex.AND)) {
+        if(!expr_eq()) {
+            current_token = consumed_token;
+            return 0;
+        }
+    }
+    else {
+        current_token = consumed_token;
+        return 0;
+    }
+   
+    while(expr_and_helper() ) {}
+
+    return 1;
+}
+
+
+int SyntacticAnalyzer::expr_and() {
+    
+    consumed_token = std::make_shared<Node> (*current_token);
+    int val = expr_eq();
+    
+    if(!expr_and_helper()) {
+        if(val == 1) {
+            return 1;
+        }
+        else {
+            current_token = consumed_token;
+            return 0;
+        }
+    }
+    else {
+        std::cout << logger << "Found an AND expression!\n";
+        return 1;
+    }
+    
+    return 0;
+}
+
+int SyntacticAnalyzer::expr_or_helper() {
+    consumed_token = std::make_shared<Node> (*current_token);
+    
+    if(match(lex.OR) ) {
+        if(!expr_and()) {
+            current_token = consumed_token;
+            return 0;
+        }
+    }
+    else {
+        current_token = consumed_token;
+        return 0;
+    }
+   
+    while(expr_or_helper() ) {}
+
+    return 1;
+}
+
+
+int SyntacticAnalyzer::expr_or() {
+    
+    consumed_token = std::make_shared<Node> (*current_token);
+    int val = expr_and();
+    
+    if(!expr_or_helper()) {
+        if(val == 1) {
+            return 1;
+        }
+        else {
+            current_token = consumed_token;
+            return 0;
+        }
+    }
+    else {
+        std::cout << logger << "Found an OR expression!\n";
+        return 1;
+    }
+    
+    return 0;
+}
+
+int SyntacticAnalyzer::expr_assign_helper() {
+    consumed_token = std::make_shared<Node> (*current_token);
+    
+    if( match(lex.ASSIGN) ) {
+        if( !expr_assign()) {
+            current_token = consumed_token;
+            return 0;
+        }
+    }
+    else {
+        current_token = consumed_token;
+        return 0;
+    }
+
+    while(expr_eq_helper() ) {}
+
+    return 1;
+}
+
+
+int SyntacticAnalyzer::expr_assign() {
+    
+    consumed_token = std::make_shared<Node> (*current_token);
+    int val = expr_or();
+    
+    if(!expr_assign_helper()) {
+        if(val == 1) {
+            return 1;
+        }
+        else {
+            current_token = consumed_token;
+            return 0;
+        }
+    }
+    else {
+        std::cout << logger << "Found an ASSIGN expression!\n";
+        return 1;
+    }
+    
+    return 0;
+}
 
