@@ -83,7 +83,6 @@ int SyntacticAnalyzer::stm() {
     if(r_optional_expr() == 1) {
         return 1;        
     }
-
     else if(stm_block() == 1) {
         return 1;
     }
@@ -105,6 +104,10 @@ int SyntacticAnalyzer::stm() {
     }
     else if(r_break() == 1) {
         std::cout << logger << "Found BREAK statement!\n";
+        return 1;
+    }
+    else if(decl_struct() == 1) {
+        std::cout << logger << "Found STRUCT statement!\n";
         return 1;
     }
     current_token = consumed_token;
@@ -488,27 +491,29 @@ int SyntacticAnalyzer::expr_primary() {
 
     if(match(lex.LPAR) ) {
             
-            expr();
-            
-            if(!match(lex.COMMA) && !expr()) {
+        expr();
 
-            }
-            else {
-                if(match(lex.COMMA) && !expr()) {
-                    std::cout << logger << utils::log_error(current_token->token.line, "Missing COMMA ");
-                    exit(lex.COMMA);
-                }
+        while(match(lex.COMMA) && expr()) {}
 
-                if(!match(lex.COMMA) && expr()) {
-                    std::cout << logger << utils::log_error(current_token->token.line, "Missing expression ");
-                    exit(-1);
-                }
+        if(!match(lex.COMMA) && !expr()) {
+
+        }
+        else {
+            if(match(lex.COMMA) && !expr()) {
+                std::cout << logger << utils::log_error(current_token->token.line, "Missing COMMA ");
+                exit(lex.COMMA);
             }
 
-            if(!match(lex.RPAR) ) {
-                std::cout << logger << utils::log_error(current_token->token.line, "Missing ) ");
-                exit(lex.RPAR);
+            if(!match(lex.COMMA) && expr()) {
+                std::cout << logger << utils::log_error(current_token->token.line, "Missing expression ");
+                exit(-1);
             }
+        }
+
+        if(!match(lex.RPAR) ) {
+            std::cout << logger << utils::log_error(current_token->token.line, "Missing ) ");
+            exit(lex.RPAR);
+        }                  
     }
     else {
         consumed_token = std::make_shared<Node>(*current_token);
@@ -547,6 +552,8 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
         if(!match(lex.ID)) {
             return 0;
         }
+
+        expr_postfix_bracket();
     }
     else {
         while(expr()) {}

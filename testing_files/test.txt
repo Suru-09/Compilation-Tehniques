@@ -15,10 +15,11 @@ int main() {
         return 2.3e5;
     }
 
-    struct abc {
+   /* struct abc {
         int ab;
         char c;
     };
+    */
 
     kanare[banane.d[51]];
 
@@ -98,8 +99,16 @@ int main() {
          keratina;
      }
 
-    ( 5 = 2 && 5 || 5 < 2 != 3.32e2);
+     while( funct(funct(funct(18))) && funct(15)) {
+         return banane;
+     }
 
+    struct bananiera {
+        int a;
+    };
 
-
+    while( f(15, 14, 13) && f(12)) {
+        return capsuni;
+    }
 }
+

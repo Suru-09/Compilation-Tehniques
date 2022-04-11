@@ -9,3 +9,13 @@ void m(int p, double q) {
 		double b = 3.14;
 	}
 }
+
+
+int main() {
+	while( 5 && 2 ) {
+		return banane;
+	}
+
+	return 0;
+}
+
