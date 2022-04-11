@@ -556,7 +556,16 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
         expr_postfix_bracket();
     }
     else {
-        while(expr()) {}
+        int cnt = 0 ;
+
+        while(expr()) {
+            ++cnt;
+        }
+
+        if(!cnt) {
+            std::cout << logger << utils::log_error(current_token->token.line, "Missing EXPR in [ ]");
+            exit(lex.RBRACKET);
+        }
 
         if(!match(lex.RBRACKET)) {
             current_token = consumed_token;
