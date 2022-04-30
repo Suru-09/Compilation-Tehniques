@@ -50,7 +50,7 @@ void TokenList::print_list() {
         catch(...) {
             try {
                 long int integer = std::get<long int> (copy->token.text);
-                // std::cout << logger << "Long int: " << integer << "\n\n";
+                // std::cout << logger << "\n\n\n\n\nLong int: " << integer << "\n\n\n";
                 vt.addRow(counter, code, std::to_string(integer) , line);
             }
             catch(...) {
@@ -63,7 +63,7 @@ void TokenList::print_list() {
                     vt.addRow(counter, code, str , line);
                 }
                 catch(...) {
-                    // std::cout << logger << "Error while printing the list of tokens!\n";
+                    std::cout << logger << "Error while printing the list of tokens!\n";
                 }
             }
         }

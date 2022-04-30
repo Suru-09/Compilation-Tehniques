@@ -17,6 +17,7 @@ namespace utils {
     std::vector<char> read_file(const std::string& file_name);
     void test_file(const std::string& file_name);
     void test_diagrams();
+    void test_symbol_structure();
     std::string log_error(const int& line, const std::string& message);
 }
 

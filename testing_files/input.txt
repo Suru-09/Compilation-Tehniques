@@ -1,21 +1,28 @@
-struct myStruct { int x; double y; };
-char z = 'a';
-void m(int p, double q) {
-	if(p <= q) {
-		int a = 100;
-		/* Here1 */
-	} else {
-		// Here2
-		double b = 3.14;
-	}
+struct pt {
+	int x;
+	int b;
+};
+
+struct pt z;
+
+void main() {
+	// THIS IS ARRAY_DECL AND DECL_VAR TESTED
+	int a;
+	int d;
+	struct pt xz;
+	//int c, f[50];
+	int e[100];
+	double g;
+	double hello;
+	char goodbye;
+
+	return 5;
 }
 
-
-int main() {
-	while( 5 && 2 ) {
-		return banane;
-	}
-
-	return 0;
+int mamaliga() {
+	return ok;
 }
 
+struct xyz main() {
+	return "not ok";
+}

@@ -7,6 +7,9 @@ set(HEADERS_LIST
     include/VariadicTable.hpp
     include/Utils.hpp
     include/Logger.hpp
+    include/symbolTable/Type.hpp
+    include/symbolTable/Symbol.hpp
+    include/symbolTable/SymbolTable.hpp
 )
 
 set(SOURCES_LIST
@@ -18,4 +21,7 @@ set(SOURCES_LIST
     src/SyntacticAnalyzer.cpp
     src/Utils.cpp
     src/Logger.cpp
+    src/symbolTable/Type.cpp
+    src/symbolTable/Symbol.cpp
+    src/symbolTable/SymbolTable.cpp
 )

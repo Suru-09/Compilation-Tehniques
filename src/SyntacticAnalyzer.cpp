@@ -2,14 +2,20 @@
 
 SyntacticAnalyzer::SyntacticAnalyzer(const LexicalAnalyzer& lex_analiz) 
 : lex(lex_analiz),
-class_name("SyntacticAnalyzer")
+class_name("SyntacticAnalyzer"),
+current_depth(0),
+current_struct(""),
+current_func("")
 {   
     current_token = lex.token_list.get_head();
     logger = Logger{class_name};
 }
 
 SyntacticAnalyzer::SyntacticAnalyzer() 
-: class_name("SyntacticAnalyzer")
+: class_name("SyntacticAnalyzer"),
+current_depth(0),
+current_struct(""),
+current_func("")
 {   
     logger = Logger{class_name};
 }
@@ -106,10 +112,6 @@ int SyntacticAnalyzer::stm() {
         std::cout << logger << "Found BREAK statement!\n";
         return 1;
     }
-    else if(decl_struct() == 1) {
-        std::cout << logger << "Found STRUCT statement!\n";
-        return 1;
-    }
     current_token = consumed_token;
     return 0;
 }
@@ -123,15 +125,12 @@ int SyntacticAnalyzer::stm_block() {
     if(!match(lex.LACC)) {
         return 0;
     }
-    // int val = match(lex.LACC);
 
    while( stm() || decl_var() ) {}
 
     if(!match(lex.RACC)) {
-        // if(val == 1) {
-            std::cout << logger << utils::log_error(current_token->token.line, "Missing } ");
-            exit(lex.RACC);
-        // } 
+        std::cout << logger << utils::log_error(current_token->token.line, "Missing } ");
+        exit(lex.RACC);
     }
     return 1;
 }
@@ -139,14 +138,37 @@ int SyntacticAnalyzer::stm_block() {
 void SyntacticAnalyzer::unit() {
     while(1) {
         if(current_token->token.code == lex.END) {
+            symbol_table.print_symbol_table();
             break;
         }
 
-        if( decl_struct() == 1) {}
-        else if(decl_var() ) {}
-        else if(decl_func()) {}
+        if(decl_func()) {}
+        else if(decl_struct() ) {}
+        else if( decl_var() ) {}
     }
 }
+
+void SyntacticAnalyzer::check_if_struct_exists() {
+    if(current_token->token.code == lex.ID) {
+        std::string possible_key = std::get<std::string> (current_token->token.text);
+        tmp = symbol_table.find_symbol(possible_key);
+
+        std::cout << logger << "Nu mai inteleeg: " << lex.print_pretty(current_token->next->token.code) << "\n";
+        if( tmp.name == "" ) {
+            if(current_token->next && current_token->next->token.code != lex.LACC ) {
+                std::cout << logger << utils::log_error(current_token->token.line, "This struct hasn't been defined yet!");
+                exit(lex.ID);
+            }
+        }
+        
+        // if( tmp.class_ != tmp.CLS_STRUCT ) {
+        //     std::string s = tmp.name + " is not a CT_STRUCT!";
+        //     std::cout << logger << utils::log_error(current_token->token.line, s);
+        //     exit(lex.ID);
+        // }
+    }
+}
+
 
 int SyntacticAnalyzer::type_base() {
     consumed_token = std::make_shared<Node>(*current_token);
@@ -161,6 +183,7 @@ int SyntacticAnalyzer::type_base() {
         return lex.CHAR;
     }
     else if(match(lex.STRUCT)) {
+        check_if_struct_exists();
         if(match(lex.ID)) {
             return lex.STRUCT;
         }
@@ -175,10 +198,17 @@ int SyntacticAnalyzer::type_base() {
 int SyntacticAnalyzer::array_decl() {
 
     if(!match(lex.LBRACKET)) {
+        if(tmp.name != "" && symbol_table.find_symbol(tmp.name).name == "") {
+            add_var(tmp.type, tmp.name);
+        }
         return 0;
     }
 
     expr();
+    if(tmp.name != "" && symbol_table.find_symbol(tmp.name).name == "") {
+        tmp.type.elements = 1;
+        add_var(tmp.type, tmp.name);
+    }
 
     if(!match(lex.RBRACKET)) {
         std::cout << logger << utils::log_error(current_token->token.line, "Missing ]");
@@ -199,8 +229,62 @@ int SyntacticAnalyzer::type_name() {
     return 1;
 }
 
+Symbol SyntacticAnalyzer::add_decl_var_to_symbol(Type& type) {
+    Symbol sym;
+    if( current_token && current_token->token.code == lex.ID ) {
+        std::string possible_key = std::get<std::string> (current_token->token.text);
+        sym = symbol_table.find_symbol(possible_key);
+
+        auto val = current_token->next;
+        std::cout << lex.print_pretty(val->token.code) << "\n";
+
+        if( sym.name != "" && val->token.code != lex.LPAR) {
+            std::cout << logger << "Inainte sa ies zic cine sunt: " << sym.name << "\n";
+            std::cout << logger << utils::log_error(current_token->token.line, "Symbol redefiniton ");
+            exit(lex.ID);
+        }
+        sym.name = possible_key;
+        sym.class_ = sym.CLS_STRUCT;
+        sym.depth = current_depth;
+        sym.type = type;
+        // TO DO: set members in struct
+        current_struct = possible_key;
+    }
+    return sym;
+}
+
+Type SyntacticAnalyzer::type_base_condition() {
+    Type type;
+    if( current_token ) {
+        int v = current_token->token.code;
+            // TO DO: possible nullptr exception be careful!!!!!! ( current_token->next )
+        if( v == lex.INT ) {
+            type.type_base = type.TB_INT;
+            type.elements = -1;
+        }
+        else if( v == lex.DOUBLE ) {
+            type.type_base = type.TB_DOUBLE;
+            type.elements = -1;
+        }
+        else if( v == lex.CHAR ) {
+            type.type_base = type.TB_CHAR;
+            type.elements = -1;
+        }
+        else if( v == lex.STRUCT && current_token->next->token.code == lex.ID ) {
+            type.type_base = type.TB_STRUCT;
+            type.elements = -1;
+        }
+        else if( v == lex.VOID ) {
+            type.type_base = type.TB_VOID;
+            type.elements = -1;
+        }
+    }
+    return type;
+}
+
 int SyntacticAnalyzer::decl_var() {
     consumed_token = std::make_shared<Node>(*current_token);
+    auto type = type_base_condition();
 
     if(!type_base() ) {
         return 0;
@@ -210,6 +294,9 @@ int SyntacticAnalyzer::decl_var() {
         current_token = consumed_token;
         return 0;
     }
+
+    // std::cout << logger << "ID-ul pe care il verific inainte sa ies: " << std::get<std::string> (current_token->token.text) << "\n";
+    tmp = add_decl_var_to_symbol(type);
 
     if(!match(lex.ID)) {
         std::cout << logger << utils::log_error(current_token->token.line, "Missing ID ");
@@ -222,6 +309,8 @@ int SyntacticAnalyzer::decl_var() {
         if(!match(lex.COMMA)) {
             break;
         }
+
+        tmp = add_decl_var_to_symbol(type);
 
         if(!match(lex.ID)) {
             std::cout << logger << utils::log_error(current_token->token.line, "Missing ID ");
@@ -245,13 +334,43 @@ int SyntacticAnalyzer::decl_var() {
     return 1;
 }
 
+void SyntacticAnalyzer::check_struct_helper() {
+    auto val = current_token->next->next;
+    if( val && val->token.code == lex.LACC) {
+        if(current_token && current_token->token.code == lex.STRUCT) {
+            if( current_token->next && current_token->next->token.code == lex.ID ) {
+                Type type = type_base_condition();
+                std::string possible_key = std::get<std::string> (current_token->next->token.text);
+                Symbol sym;
+                sym = symbol_table.find_symbol(possible_key);
+                if( sym.name != "") {
+                    std::cout << logger << utils::log_error(current_token->token.line, "1Symbol redefinition ");
+                    exit(lex.ID);
+                }
+                sym.name = possible_key;
+                sym.type = type;
+                sym.class_ = sym.CLS_STRUCT;
+                sym.depth = current_depth;
+                symbol_table.add_symbol(sym);
+            }
+        }
+    }
+}
+
 int SyntacticAnalyzer::decl_struct() {
     consumed_token = std::make_shared<Node>(*current_token);
 
-    if(!match(lex.STRUCT) || !match(lex.ID)) {
+    check_struct_helper();
+
+   if(!type_base()) {
         current_token = consumed_token;
         return 0;
-    }
+   }
+
+   if(match(lex.ID)) {
+        current_token = consumed_token;
+        return 0;
+   }
 
     if(!match(lex.LACC)) {
         current_token = consumed_token;
@@ -265,7 +384,7 @@ int SyntacticAnalyzer::decl_struct() {
     while( decl_var() ) {}
 
     if(!match(lex.RACC)) {
-        std::cout << logger << utils::log_error(current_token->token.line, "Missing { ");
+        std::cout << logger << utils::log_error(current_token->token.line, "Missing } ");
         exit(lex.RACC);
     }
 
@@ -294,7 +413,29 @@ int SyntacticAnalyzer::func_arg() {
     return 1;
 }
 
+Symbol SyntacticAnalyzer::check_decl_func_helper(Type& type) {
+    if(current_token && current_token->token.code == lex.ID) {
+        std::string possible_key = std::get<std::string> (current_token->token.text);
+        tmp = symbol_table.find_symbol(possible_key);
+
+        if( tmp.name != "") {
+            std::cout << logger << utils::log_error(current_token->token.line, "Symbol redefinition in func decl");
+            exit(lex.ID);
+        }
+
+        tmp.type = type;
+        tmp.name = possible_key;
+        tmp.class_ = tmp.CLS_FUNC;
+        tmp.depth = current_depth;
+    }
+
+    return tmp;
+}
+
 int SyntacticAnalyzer::decl_func() {
+    consumed_token = std::make_shared<Node>(*current_token);
+    auto type = type_base_condition();
+
     if( type_base()) {
         match(lex.MUL);
     }
@@ -302,10 +443,25 @@ int SyntacticAnalyzer::decl_func() {
         return 0;
     }
 
+    if (match(lex.LACC)) {
+        current_token = consumed_token;
+        return 0;
+    }
+
+    auto sym = check_decl_func_helper(type);
+
     if(!match(lex.ID)) {
         std::cout << logger << utils::log_error(current_token->token.line, "Missing ID ");
         exit(lex.ID);
     }
+
+    if (match(lex.SEMICOLON)) {
+        current_token = consumed_token;
+        return 0;
+    }
+
+    symbol_table.add_symbol(sym);
+    current_depth++;
 
     if(!match(lex.LPAR)) {
         std::cout << logger << utils::log_error(current_token->token.line, "Missing ( ");
@@ -314,17 +470,12 @@ int SyntacticAnalyzer::decl_func() {
 
     while(1) {
         if(func_arg() == 1) {
-            if(!match(lex.COMMA) && !func_arg())
+            if(!match(lex.COMMA) && !func_arg()) 
                 break;
 
             if(match(lex.COMMA) && !func_arg()) {
-                std::cout << logger << utils::log_error(current_token->token.line, "Missing COMMA ");
-                exit(lex.COMMA);
-            }
-
-            if(!match(lex.COMMA) && func_arg()) {
                 std::cout << logger << utils::log_error(current_token->token.line, "Missing arguments ");
-                exit(-1);
+                exit(lex.COMMA);
             }
         }
         else {
@@ -546,10 +697,12 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
     if(!match(lex.LBRACKET)) {
         
         if(!match(lex.DOT)) {
+            current_token = consumed_token;
             return 0;
         }
 
         if(!match(lex.ID)) {
+            current_token = consumed_token;
             return 0;
         }
 
@@ -922,4 +1075,51 @@ int SyntacticAnalyzer::expr_assign() {
         return 1;
     }
     return 0;
+}
+
+bool SyntacticAnalyzer::add_var(Type type, std::string name) {
+    Symbol sym;
+    if( current_struct != "" ) {
+        sym = symbol_table.find_symbol(current_struct);
+        if( sym.class_name == "") {
+            sym.name = name;
+            sym.class_  = sym.CLS_VAR;
+            sym.type = type;
+            sym.depth = current_depth;
+            symbol_table.add_symbol(sym);
+            return true;
+        }
+        else {
+            std::cout << logger << utils::log_error(current_token->token.line, "2Symbol redefinition while adding ");
+            return false;
+        }
+    }
+    else if( current_func != "" ) {
+        sym = symbol_table.find_symbol(current_struct);
+        if( sym.class_name != "" && sym.depth == current_depth ) {
+            std::cout << logger << utils::log_error(current_token->token.line, "3Symbol redefinition while adding ");
+            return false;
+        }
+        sym.name = name;
+        sym.class_  = sym.CLS_VAR;
+        sym.memory_zone = sym.MEM_LOCAL;
+        sym.depth = current_depth;
+        sym.type = type;
+        symbol_table.add_symbol(sym);
+    }
+    else {
+        sym = symbol_table.find_symbol(current_struct);
+        if( sym.class_name != "") {
+            std::cout << logger << utils::log_error(current_token->token.line, "4Symbol redefinition while adding ");
+            return false;
+        }
+        sym.name = name;
+        sym.class_ = sym.CLS_VAR;
+        sym.memory_zone = sym.MEM_GLOBAL;
+        sym.depth = current_depth;
+        sym.type = type;
+        symbol_table.add_symbol(sym);
+    }
+
+    return true;
 }

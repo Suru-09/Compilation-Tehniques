@@ -3,6 +3,9 @@
 #include "LexicalAnalyzer.hpp"
 #include "SyntacticAnalyzer.hpp"
 #include "Logger.hpp"
+#include "SymbolTable.hpp"
+#include "Type.hpp"
+#include "Symbol.hpp"
 
 namespace utils {
 
@@ -59,7 +62,7 @@ namespace utils {
         // test_file("../testing_files/dfa/delimiters+operators.txt");
         // test_file("../testing_files/dfa/line_comment.txt");
         // test_file("../testing_files/dfa/block_comment.txt");
-        test_file("../testing_files/test.txt");
+        test_file("../testing_files/input.txt");
         // test_file("../testing_files/tests/0.c");
         // test_file("../testing_files/tests/1.c");
         // test_file("../testing_files/tests/2.c");
@@ -70,6 +73,32 @@ namespace utils {
         // test_file("../testing_files/tests/7.c");
         // test_file("../testing_files/tests/8.c");
         // test_file("../testing_files/tests/9.c");
+    }
+
+    void test_symbol_structure() {
+        SymbolTable table;
+
+        Logger logger{"Utils"};
+        std::cout << logger << "Testing " << "input.txt" << ":\n";
+        auto arr = read_file("../testing_files/tests/0.c");
+
+        LexicalAnalyzer lexic_int{arr};
+        lexic_int.get_all_tokens(); 
+
+        auto list = lexic_int.token_list.get_head();
+        while(list) {
+            // std:: cout << logger << "Eu sunt: " << list->token.code << "\n";
+            Type type(list->token.code % 5);
+            Symbol symbol("E mare nume", list->token.code, type);
+            table.add_symbol(symbol);
+            list = list->next;
+        }
+
+        Symbol symb = table.find_symbol("E mare nume");
+        std::cout << logger << "Eu sunt numele simbolului gasit: " << symb.get_name() << "\n";
+        table.delete_symbol("E mare nume");
+
+        table.print_symbol_table();
     }
 
     std::string log_error(const int& line, const std::string& message) {

@@ -4,6 +4,9 @@
 #include "LexicalAnalyzer.hpp"
 #include "Logger.hpp"
 #include "Utils.hpp"
+#include "SymbolTable.hpp"
+#include "Symbol.hpp"
+#include "Type.hpp"
 
 class SyntacticAnalyzer {
 private:
@@ -11,6 +14,11 @@ private:
     Logger logger;
     std::string class_name;
     std::shared_ptr<Node> current_token, consumed_token;
+    SymbolTable symbol_table;
+    int current_depth;
+    std::string current_struct;
+    std::string current_func;
+    Symbol tmp;
 
     //  STATEMENTS
     int stm_block();
@@ -56,6 +64,14 @@ private:
     int decl_struct();
     int decl_func();
     int func_arg();
+
+    // SEMANTIC ANALYSIS
+    bool add_var(Type type, std::string name);
+    Symbol add_decl_var_to_symbol(Type& type);
+    Type type_base_condition();
+    void check_if_struct_exists();
+    void check_struct_helper();
+    Symbol check_decl_func_helper(Type& type);
 
 public:
     void unit();
