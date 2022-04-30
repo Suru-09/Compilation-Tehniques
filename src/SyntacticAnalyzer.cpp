@@ -236,8 +236,6 @@ Symbol SyntacticAnalyzer::add_decl_var_to_symbol(Type& type) {
         sym = symbol_table.find_symbol(possible_key);
 
         auto val = current_token->next;
-        std::cout << lex.print_pretty(val->token.code) << "\n";
-
         if( sym.name != "" && val->token.code != lex.LPAR) {
             std::cout << logger << "Inainte sa ies zic cine sunt: " << sym.name << "\n";
             std::cout << logger << utils::log_error(current_token->token.line, "Symbol redefiniton ");
@@ -461,6 +459,8 @@ int SyntacticAnalyzer::decl_func() {
     }
 
     symbol_table.add_symbol(sym);
+    current_func = sym.name;
+    // !!! BE CAREFUL with this
     current_depth++;
 
     if(!match(lex.LPAR)) {
@@ -488,11 +488,16 @@ int SyntacticAnalyzer::decl_func() {
         exit(lex.RPAR);
     }
 
+    // !!! BE CAREFUL with this
+    current_func = "";
+
     if(!stm_block()) {
         std::cout << logger << utils::log_error(current_token->token.line, "Creating a function without a body ");
         exit(-1);
     }
 
+    symbol_table.delete_symbols_from_given_level(current_depth);
+    current_depth--;
     std::cout << logger << "Found a FUNCTION!\n";
     return 1;
 }

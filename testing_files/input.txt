@@ -15,14 +15,13 @@ void main() {
 	double g;
 	double hello;
 	char goodbye;
-
 	return 5;
 }
 
-int mamaliga() {
+int mamaliga(int a, int b, int c) {
 	return ok;
 }
 
-struct xyz main() {
+/*struct xyz main() {
 	return "not ok";
-}
+}*/
