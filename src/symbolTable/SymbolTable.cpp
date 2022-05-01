@@ -126,8 +126,8 @@ void SymbolTable::print_symbol_table() {;
             is_arr = "FALSE";
         std::string member = "";
         for(auto y: x.second.members) {
-            member += y.second + ", ";
-            // std::cout << logger << "HEHEHE: " << y.second << "\n";
+            member += y.second.name + ", ";
+            // std::cout << logger << "HEHEHE: " << y.second.name << "\n";
         }
         vt.addRow(counter, name, class_, type, is_arr, depth, member);
     }

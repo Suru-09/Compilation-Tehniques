@@ -17,33 +17,35 @@ memory_zone(0)
 }
 
 Symbol::Symbol()
-: class_name(""),
+: class_name("Symbol"),
 name(""),
 class_(0),
 depth(0),
 memory_zone(0)
-{}
-
-void Symbol::set_members(std::vector<std::string> members_) {
-    if(class_ == CLS_FUNC) {
-        std::make_pair<int, std::vector<std::string>>(CLS_FUNC, std::move(members_));
-    }
-    else if(class_ == CLS_STRUCT) {
-        std::make_pair<int, std::vector<std::string>>(CLS_STRUCT, std::move(members_));
-    }
-    else {
-        std::cout << logger << " Wrong type given in set_members() function!\n";
-        exit(-1);
-    }
+{
+    logger = Logger{class_name};
 }
 
-bool Symbol::add_member(std::string s) {
+// void Symbol::set_members(std::vector<std::string> members_) {
+//     if(class_ == CLS_FUNC) {
+//         std::make_pair<int, std::vector<std::string>>(CLS_FUNC, std::move(members_));
+//     }
+//     else if(class_ == CLS_STRUCT) {
+//         std::make_pair<int, std::vector<std::string>>(CLS_STRUCT, std::move(members_));
+//     }
+//     else {
+//         std::cout << logger << " Wrong type given in set_members() function!\n";
+//         exit(-1);
+//     }
+// }
+
+bool Symbol::add_member(Symbol s) {
     if(class_ == CLS_FUNC) {
-        auto pair = std::make_pair<int, std::string>(CLS_FUNC, std::move(s));
+        auto pair = std::make_pair<int, Symbol>(CLS_FUNC, std::move(s));
         members.push_back(pair);
     }
     else if(class_ == CLS_STRUCT) {
-        auto pair = std::make_pair<int, std::string>(CLS_STRUCT, std::move(s));
+        auto pair = std::make_pair<int, Symbol>(CLS_STRUCT, std::move(s));
         members.push_back(pair);
     }
     else {

@@ -19,6 +19,7 @@ private:
     std::string current_struct;
     std::string current_func;
     Symbol tmp;
+    bool is_struct;
 
     //  STATEMENTS
     int stm_block();

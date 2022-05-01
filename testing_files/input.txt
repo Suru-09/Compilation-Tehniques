@@ -1,6 +1,7 @@
 struct pt {
 	int x;
 	int b;
+	//int x;
 };
 
 struct pt z;
@@ -10,7 +11,7 @@ void main() {
 	int a;
 	int d;
 	struct pt xz;
-	//int c, f[50];
+	int c, f[50];
 	int e[100];
 	double g;
 	double hello;
@@ -18,7 +19,7 @@ void main() {
 	return 5;
 }
 
-int mamaliga(double abc, char mamaliga2[20], char macaroane) {
+int * mamaliga(double abc, char mamaliga2[20], char macaroane) {
 	if(x > 5) {
 		int a;
 		int w;

@@ -1,7 +1,6 @@
 #ifndef SYMBOL_HPP
 #define SYMBOL_HPP
 
-#include <variant>
 #include<vector>
 
 #include "Type.hpp"
@@ -24,11 +23,7 @@ private:
     Type type;
     int depth;
     int memory_zone;
-    /**
-     * @brief Can be members for structs or parameters
-     for functions
-     */
-    std::vector<std::pair<int, std::string>> members;
+    std::vector<std::pair<int, Symbol>> members;
 
 public:
     std::string get_name();
@@ -36,8 +31,8 @@ public:
     Symbol();
     Symbol& operator=(const Symbol& symbol);
 
-    void set_members(std::vector<std::string> members_);
-    bool add_member(std::string s);
+    //void set_members(std::vector<std::string> members_);
+    bool add_member(Symbol s);
 
     friend class SymbolTable;
     friend class SyntacticAnalyzer;

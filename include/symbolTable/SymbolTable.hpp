@@ -1,7 +1,7 @@
 #ifndef SYMBOL_TABLE_HPP
 #define SYMBOL_TABLE_HPP
 
-#include <bits/stdc++.h>
+#include <unordered_map>
 #include "Symbol.hpp"
 #include "Logger.hpp"
 
@@ -10,7 +10,7 @@ class SymbolTable {
 private:
     std::string class_name;
     Logger logger;
-    std::multimap<std::string, Symbol> symbol_table;
+    std::unordered_multimap<std::string, Symbol> symbol_table;
 public:
     SymbolTable();
     void add_symbol(Symbol& symbol);
