@@ -239,21 +239,32 @@ int SyntacticAnalyzer::array_decl() {
     }
 
     expr();
-        if(tmp.name != "" && symbol_table.find_symbol(tmp.name).name == "") {
-            std::cout << logger << "[ARRAY DECLARAY] eu sunt: " << current_struct << "\n";
-            if(current_struct != "") {
-                auto symb = symbol_table.find_symbol(current_struct);
-                if(symb.name != "") {
-                    std::cout << logger << "SYMBOL: " << symb.name << "\n";
-                    symb.add_member(tmp);
+    if(tmp.name != "" && symbol_table.find_symbol(tmp.name).name == "") {
+        std::cout << logger << "[ARRAY DECLARAY] eu sunt: " << current_struct << "\n";
+        if(current_struct != "") {
+            auto symb = symbol_table.find_symbol(current_struct);
+            std::cout << logger << "[ARRAY DECL CONT] eu sunt: " << symb.name << "\n";
+            if(symb.name != "") {
+                for(auto x: symb.members) {
+                    if(x.second.name == tmp.name) {
+                        std::cout << logger << utils::log_error(current_token->token.line, " Symbol redefinition in [STRUCT] ");
+                        exit(lex.ID);
+                    }
                 }
-                else {
-                    std::cout << logger << utils::log_error(current_token->token.line, "An ERROR occurred because current_struct isn't SET RIGHT!");
-                    exit(lex.ID);
-                }
+                symb.add_member(tmp);
             }
+            else {
+                std::cout << logger << utils::log_error(current_token->token.line, "An ERROR occurred because current_struct isn't SET RIGHT!");
+                exit(lex.ID);
+            }
+            symbol_table.update_symbol(symb);
+        }
+        else {
+            // TO DO: TYPE CHECKING ADD REAL VALUE FOR SIZE
+            tmp.type.elements = 1;
             add_var(tmp.type, tmp.name);
         }
+    }
 
     if(!match(lex.RBRACKET)) {
         std::cout << logger << utils::log_error(current_token->token.line, "Missing ]");
@@ -1166,8 +1177,8 @@ int SyntacticAnalyzer::expr_assign() {
 bool SyntacticAnalyzer::add_var(Type type, std::string name) {
     Symbol sym;
     if( current_struct != "" ) {
-        sym = symbol_table.find_symbol(current_struct);
-        if( sym.class_name == "") {
+        sym = symbol_table.find_symbol(name);
+        if( sym.name == "") {
             sym.name = name;
             sym.class_  = sym.CLS_VAR;
             sym.type = type;
@@ -1177,14 +1188,14 @@ bool SyntacticAnalyzer::add_var(Type type, std::string name) {
         }
         else {
             std::cout << logger << utils::log_error(current_token->token.line, "2Symbol redefinition while adding ");
-            //exit(lex.ID);
+            exit(lex.ID);
         }
     }
     else if( current_func != "" ) {
-        sym = symbol_table.find_symbol(current_struct);
-        if( sym.class_name != "" && sym.depth == current_depth ) {
+        sym = symbol_table.find_symbol(name);
+        if( sym.name != "" && sym.depth == current_depth ) {
             std::cout << logger << utils::log_error(current_token->token.line, "3Symbol redefinition while adding ");
-            //exit(lex.ID);
+            exit(lex.ID);
         }
         sym.name = name;
         sym.class_  = sym.CLS_VAR;
@@ -1194,10 +1205,10 @@ bool SyntacticAnalyzer::add_var(Type type, std::string name) {
         symbol_table.add_symbol(sym);
     }
     else {
-        sym = symbol_table.find_symbol(current_struct);
-        if( sym.class_name != "") {
+        sym = symbol_table.find_symbol(name);
+        if( sym.name != "") {
             std::cout << logger << utils::log_error(current_token->token.line, "4Symbol redefinition while adding ");
-            //exit(lex.ID);
+            exit(lex.ID);
         }
         sym.name = name;
         sym.class_ = sym.CLS_VAR;
