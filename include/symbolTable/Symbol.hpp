@@ -28,7 +28,7 @@ private:
      * @brief Can be members for structs or parameters
      for functions
      */
-    std::pair<CLASS, std::vector<std::string>> members;
+    std::vector<std::pair<int, std::string>> members;
 
 public:
     std::string get_name();
@@ -37,6 +37,7 @@ public:
     Symbol& operator=(const Symbol& symbol);
 
     void set_members(std::vector<std::string> members_);
+    bool add_member(std::string s);
 
     friend class SymbolTable;
     friend class SyntacticAnalyzer;

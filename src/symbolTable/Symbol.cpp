@@ -37,6 +37,21 @@ void Symbol::set_members(std::vector<std::string> members_) {
     }
 }
 
+bool Symbol::add_member(std::string s) {
+    if(class_ == CLS_FUNC) {
+        auto pair = std::make_pair<int, std::string>(CLS_FUNC, std::move(s));
+        members.push_back(pair);
+    }
+    else if(class_ == CLS_STRUCT) {
+        auto pair = std::make_pair<int, std::string>(CLS_STRUCT, std::move(s));
+        members.push_back(pair);
+    }
+    else {
+        std::cout << logger << " Wrong type given in add_member() function!\n";
+        exit(-1);
+    }
+}
+
 Symbol& Symbol::operator=(const Symbol& symbol) {
     if( this != &symbol ) {
         name = symbol.name;
@@ -44,6 +59,11 @@ Symbol& Symbol::operator=(const Symbol& symbol) {
         memory_zone = symbol.memory_zone;
         depth = symbol.depth;
         type = symbol.type;
+
+        members.clear();
+        for(auto x: symbol.members) {
+            members.push_back(x);
+        }
     }
     return *this;
 }

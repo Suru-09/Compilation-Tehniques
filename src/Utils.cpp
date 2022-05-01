@@ -106,4 +106,44 @@ namespace utils {
         tmp = message + " at line: " + std::to_string(line) + "\n";
         return tmp;
     }
+
+    std::string class_to_string(int class_) {
+        Logger logger{"Utils"};
+        switch(class_) {
+            case 0:
+                return "VARIABLE";
+            case 1:
+                return "FUNCTION";
+            case 2:
+                return "EXTERNAL FUNCTION";
+            case 3:
+                return "STRUCT";
+            default:
+                std::cout << logger << "This value doesn;t exists in [CLASS] to string!!\n";
+                break;
+        }
+
+        return "NOT A CLASS";
+    }
+    std::string type_to_string(int type) {
+        Logger logger{"Utils"};
+        switch(type) {
+            case 0:
+                return "TB_INT";
+            case 1:
+                return "TB_DOUBLE";
+            case 2:
+                return "TB_CHAR";
+            case 3:
+                return "TB_STRING";
+            case 4:
+                return "TB_STRUCT";
+            case 5:
+                return "TB_VOID";
+            default:
+                std::cout << logger << "This value doesn;t exists in [TYPE] to string!!\n";
+                break;
+        }
+        return "NOT A TYPE";     
+    }
 }

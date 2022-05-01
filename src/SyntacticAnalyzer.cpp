@@ -126,12 +126,17 @@ int SyntacticAnalyzer::stm_block() {
         return 0;
     }
 
+    current_depth++;
+
    while( stm() || decl_var() ) {}
 
     if(!match(lex.RACC)) {
         std::cout << logger << utils::log_error(current_token->token.line, "Missing } ");
         exit(lex.RACC);
     }
+
+    symbol_table.delete_symbols_from_given_level(current_depth--);
+
     return 1;
 }
 
@@ -153,7 +158,6 @@ void SyntacticAnalyzer::check_if_struct_exists() {
         std::string possible_key = std::get<std::string> (current_token->token.text);
         tmp = symbol_table.find_symbol(possible_key);
 
-        std::cout << logger << "Nu mai inteleeg: " << lex.print_pretty(current_token->next->token.code) << "\n";
         if( tmp.name == "" ) {
             if(current_token->next && current_token->next->token.code != lex.LACC ) {
                 std::cout << logger << utils::log_error(current_token->token.line, "This struct hasn't been defined yet!");
@@ -238,6 +242,7 @@ Symbol SyntacticAnalyzer::add_decl_var_to_symbol(Type& type) {
         auto val = current_token->next;
         if( sym.name != "" && val->token.code != lex.LPAR) {
             std::cout << logger << "Inainte sa ies zic cine sunt: " << sym.name << "\n";
+            symbol_table.print_symbol_table();
             std::cout << logger << utils::log_error(current_token->token.line, "Symbol redefiniton ");
             exit(lex.ID);
         }
@@ -395,11 +400,33 @@ int SyntacticAnalyzer::decl_struct() {
     return 1;
 }
 
+bool SyntacticAnalyzer::add_args_symbol_table(Type& type) {
+    if (current_func != "") {
+        Symbol sym = symbol_table.find_symbol(current_func);
+        if(sym.name != "") {
+            if(current_token && current_token->token.code == lex.ID) {
+                std::string name = std::get<std::string> (current_token->token.text);
+                tmp.name = name;
+                tmp.depth = current_depth;
+                tmp.type = type;
+                tmp.memory_zone = sym.MEM_ARG;
+
+                sym.add_member(name);
+                symbol_table.update_symbol(sym);
+                return true;
+            }
+        }
+    }   
+    return false;
+}
 int SyntacticAnalyzer::func_arg() {
 
+    auto type = type_base_condition();
     if(!type_base()) {
         return 0;
     }
+
+    add_args_symbol_table(type);
 
     if(!match(lex.ID)) {
         std::cout << logger << utils::log_error(current_token->token.line, "Missing ID ");
@@ -453,7 +480,7 @@ int SyntacticAnalyzer::decl_func() {
         exit(lex.ID);
     }
 
-    if (match(lex.SEMICOLON)) {
+    if (match(lex.SEMICOLON) || match(lex.LBRACKET)) {
         current_token = consumed_token;
         return 0;
     }
@@ -469,6 +496,7 @@ int SyntacticAnalyzer::decl_func() {
     }
 
     while(1) {
+        std::cout << logger << "[APELEZ] FUNC_ARG!\n";
         if(func_arg() == 1) {
             if(!match(lex.COMMA) && !func_arg()) 
                 break;
@@ -515,7 +543,7 @@ int SyntacticAnalyzer::r_for() {
 
     int cnt = 3;
     while(cnt--) {
-        std::cout << logger << "  " << cnt << '\n';
+        //std::cout << logger << "  " << cnt << '\n';
         expr();
 
         if(cnt > 0) {

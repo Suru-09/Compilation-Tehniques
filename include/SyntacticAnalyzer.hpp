@@ -72,6 +72,7 @@ private:
     void check_if_struct_exists();
     void check_struct_helper();
     Symbol check_decl_func_helper(Type& type);
+    bool add_args_symbol_table(Type& type);
 
 public:
     void unit();

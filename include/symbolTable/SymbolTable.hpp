@@ -14,6 +14,7 @@ private:
 public:
     SymbolTable();
     void add_symbol(Symbol& symbol);
+    void update_symbol(Symbol symbol);
     Symbol find_symbol(const std::string& key);
     void delete_symbol(const std::string& key);
     void delete_symbols_from_given_level(const int& level);

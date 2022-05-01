@@ -7,10 +7,6 @@
 #include <vector>
 #include<stdlib.h>
 
-// #include "Token.hpp"
-// #include "TokenList.hpp"
-// #include "Node.hpp"
-
 namespace utils {
 
 
@@ -18,6 +14,8 @@ namespace utils {
     void test_file(const std::string& file_name);
     void test_diagrams();
     void test_symbol_structure();
+    std::string class_to_string(int class_);
+    std::string type_to_string(int type);
     std::string log_error(const int& line, const std::string& message);
 }
 

@@ -18,10 +18,26 @@ void main() {
 	return 5;
 }
 
-int mamaliga(int a, int b, int c) {
+int mamaliga(double abc, char mamaliga2[20], char macaroane) {
+	if(x > 5) {
+		int a;
+		int w;
+		int c;
+		if(b) {
+			double dada;
+		}
+	}
+	else {
+		double carate;
+	}
+
+	int omega;
 	return ok;
 }
 
+int wtf() {
+
+}
 /*struct xyz main() {
 	return "not ok";
 }*/
