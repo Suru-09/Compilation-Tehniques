@@ -724,6 +724,33 @@ int SyntacticAnalyzer::r_optional_expr() {
     return 1;
 }
 
+Symbol SyntacticAnalyzer::tc_search_function() {
+    if(current_token && current_token->token.code == lex.ID && current_token->next &&
+        current_token->next->token.code == lex.LPAR ) {
+        std::string possible_key = std::get<std::string>(current_token->token.text);
+        auto sym = symbol_table.find_symbol(possible_key);
+        if (sym.name == "") {
+            std::cout << logger << utils::log_error(current_token->token.line, "Function called not found in ST!");
+            exit(lex.ID);
+        }
+
+        if (sym.class_ != sym.CLS_FUNC && sym.class_ != sym.CLS_EXTFUNC) {
+            std::cout << logger << utils::log_error(current_token->token.line, "Call to non function!");
+            exit(lex.ID);
+        }
+
+        ret_val.type = sym.type;
+        ret_val.is_constant_value = false;
+        ret_val.is_left_value = true;
+        return sym;
+    }
+    return Symbol{};
+}
+
+void SyntacticAnalyzer::tc_check_function(Symbol& symbol) {
+
+}
+
 int SyntacticAnalyzer::expr_primary() {
     consumed_token = std::make_shared<Node> (*current_token);
 
@@ -773,19 +800,53 @@ int SyntacticAnalyzer::expr_primary() {
     }
 
     current_token = consumed_token;
+    auto symb = tc_search_function();
+
+    if ( current_token && current_token->token.code == lex.ID  &&
+        current_token->next->token.code != lex.LPAR ) {
+        std::string possible_key = std::get<std::string> (current_token->token.text);
+        auto s = symbol_table.find_symbol(possible_key);
+        if( s.name == "") {
+            std::cout << logger << utils::log_error(current_token->token.line, "[ID] hasn't been defined!");
+            exit(lex.ID);
+        }
+        ret_val.type = s.type;
+        ret_val.is_left_value = true;
+        ret_val.is_constant_value = false;
+    }
 
     if(!match(lex.ID)) {
         return 0;
     }
 
+    auto vec = symb.members;
+    auto it = 0;
+    auto size = vec.size();
+
     if(match(lex.LPAR) ) {
-            
-        expr();
+        int val = expr();
 
-        while(match(lex.COMMA) && expr()) {}
+        if(size) {
+            if( it >= size ) {
+                std::cout << logger << utils::log_error(current_token->token.line, "Too many arguments in function1!");
+                exit(lex.LPAR);
+            }
+            cast_type(vec[it].second.type, ret_val.type);
+            ++it;
+        }
 
+        while(match(lex.COMMA) && expr()) {
+            if(size) {
+                if( it >= size ) {
+                    std::cout << logger << utils::log_error(current_token->token.line, "Too many arguments in function2!");
+                    exit(lex.LPAR);
+                }
+                cast_type(vec[it].second.type, ret_val.type);
+                ++it;
+            }
+        }
+    
         if(!match(lex.COMMA) && !expr()) {
-
         }
         else {
             if(match(lex.COMMA) && !expr()) {
@@ -802,7 +863,16 @@ int SyntacticAnalyzer::expr_primary() {
         if(!match(lex.RPAR) ) {
             std::cout << logger << utils::log_error(current_token->token.line, "Missing ) ");
             exit(lex.RPAR);
-        }                  
+        }
+
+        if( it < size && size) {
+            std::cout << logger << utils::log_error(current_token->token.line, "Too little arguments in function!");
+            exit(lex.RPAR);
+        }
+    
+        ret_val.type = symb.type;
+        ret_val.is_constant_value = false;
+        ret_val.is_left_value = false;                 
     }
     else {
         consumed_token = std::make_shared<Node>(*current_token);
@@ -1263,20 +1333,21 @@ bool SyntacticAnalyzer::add_var(Type type, std::string name) {
 }
 
 void SyntacticAnalyzer::cast_type(const Type& src, const Type& dest) {
+    std::cout << logger << "[CAST] intre [" << src.type_base << "] si [" << dest.type_base << "]\n";
     if(src.elements >= 0) {
         if(dest.elements >= 0) {
             if(src.type_base != dest.type_base) {
-                std::cout << logger << utils::log_error(current_token->token.line, "An array cannot be converted to an array of another type!\n");
+                std::cout << logger << utils::log_error(current_token->token.line, "An array cannot be converted to an array of another type!");
                 exit(lex.ID);
             }
         }
         else {
-            std::cout << logger << utils::log_error(current_token->token.line, "An array cannot be converted to non-array!\n");
+            std::cout << logger << utils::log_error(current_token->token.line, "An array cannot be converted to non-array!");
             exit(lex.ID);                
         }
     }
     else if(dest.elements >= 0) {
-            std::cout << logger << utils::log_error(current_token->token.line, "A non-array cannot be converted to an array!\n");
+            std::cout << logger << utils::log_error(current_token->token.line, "A non-array cannot be converted to an array!");
             exit(lex.ID);          
     }
 

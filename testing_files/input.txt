@@ -7,8 +7,6 @@ struct pt {
 struct pt z[21];
 
 void main() {
-	// THIS IS ARRAY_DECL AND DECL_VAR TESTED
-	main ();
 	int d;
 	struct pt xz;
 	int c, f[50];
@@ -19,12 +17,12 @@ void main() {
 	return 5;
 }
 
-int * mamaliga(double abc, char mamaliga2[20], char macaroane) {
-	if(x > 5) {
+int * mamaliga(double abc, char mamaliga2, char macaroane) {
+	if(5 > 5) {
 		int a;
 		int w;
 		int c;
-		if(b) {
+		if(w) {
 			double dada;
 		}
 	}
@@ -33,11 +31,15 @@ int * mamaliga(double abc, char mamaliga2[20], char macaroane) {
 	}
 
 	int omega;
-	return ok;
+	return 3;
 }
 
 int wtf() {
-
+	double c;
+	char d;
+	int b[10];
+	main();
+	mamaliga(c, d, c);
 }
 
 /*struct z main() {

@@ -81,6 +81,9 @@ private:
     void cast_type(const Type& src, const Type& dest);
     Type get_arithmetic_type(const Type& type1, const Type& type2);
     Type create_type(const int& type_base, const int& elements);
+    Symbol tc_search_function();
+    void tc_check_function(Symbol& symbol);
+
 public:
     void unit();
 
