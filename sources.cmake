@@ -10,6 +10,7 @@ set(HEADERS_LIST
     include/symbolTable/Type.hpp
     include/symbolTable/Symbol.hpp
     include/symbolTable/SymbolTable.hpp
+    include/symbolTable/ReturnValue.hpp
 )
 
 set(SOURCES_LIST
@@ -24,4 +25,5 @@ set(SOURCES_LIST
     src/symbolTable/Type.cpp
     src/symbolTable/Symbol.cpp
     src/symbolTable/SymbolTable.cpp
+    src/symbolTable/ReturnValue.cpp
 )

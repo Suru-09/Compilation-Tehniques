@@ -8,7 +8,7 @@ struct pt z[21];
 
 void main() {
 	// THIS IS ARRAY_DECL AND DECL_VAR TESTED
-	int a;
+	main ();
 	int d;
 	struct pt xz;
 	int c, f[50];
@@ -39,6 +39,7 @@ int * mamaliga(double abc, char mamaliga2[20], char macaroane) {
 int wtf() {
 
 }
-/*struct xyz main() {
+
+/*struct z main() {
 	return "not ok";
 }*/

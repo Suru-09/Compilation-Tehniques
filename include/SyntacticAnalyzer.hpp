@@ -7,6 +7,7 @@
 #include "SymbolTable.hpp"
 #include "Symbol.hpp"
 #include "Type.hpp"
+#include "ReturnValue.hpp"
 
 class SyntacticAnalyzer {
 private:
@@ -20,6 +21,7 @@ private:
     std::string current_func;
     Symbol tmp;
     bool is_struct;
+    ReturnValue ret_val;
 
     //  STATEMENTS
     int stm_block();
@@ -75,6 +77,10 @@ private:
     Symbol check_decl_func_helper(Type& type);
     bool add_args_symbol_table(Type& type);
 
+    // TYPE CHECKING
+    void cast_type(const Type& src, const Type& dest);
+    Type get_arithmetic_type(const Type& type1, const Type& type2);
+    Type create_type(const int& type_base, const int& elements);
 public:
     void unit();
 

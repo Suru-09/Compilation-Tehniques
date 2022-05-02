@@ -35,7 +35,36 @@ int SyntacticAnalyzer::expr() {
 }
 
 int SyntacticAnalyzer::match(const int& code) {
-    if(current_token->token.code == code) {
+    if(current_token && current_token->token.code == code) {
+        try {
+            long a = 0;
+            double b = 0;
+            std::string s = "";
+            switch(code) {
+                case 34:    // CT_INT
+                    a = std::get<long>(current_token->token.text);
+                    ret_val.set_constant_value(a);
+                    break;
+                case 44:    // CT_REAL
+                    b = std::get<double>(current_token->token.text);
+                    ret_val.set_constant_value(b);
+                    break;
+                case 51:    // CT_CHAR
+                    a = std::get<long>(current_token->token.text);
+                    ret_val.set_constant_value(a);
+                    break;
+                case 55:    // CT_STRING
+                    s = std::get<std::string> (current_token->token.text);
+                    ret_val.set_constant_value(s);
+                    break;
+                default:
+                    break;
+            }
+        }
+        catch(int sth) {
+
+        }
+
         current_token = current_token->next;
         return 1;
     }
@@ -699,18 +728,30 @@ int SyntacticAnalyzer::expr_primary() {
     consumed_token = std::make_shared<Node> (*current_token);
 
     if(match(lex.CT_INT)) {
+        ret_val.type = create_type(ret_val.type.TB_INT, -1);
+        ret_val.is_left_value = false;
+        ret_val.is_constant_value = true;
         std::cout << logger << "Found a PRIMARY (CT_INT) !\n";
         return 1;
     }
     else if(match(lex.CT_REAL)){
+        ret_val.type = create_type(ret_val.type.TB_DOUBLE, -1);
+        ret_val.is_left_value = false;
+        ret_val.is_constant_value = true;
         std::cout << logger << "Found a PRIMARY (CT_REAL) \n";
         return 1;
     }
     else if(match(lex.CT_CHAR)) {
+        ret_val.type = create_type(ret_val.type.TB_CHAR, -1);
+        ret_val.is_left_value = false;
+        ret_val.is_constant_value = true;
         std::cout << logger << "Found a PRIMARY (CT_CHAR) !\n";
         return 1;
     }
     else if(match(lex.CT_STRING)) {
+        ret_val.type = create_type(ret_val.type.TB_STRING, -1);
+        ret_val.is_left_value = false;
+        ret_val.is_constant_value = true;
         std::cout << logger << "Found a PRIMARY (CT_STRING)!\n";
         return 1;
     }
@@ -1219,4 +1260,76 @@ bool SyntacticAnalyzer::add_var(Type type, std::string name) {
     }
 
     return true;
+}
+
+void SyntacticAnalyzer::cast_type(const Type& src, const Type& dest) {
+    if(src.elements >= 0) {
+        if(dest.elements >= 0) {
+            if(src.type_base != dest.type_base) {
+                std::cout << logger << utils::log_error(current_token->token.line, "An array cannot be converted to an array of another type!\n");
+                exit(lex.ID);
+            }
+        }
+        else {
+            std::cout << logger << utils::log_error(current_token->token.line, "An array cannot be converted to non-array!\n");
+            exit(lex.ID);                
+        }
+    }
+    else if(dest.elements >= 0) {
+            std::cout << logger << utils::log_error(current_token->token.line, "A non-array cannot be converted to an array!\n");
+            exit(lex.ID);          
+    }
+
+    switch(src.type_base) {
+        case 0: // TB_INT
+        case 1: //  TB_DOUBLE
+        case 2: //  TB_CHAR
+        switch(dest.type_base) {
+            case 0: // TB_INT
+            case 1: //  TB_DOUBLE
+            case 2: //  TB_CHAR
+                return;
+        }
+        case 3: // TB_STRUCT
+            if(dest.type_base == dest.TB_STRUCT) {
+                if(src.symbol_name != dest.symbol_name) {
+                    std::cout << logger << utils::log_error(current_token->token.line, "A struct cannot be converted to another struct!\n");
+                    exit(lex.ID);         
+                }
+                return;
+            }
+    }
+    std::cout << logger << utils::log_error(current_token->token.line, "Incompatible types!\n");
+    exit(lex.ID);    
+}
+
+Type SyntacticAnalyzer::get_arithmetic_type(const Type& type1, const Type& type2) {
+    if (type1.type_base == type1.TB_INT) {
+        if ( type2.type_base == type1.TB_CHAR ) {
+            return type1;
+        }
+        return type2;
+    }
+    else if(type1.type_base == type1.TB_CHAR) {
+        if ( type2.type_base == type1.TB_CHAR ) {
+            return type1;
+        }
+        return type2;
+    }
+    else if(type1.type_base == type1.TB_DOUBLE) {
+        return type1;
+    }
+    else if(type1.type_base == type1.TB_STRUCT) {
+        return type1;
+    }
+
+    std::cout << logger << utils::log_error(current_token->token.line, "Couldn't get Arithmetic Type!\n");
+    exit(lex.ID);
+}
+
+Type SyntacticAnalyzer::create_type(const int& type_base, const int& elements) {
+    Type t;
+    t.type_base = type_base;
+    t.elements = elements;
+    return t;
 }
