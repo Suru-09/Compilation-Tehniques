@@ -38,3 +38,34 @@ bool ReturnValue::set_constant_value(std::string val) {
     }
     return false;
 }
+
+ReturnValue& ReturnValue::operator=(const ReturnValue& ret_val) {
+    if (this != &ret_val) {
+        is_left_value = ret_val.is_left_value;
+        is_constant_value = ret_val.is_constant_value;
+        type = ret_val.type;
+        if(ret_val.is_constant_value) {
+            try {
+                auto x = std::get<std::string> (ret_val.constant_value);
+                set_constant_value(x);
+            }
+            catch (int exception) {
+                try {
+                    auto x = std::get<long> (ret_val.constant_value);
+                    set_constant_value(x);
+                }
+                catch(int exception) {
+                    try {
+                        auto x = std::get<double> (ret_val.constant_value);
+                        set_constant_value(x);
+                    }
+                    catch(int exception) {
+                        std::cout << logger << "[ COPY ASSISGMENT OPERATOR FAILED ]\n";
+                    }
+                }
+            }
+        }
+
+    }
+    return *this;
+}

@@ -29,8 +29,10 @@ int * mamaliga(double abc, char mamaliga2, char macaroane) {
 	else {
 		double carate;
 	}
+	int gama[50];
 
 	int omega;
+	omega = gama[2];
 	return 3;
 }
 

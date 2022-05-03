@@ -20,6 +20,7 @@ public:
     bool set_constant_value(long val);
     bool set_constant_value(double val);
     bool set_constant_value(std::string val);
+    ReturnValue& operator=(const ReturnValue& ret_val);
 
     friend class SyntacticAnalyzer;
 };

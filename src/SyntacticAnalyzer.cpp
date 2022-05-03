@@ -802,8 +802,9 @@ int SyntacticAnalyzer::expr_primary() {
     current_token = consumed_token;
     auto symb = tc_search_function();
 
+    auto next = current_token->next;
     if ( current_token && current_token->token.code == lex.ID  &&
-        current_token->next->token.code != lex.LPAR ) {
+        next && next->token.code != lex.LPAR ) {
         std::string possible_key = std::get<std::string> (current_token->token.text);
         auto s = symbol_table.find_symbol(possible_key);
         if( s.name == "") {
@@ -913,21 +914,39 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
             current_token = consumed_token;
             return 0;
         }
-
         expr_postfix_bracket();
     }
     else {
-        int cnt = 0 ;
+        if(ret_val.type.elements < 0) {
+            std::cout << logger << utils::log_error(current_token->token.line, "[NON-ARRAY] can't be index ");
+            exit(lex.LBRACKET);
+        }
 
+        ReturnValue val;
+        val = ret_val;
+
+
+        int cnt = 0 ;
         while(expr()) {
             ++cnt;
         }
+
+        Type t = create_type(t.TB_INT, -1);
+        std::cout << logger << "RET_VAL: " << ret_val.type.type_base << "   T: " << t.type_base << "\n";
+        std::cout << logger << "RET_VAL: " << ret_val.type.elements << "   T: " << t.elements << "\n";
+        std::cout << logger << "RET_VAL: " << ret_val.type.symbol_name << "   T: " << t.symbol_name << "\n";
+
+        cast_type(ret_val.type, t);
+        ret_val.type = ret_val.type;
+        ret_val.type.elements = -1;
+        ret_val.is_left_value = true;
+        ret_val.is_constant_value = false;
 
         if(!cnt) {
             std::cout << logger << utils::log_error(current_token->token.line, "Missing EXPR in [ ]");
             exit(lex.RBRACKET);
         }
-
+        
         if(!match(lex.RBRACKET)) {
             current_token = consumed_token;
             return 0;
@@ -1363,6 +1382,7 @@ void SyntacticAnalyzer::cast_type(const Type& src, const Type& dest) {
         }
         case 3: // TB_STRUCT
             if(dest.type_base == dest.TB_STRUCT) {
+                // TO DO: Modify this to correspond in future
                 if(src.symbol_name != dest.symbol_name) {
                     std::cout << logger << utils::log_error(current_token->token.line, "A struct cannot be converted to another struct!\n");
                     exit(lex.ID);         
