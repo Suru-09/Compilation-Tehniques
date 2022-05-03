@@ -82,10 +82,11 @@ private:
     Type get_arithmetic_type(const Type& type1, const Type& type2);
     Type create_type(const int& type_base, const int& elements);
     Symbol tc_search_function();
-    void tc_check_function(Symbol& symbol);
     void check_postfix(const ReturnValue& rv);
+    void check_unary_sub();
+    void check_unary_not();
     bool find_val_in_members(const Symbol& symb, const std::string& symb_name);
-    
+
 public:
     void unit();
 

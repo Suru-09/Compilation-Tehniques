@@ -745,10 +745,6 @@ Symbol SyntacticAnalyzer::tc_search_function() {
     return Symbol{};
 }
 
-void SyntacticAnalyzer::tc_check_function(Symbol& symbol) {
-
-}
-
 int SyntacticAnalyzer::expr_primary() {
     consumed_token = std::make_shared<Node> (*current_token);
 
@@ -967,9 +963,9 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
         }
 
         Type t = create_type(t.TB_INT, -1);
-        std::cout << logger << "RET_VAL: " << ret_val.type.type_base << "   T: " << t.type_base << "\n";
-        std::cout << logger << "RET_VAL: " << ret_val.type.elements << "   T: " << t.elements << "\n";
-        std::cout << logger << "RET_VAL: " << ret_val.type.symbol_name << "   T: " << t.symbol_name << "\n";
+        // std::cout << logger << "RET_VAL: " << ret_val.type.type_base << "   T: " << t.type_base << "\n";
+        // std::cout << logger << "RET_VAL: " << ret_val.type.elements << "   T: " << t.elements << "\n";
+        // std::cout << logger << "RET_VAL: " << ret_val.type.symbol_name << "   T: " << t.symbol_name << "\n";
 
         cast_type(ret_val.type, t);
         ret_val.type = ret_val.type;
@@ -1003,6 +999,28 @@ int SyntacticAnalyzer::expr_postfix() {
     return 1;
 }
 
+void SyntacticAnalyzer::check_unary_sub() {
+    if (ret_val.type.elements >= 0) {
+        std::cout << logger << utils::log_error(current_token->token.line, "[CHECK_UNARY_SUB] Unary [-] cannot be applied to an array!");
+        exit(lex.SUB);
+    }
+
+    if (ret_val.type.type_base == ret_val.type.TB_STRUCT) {
+        std::cout << logger << utils::log_error(current_token->token.line, "[CHECK_UNARY_SUB] Unary [-] cannot be applied to a TB_STRUCT!");
+        exit(lex.SUB);
+    }
+}
+
+void SyntacticAnalyzer::check_unary_not() {
+    if (ret_val.type.type_base == ret_val.type.TB_STRUCT) {
+        std::cout << logger << utils::log_error(current_token->token.line, "[CHECK_UNARY_NOT] Unary [!] cannot be applied to a TB_STRUCT!");
+        exit(lex.SUB);
+    }
+    ret_val.type = create_type(ret_val.type.TB_INT, -1);
+    ret_val.is_constant_value = false;
+    ret_val.is_left_value = false;
+}
+
 int SyntacticAnalyzer::expr_unary() {
     consumed_token = std::make_shared<Node> (*current_token);
 
@@ -1011,18 +1029,20 @@ int SyntacticAnalyzer::expr_unary() {
     }
 
     if( match(lex.SUB) ) {
-       if( !expr_unary()) {
-           current_token = consumed_token;
-           return 0;
-       }
-       return 1;
+        if( !expr_unary()) {
+            current_token = consumed_token;
+            return 0;
+        }
+        check_unary_sub();
+        return 1;
     }
      if( match(lex.NOT) ) {
         if( !expr_unary()) {
-           current_token = consumed_token;
-           return 0;
-       }
-       return 1;
+            current_token = consumed_token;
+            return 0;
+        }
+        check_unary_not();
+        return 1;
     }
     
     current_token = consumed_token;
@@ -1387,7 +1407,8 @@ bool SyntacticAnalyzer::add_var(Type type, std::string name) {
 }
 
 void SyntacticAnalyzer::cast_type(const Type& src, const Type& dest) {
-    std::cout << logger << "[CAST] intre [" << src.type_base << "] si [" << dest.type_base << "]\n";
+    std::cout << logger << "[CAST_TYPE] intre [" << utils::type_to_string(src.type_base) 
+        << "] si [" << utils::type_to_string(dest.type_base) << "]\n";
     if(src.elements >= 0) {
         if(dest.elements >= 0) {
             if(src.type_base != dest.type_base) {
