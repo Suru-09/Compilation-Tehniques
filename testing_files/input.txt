@@ -34,6 +34,8 @@ int * mamaliga(double abc, char mamaliga2, char macaroane) {
 	int omega;
 	omega = gama[2];
 	return 3;
+	omega = z.x;
+	omega = z.c;
 }
 
 int wtf() {

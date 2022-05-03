@@ -319,11 +319,9 @@ Symbol SyntacticAnalyzer::add_decl_var_to_symbol(Type& type) {
     if( current_token && current_token->token.code == lex.ID ) {
         std::string possible_key = std::get<std::string> (current_token->token.text);
         sym = symbol_table.find_symbol(possible_key);
-
+        
         auto val = current_token->next;
         if( sym.name != "" && val->token.code != lex.LPAR) {
-            // std::cout << logger << "Inainte sa ies zic cine sunt: " << sym.name << "\n";
-            // symbol_table.print_symbol_table();
             std::cout << logger << utils::log_error(current_token->token.line, "Symbol redefiniton ");
             exit(lex.ID);
         }
@@ -331,7 +329,6 @@ Symbol SyntacticAnalyzer::add_decl_var_to_symbol(Type& type) {
         sym.class_ = sym.CLS_STRUCT;
         sym.depth = current_depth;
         sym.type = type;
-        // TO DO: set members in struct
     }
     return sym;
 }
@@ -356,6 +353,7 @@ Type SyntacticAnalyzer::type_base_condition() {
         else if( v == lex.STRUCT && current_token->next->token.code == lex.ID ) {
             type.type_base = type.TB_STRUCT;
             type.elements = -1;
+            type.symbol_name = std::get<std::string> (current_token->next->token.text);
         }
         else if( v == lex.VOID ) {
             type.type_base = type.TB_VOID;
@@ -895,6 +893,41 @@ int SyntacticAnalyzer::expr_primary() {
     return 1;
 }
 
+bool SyntacticAnalyzer::find_val_in_members(const Symbol& symb, const std::string& symb_name) {
+    std::cout << logger << "[FIND_VAL_IN_MEMBERS]: STRUCT/FUNCTION: " << symb.name 
+        << " searched SYMBOL: " << symb_name << "\n";
+    auto vec = symb.members;
+    for(const auto& x: vec) {
+        if (x.second.name == symb_name) {
+            return true;
+        } 
+    }
+    return false;
+}
+
+void SyntacticAnalyzer::check_postfix(const ReturnValue& rv) {
+    if (current_token && current_token->token.code == lex.ID) {
+        auto symbol = symbol_table.find_symbol(rv.type.symbol_name); // Search for struct variable
+        if ( symbol.name == "" ) {
+            std::string s = "Couldn't find any STRUCT VAR declared with the name: [" 
+                + rv.type.symbol_name + "]";
+            std::cout << logger << utils::log_error(current_token->token.line, s);
+        }
+        auto struct_ = symbol_table.find_symbol(symbol.type.symbol_name);   // Search after actual struct saved
+        
+        std::string name = std::get<std::string> (current_token->token.text);
+        bool ok = find_val_in_members(struct_, name);
+        if ( !ok ) {
+            std::string s = "This STRUCT [" + struct_.name + "] " + "doesn't have " + name + " as parameter ";
+            std::cout << logger << utils::log_error(current_token->token.line, s);
+            exit(lex.ID);
+        }
+        ret_val.type = symbol.type;
+        ret_val.is_left_value = true;
+        ret_val.is_constant_value = false;
+    }
+}
+
 int SyntacticAnalyzer::expr_postfix_bracket() {
 
     consumed_token = std::make_shared<Node> (*current_token);
@@ -904,11 +937,14 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
     }
 
     if(!match(lex.LBRACKET)) {
-        
+        ReturnValue ret = ret_val;
+
         if(!match(lex.DOT)) {
             current_token = consumed_token;
             return 0;
         }
+    
+        check_postfix(ret);
 
         if(!match(lex.ID)) {
             current_token = consumed_token;
@@ -924,7 +960,6 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
 
         ReturnValue val;
         val = ret_val;
-
 
         int cnt = 0 ;
         while(expr()) {

@@ -83,7 +83,9 @@ private:
     Type create_type(const int& type_base, const int& elements);
     Symbol tc_search_function();
     void tc_check_function(Symbol& symbol);
-
+    void check_postfix(const ReturnValue& rv);
+    bool find_val_in_members(const Symbol& symb, const std::string& symb_name);
+    
 public:
     void unit();
 
