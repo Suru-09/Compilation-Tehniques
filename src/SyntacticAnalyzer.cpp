@@ -86,6 +86,8 @@ int SyntacticAnalyzer::r_while() {
         exit(-1);
     }
 
+    check_r_if();
+
     if(!match(lex.RPAR)) {
         std::cout << logger << utils::log_error(current_token->token.line, "Missing ) ");
         exit(lex.RPAR);
@@ -98,13 +100,33 @@ int SyntacticAnalyzer::r_while() {
     return 1;
 }
 
+void SyntacticAnalyzer::check_r_return() {
+    if (current_func != "") {
+        auto sym = symbol_table.find_symbol(current_func);
+        if (sym.name == "") {
+            std::cout << logger << utils::log_error(current_token->token.line, "[CURRENT_FUNCTION] != EMPTY but lacks from ST!");
+            exit(lex.ID);
+        }
+        if (sym.type.type_base == sym.type.TB_VOID) {
+            std::cout << logger << utils::log_error(current_token->token.line, "[VOID FUNCTION] cannot return anything!");
+            exit(lex.ID);
+        }
+        cast_type(ret_val.type, sym.type);
+    }
+    else {
+        std::cout << logger << "[CURRENT_FUNCT] == EMPTY \n";
+    }
+}
+
 int SyntacticAnalyzer::r_return() {
     if(!match(lex.RETURN)) {
         return 0;
     }
 
-    expr();
-
+    if ( expr() ) {
+        check_r_return();
+    }
+    
     if(!match(lex.SEMICOLON)) {
         std::cout << logger << utils::log_error(current_token->token.line, "Missing ; ");
         exit(lex.SEMICOLON);
@@ -236,6 +258,20 @@ int SyntacticAnalyzer::type_base() {
     return 0;
 }
 
+void SyntacticAnalyzer::check_array_decl() {
+    if ( !ret_val.is_constant_value ) {
+        std::string s = "The [ARRAY SIZE] is not a CONSTANT!";
+        std::cout << logger << utils::log_error(current_token->token.line, s);
+        exit(lex.ID);
+    }
+
+    if ( ret_val.type.type_base != ret_val.type.TB_INT ) {
+        std::string s = "The [ARRAY SIZE] is not an INTEGER!";
+        std::cout << logger << utils::log_error(current_token->token.line, s);
+        exit(lex.ID);
+    }
+}
+
 int SyntacticAnalyzer::array_decl() {
 
     if(!match(lex.LBRACKET)) {
@@ -289,8 +325,8 @@ int SyntacticAnalyzer::array_decl() {
             symbol_table.update_symbol(symb);
         }
         else {
-            // TO DO: TYPE CHECKING ADD REAL VALUE FOR SIZE
-            tmp.type.elements = 1;
+            check_array_decl();
+            tmp.type.elements = std::get<long> (ret_val.constant_value);
             add_var(tmp.type, tmp.name);
         }
     }
@@ -607,14 +643,14 @@ int SyntacticAnalyzer::decl_func() {
         exit(lex.RPAR);
     }
 
-    // !!! BE CAREFUL with this
-    current_func = "";
 
     if(!stm_block()) {
         std::cout << logger << utils::log_error(current_token->token.line, "Creating a function without a body ");
         exit(-1);
     }
 
+    // !!! BE CAREFUL with this
+    current_func = "";
     symbol_table.delete_symbols_from_given_level(current_depth);
     current_depth--;
     std::cout << logger << "Found a FUNCTION!\n";
@@ -634,8 +670,9 @@ int SyntacticAnalyzer::r_for() {
 
     int cnt = 3;
     while(cnt--) {
-        //std::cout << logger << "  " << cnt << '\n';
-        expr();
+        if ( expr() && cnt == 1) {  // check only for middle thing
+            check_r_if();
+        }
 
         if(cnt > 0) {
             if(!match(lex.SEMICOLON)) {
@@ -658,6 +695,14 @@ int SyntacticAnalyzer::r_for() {
     return 1;
 }
 
+void SyntacticAnalyzer::check_r_if() {
+    if (ret_val.type.type_base == ret_val.type.TB_STRUCT) {
+        std::string s = "A [STRUCT] can't be [LOGICALLY TESTED]!";
+        std::cout << logger << utils::log_error(current_token->token.line, s);
+        exit(lex.ID);
+    }
+}
+
 int SyntacticAnalyzer::r_if() {
 
     if(!match(lex.IF)) {
@@ -673,6 +718,8 @@ int SyntacticAnalyzer::r_if() {
         std::cout << logger << utils::log_error(current_token->token.line, "Missing expression ");
         exit(-1);       
     }
+
+    check_r_if();
 
     if(!match(lex.RPAR)) {
         std::cout << logger << utils::log_error(current_token->token.line, "Missing ) ");
@@ -777,6 +824,7 @@ int SyntacticAnalyzer::expr_primary() {
         return 1;
     }
     else if(match(lex.LPAR)){
+        auto type = type_base_condition();
         if(!type_name()) {
             if(expr()) {
                 if(match(lex.RPAR)) {
@@ -786,7 +834,7 @@ int SyntacticAnalyzer::expr_primary() {
             }
         }
         else if( match(lex.RPAR) ) {
-
+            check_cast(type);
             while(expr_cast()) {}
             std::cout << logger << "Found a CAST EXPRESSION! \n";
             return 1;
@@ -889,36 +937,45 @@ int SyntacticAnalyzer::expr_primary() {
     return 1;
 }
 
-bool SyntacticAnalyzer::find_val_in_members(const Symbol& symb, const std::string& symb_name) {
+Symbol SyntacticAnalyzer::find_val_in_members(const Symbol& symb, const std::string& symb_name) {
     std::cout << logger << "[FIND_VAL_IN_MEMBERS]: STRUCT/FUNCTION: " << symb.name 
         << " searched SYMBOL: " << symb_name << "\n";
     auto vec = symb.members;
     for(const auto& x: vec) {
         if (x.second.name == symb_name) {
-            return true;
+            return x.second;
         } 
     }
-    return false;
+    return Symbol{};
 }
 
 void SyntacticAnalyzer::check_postfix(const ReturnValue& rv) {
     if (current_token && current_token->token.code == lex.ID) {
         auto symbol = symbol_table.find_symbol(rv.type.symbol_name); // Search for struct variable
+        std::cout << logger << "[STRUCT ARRAY] : " << ret_val.type.symbol_name << "\n";
         if ( symbol.name == "" ) {
             std::string s = "Couldn't find any STRUCT VAR declared with the name: [" 
                 + rv.type.symbol_name + "]";
             std::cout << logger << utils::log_error(current_token->token.line, s);
+            exit(lex.ID);
         }
+
+        if ( rv.type.elements >= 0) {
+            std::string s = "In order to access struct ARRAY, you should first access the [ARRAY ELEMENT]!";
+            std::cout << logger << utils::log_error(current_token->token.line, s);
+            exit(lex.ID);    
+        }
+
         auto struct_ = symbol_table.find_symbol(symbol.type.symbol_name);   // Search after actual struct saved
         
         std::string name = std::get<std::string> (current_token->token.text);
-        bool ok = find_val_in_members(struct_, name);
-        if ( !ok ) {
+        auto ok = find_val_in_members(struct_, name); // ok is the symbol found in the STRUCT (using its type)
+        if ( ok.name == "" ) {
             std::string s = "This STRUCT [" + struct_.name + "] " + "doesn't have " + name + " as parameter ";
             std::cout << logger << utils::log_error(current_token->token.line, s);
             exit(lex.ID);
         }
-        ret_val.type = symbol.type;
+        ret_val.type = ok.type;
         ret_val.is_left_value = true;
         ret_val.is_constant_value = false;
     }
@@ -932,9 +989,13 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
         return 1;
     }
 
-    if(!match(lex.LBRACKET)) {
-        ReturnValue ret = ret_val;
+    static ReturnValue ret;
+    if ( symbol_table.find_symbol(ret_val.type.symbol_name).name != "") {
+        ret = ret_val;
+    }
+    ret.type.elements = ret_val.type.elements;
 
+    if(!match(lex.LBRACKET)) {
         if(!match(lex.DOT)) {
             current_token = consumed_token;
             return 0;
@@ -954,9 +1015,6 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
             exit(lex.LBRACKET);
         }
 
-        ReturnValue val;
-        val = ret_val;
-
         int cnt = 0 ;
         while(expr()) {
             ++cnt;
@@ -968,7 +1026,7 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
         // std::cout << logger << "RET_VAL: " << ret_val.type.symbol_name << "   T: " << t.symbol_name << "\n";
 
         cast_type(ret_val.type, t);
-        ret_val.type = ret_val.type;
+        ret_val.type = t;
         ret_val.type.elements = -1;
         ret_val.is_left_value = true;
         ret_val.is_constant_value = false;
@@ -1049,6 +1107,13 @@ int SyntacticAnalyzer::expr_unary() {
     return 0;
 }
 
+void SyntacticAnalyzer::check_cast(const Type& type) {
+    cast_type(type, ret_val.type);
+    ret_val.type = type;
+    ret_val.is_constant_value = false;
+    ret_val.is_left_value = false;
+}
+
 int SyntacticAnalyzer::expr_cast() {
     consumed_token = std::make_shared<Node> (*current_token);
 
@@ -1056,9 +1121,14 @@ int SyntacticAnalyzer::expr_cast() {
         return 1;
     }
 
+    auto type = type_base_condition();
+
     if(!match(lex.LPAR)) {
         return 0;
     }
+
+    std::cout << logger << "[ASTA] castuiesc la: " << utils::type_to_string(type.type_base) << "\n";
+    check_cast(type);
 
     if(!type_name()) {
         std::cout << logger << utils::log_error(current_token->token.line, "Missing type  ");
@@ -1077,9 +1147,26 @@ int SyntacticAnalyzer::expr_cast() {
     return 0;
 }
 
+void SyntacticAnalyzer::check_mul(const ReturnValue& rv) {
+    if (rv.type.elements >= 0 || ret_val.type.elements >= 0) {
+        std::cout << logger << utils::log_error(current_token->token.line, "An [ARRAY] can't be [MULTIPLIED] or [DIVIDED]!");
+        exit(lex.MUL);
+    }
+
+    if (rv.type.type_base == rv.type.TB_STRUCT || ret_val.type.type_base == rv.type.TB_STRUCT) {
+        std::cout << logger << utils::log_error(current_token->token.line, "A [STRUCT] can't be [MULTIPLIED] or [DIVIDED]!");
+        exit(lex.MUL);
+    }
+    cast_type(ret_val.type, rv.type);
+    ret_val.type = get_arithmetic_type(rv.type, ret_val.type);
+    ret_val.is_constant_value = false;
+    ret_val.is_left_value = false;
+}
+
 int SyntacticAnalyzer::expr_mul_helper() {
     consumed_token = std::make_shared<Node> (*current_token);
     
+    ReturnValue rv = ret_val;
     if(match(lex.MUL) || match(lex.DIV) ) {
         if(!expr_cast()) {
             current_token = consumed_token;
@@ -1092,9 +1179,9 @@ int SyntacticAnalyzer::expr_mul_helper() {
     }
    
     while(expr_mul_helper() ) {}
+    check_mul(rv);
     return 1;
 }
-
 
 int SyntacticAnalyzer::expr_mul() {
     consumed_token = std::make_shared<Node> (*current_token);
@@ -1117,10 +1204,26 @@ int SyntacticAnalyzer::expr_mul() {
     return 0;
 }
 
+void SyntacticAnalyzer::check_add(const ReturnValue& rv) {
+    if (rv.type.elements >= 0 || ret_val.type.elements >= 0) {
+        std::cout << logger << utils::log_error(current_token->token.line, "An [ARRAY] can't be [ADDED] or [SUBSTRACTED]!");
+        exit(lex.MUL);
+    }
+
+    if (rv.type.type_base == rv.type.TB_STRUCT || ret_val.type.type_base == rv.type.TB_STRUCT) {
+        std::cout << logger << utils::log_error(current_token->token.line, "A [STRUCT] can't be [ADDED] or [SUBSTRACTED]!");
+        exit(lex.MUL);
+    }
+    cast_type(ret_val.type, rv.type);
+    ret_val.type = get_arithmetic_type(rv.type, ret_val.type);
+    ret_val.is_constant_value = false;
+    ret_val.is_left_value = false;    
+}
 
 int SyntacticAnalyzer::expr_add_helper() {
     consumed_token = std::make_shared<Node> (*current_token);
     
+    ReturnValue rv = ret_val;
     if(match(lex.ADD) || match(lex.SUB) ) {
         if(!expr_mul()) {
             current_token = consumed_token;
@@ -1133,6 +1236,7 @@ int SyntacticAnalyzer::expr_add_helper() {
     }
    
     while(expr_add_helper() ) {}
+    check_add(rv);
     return 1;
 }
 
@@ -1158,9 +1262,25 @@ int SyntacticAnalyzer::expr_add() {
     return 0;
 }
 
+void SyntacticAnalyzer::check_rel(const ReturnValue& rv) {
+    if (rv.type.elements >= 0 || ret_val.type.elements >= 0) {
+        std::cout << logger << utils::log_error(current_token->token.line, "An [ARRAY] can't be [COMPARED]!");
+        exit(lex.MUL);
+    }
+
+    if (rv.type.type_base == rv.type.TB_STRUCT || ret_val.type.type_base == rv.type.TB_STRUCT) {
+        std::cout << logger << utils::log_error(current_token->token.line, "A [STRUCT] can't be [COMPARED]!");
+        exit(lex.MUL);
+    }
+    ret_val.type = create_type(ret_val.type.TB_INT, -1);
+    ret_val.is_constant_value = false;
+    ret_val.is_left_value = false;        
+}
+
 int SyntacticAnalyzer::expr_rel_helper() {
     consumed_token = std::make_shared<Node> (*current_token);
     
+    ReturnValue rv = ret_val;
     if(match(lex.LESS) || match(lex.LESSEQ) || match(lex.GREATER) || match(lex.GREATEREQ) ) {
         if(!expr_add()) {
             current_token = consumed_token;
@@ -1173,6 +1293,7 @@ int SyntacticAnalyzer::expr_rel_helper() {
     }
    
     while(expr_rel_helper() ) {}
+    check_rel(rv);
     return 1;
 }
 
@@ -1198,9 +1319,25 @@ int SyntacticAnalyzer::expr_rel() {
     return 0;
 }
 
+void SyntacticAnalyzer::check_eq(const ReturnValue& rv) {
+    if (rv.type.elements >= 0 || ret_val.type.elements >= 0) {
+        std::cout << logger << utils::log_error(current_token->token.line, "An [ARRAY] can't be [COMPARED]!");
+        exit(lex.MUL);
+    }
+
+    if (rv.type.type_base == rv.type.TB_STRUCT || ret_val.type.type_base == rv.type.TB_STRUCT) {
+        std::cout << logger << utils::log_error(current_token->token.line, "A [STRUCT] can't be [COMPARED]!");
+        exit(lex.MUL);
+    }
+    ret_val.type = create_type(ret_val.type.TB_INT, -1);
+    ret_val.is_constant_value = false;
+    ret_val.is_left_value = false;         
+}
+
 int SyntacticAnalyzer::expr_eq_helper() {
     consumed_token = std::make_shared<Node> (*current_token);
     
+    ReturnValue rv = ret_val;
     if(match(lex.EQUAL) || match(lex.NOTEQ)  ) {
         if(!expr_rel()) {
             current_token = consumed_token;
@@ -1213,6 +1350,7 @@ int SyntacticAnalyzer::expr_eq_helper() {
     }
    
     while(expr_eq_helper() ) {}
+    check_eq(rv);
 
     return 1;
 }
@@ -1239,9 +1377,20 @@ int SyntacticAnalyzer::expr_eq() {
     return 0;
 }
 
+void SyntacticAnalyzer::check_and(const ReturnValue& rv) {
+    if (rv.type.type_base == rv.type.TB_STRUCT || ret_val.type.type_base == rv.type.TB_STRUCT) {
+        std::cout << logger << utils::log_error(current_token->token.line, "A [STRUCT] can't be [LOGICALLY TESTED]!");
+        exit(lex.MUL);
+    }
+    ret_val.type = create_type(ret_val.type.TB_INT, -1);
+    ret_val.is_constant_value = false;
+    ret_val.is_left_value = false;      
+}
+
 int SyntacticAnalyzer::expr_and_helper() {
     consumed_token = std::make_shared<Node> (*current_token);
     
+    ReturnValue rv = ret_val;
     if(match(lex.AND)) {
         if(!expr_eq()) {
             current_token = consumed_token;
@@ -1254,7 +1403,7 @@ int SyntacticAnalyzer::expr_and_helper() {
     }
    
     while(expr_and_helper() ) {}
-
+    check_and(rv);
     return 1;
 }
 
@@ -1280,9 +1429,20 @@ int SyntacticAnalyzer::expr_and() {
     return 0;
 }
 
+void SyntacticAnalyzer::check_or(const ReturnValue& rv) {
+    if (rv.type.type_base == rv.type.TB_STRUCT || ret_val.type.type_base == rv.type.TB_STRUCT) {
+        std::cout << logger << utils::log_error(current_token->token.line, "A [STRUCT] can't be [LOGICALLY TESTED]!");
+        exit(lex.MUL);
+    }
+    ret_val.type = create_type(ret_val.type.TB_INT, -1);
+    ret_val.is_constant_value = false;
+    ret_val.is_left_value = false;      
+}
+
 int SyntacticAnalyzer::expr_or_helper() {
     consumed_token = std::make_shared<Node> (*current_token);
     
+    ReturnValue rv = ret_val;
     if(match(lex.OR) ) {
         if(!expr_and()) {
             current_token = consumed_token;
@@ -1295,10 +1455,10 @@ int SyntacticAnalyzer::expr_or_helper() {
     }
    
     while(expr_or_helper() ) {}
+    check_or(rv);
 
     return 1;
 }
-
 
 int SyntacticAnalyzer::expr_or() {
     consumed_token = std::make_shared<Node> (*current_token);
@@ -1321,9 +1481,26 @@ int SyntacticAnalyzer::expr_or() {
     return 0;
 }
 
+void SyntacticAnalyzer::check_assign(const ReturnValue& rv) {
+    if ( !rv.is_left_value ) {
+        std::string s = "Can't [ASSIGN] to [NON-LVAL]!";
+        std::cout << logger << utils::log_error(current_token->token.line , s);
+        exit(lex.ID);
+    }
+
+    if (rv.type.elements >= 0|| ret_val.type.elements >= 0) {
+        std::cout << logger << utils::log_error(current_token->token.line, "Arrays can't be [ASSIGNED]!");
+        exit(lex.ID);
+    }
+    cast_type(ret_val.type, rv.type);
+    ret_val.is_constant_value = false;
+    ret_val.is_left_value = false;      
+}
+
 int SyntacticAnalyzer::expr_assign_helper() {
     consumed_token = std::make_shared<Node> (*current_token);
     
+    ReturnValue rv = ret_val;
     if( match(lex.ASSIGN) ) {
         if( !expr_assign()) {
             current_token = consumed_token;
@@ -1336,6 +1513,7 @@ int SyntacticAnalyzer::expr_assign_helper() {
     }
 
     while(expr_eq_helper() ) {}
+    check_assign(rv);
     return 1;
 }
 
@@ -1407,8 +1585,8 @@ bool SyntacticAnalyzer::add_var(Type type, std::string name) {
 }
 
 void SyntacticAnalyzer::cast_type(const Type& src, const Type& dest) {
-    std::cout << logger << "[CAST_TYPE] intre [" << utils::type_to_string(src.type_base) 
-        << "] si [" << utils::type_to_string(dest.type_base) << "]\n";
+    std::cout << logger << "[CAST_TYPE] intre [" << utils::type_to_string(dest.type_base) 
+        << "] si [" << utils::type_to_string(src.type_base) << "]\n";
     if(src.elements >= 0) {
         if(dest.elements >= 0) {
             if(src.type_base != dest.type_base) {
@@ -1446,7 +1624,7 @@ void SyntacticAnalyzer::cast_type(const Type& src, const Type& dest) {
                 return;
             }
     }
-    std::cout << logger << utils::log_error(current_token->token.line, "Incompatible types!\n");
+    std::cout << logger << utils::log_error(current_token->token.line, "Incompatible types!");
     exit(lex.ID);    
 }
 
@@ -1470,7 +1648,7 @@ Type SyntacticAnalyzer::get_arithmetic_type(const Type& type1, const Type& type2
         return type1;
     }
 
-    std::cout << logger << utils::log_error(current_token->token.line, "Couldn't get Arithmetic Type!\n");
+    std::cout << logger << utils::log_error(current_token->token.line, "Couldn't get Arithmetic Type!");
     exit(lex.ID);
 }
 

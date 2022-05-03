@@ -85,7 +85,18 @@ private:
     void check_postfix(const ReturnValue& rv);
     void check_unary_sub();
     void check_unary_not();
-    bool find_val_in_members(const Symbol& symb, const std::string& symb_name);
+    void check_mul(const ReturnValue& rv);
+    void check_add(const ReturnValue& rv);
+    void check_rel(const ReturnValue& rv);
+    void check_eq(const ReturnValue& rv);
+    void check_or(const ReturnValue& rv);
+    void check_and(const ReturnValue& rv);
+    void check_assign(const ReturnValue& rv);
+    void check_r_if();
+    void check_r_return();
+    void check_array_decl();
+    void check_cast(const Type& type);
+    Symbol find_val_in_members(const Symbol& symb, const std::string& symb_name);
 
 public:
     void unit();

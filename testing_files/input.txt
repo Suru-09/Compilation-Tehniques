@@ -9,12 +9,12 @@ struct pt z[21];
 void main() {
 	int d;
 	struct pt xz;
-	int c, f[50];
+	int c, f[123];
 	int e[100];
 	double g;
 	double hello;
 	char goodbye;
-	return 5;
+	return ;
 }
 
 int * mamaliga(double abc, char mamaliga2, char macaroane) {
@@ -22,7 +22,7 @@ int * mamaliga(double abc, char mamaliga2, char macaroane) {
 		int a;
 		int w;
 		int c;
-		if(w) {
+		if(1) {
 			double dada;
 		}
 	}
@@ -32,18 +32,55 @@ int * mamaliga(double abc, char mamaliga2, char macaroane) {
 	int gama[50];
 
 	int omega;
-	omega = gama[2];
+	double k;
+	//omega = gama[2];
 	return 3;
-	omega = z.x;
+	omega = z[5].x;
+
+	//!omega;
+	//-omega;
+
+	char b2[20];
+
+	// (struct pt) omega;
+	// (struct m) omega;
+
+	omega = 1 * 2 * omega * omega;
+	// 2 = z[5].x < 1.92e5;
+	//k = z[2].x < 1.92e5;
+	// k = 2 || 3 && 4 && 5 && z;
+	k = 2 || 3 && 4 && 5 && z[2].x;
+
+	k == z[0].b;
+	k != z[1].b;
+
+	if( k == "string" ) {
+		return 5;
+	}
+
+	if (omega > 3 && z[1].x < 2 || z[2].b > 4.5) {
+		return 3;
+	}
+
+	while ( z[3].x ) {
+		return 7;
+	}
+
+	int i;
+	for( i = 0 ; z[2].x ; i = i + 1 ){
+		return 15;
+	}
+
 }
 
+/*
 int wtf() {
 	double c;
 	char d;
 	int b[10];
 	main();
 	mamaliga(c, d, c);
-}
+}*/
 
 /*struct z main() {
 	return "not ok";
