@@ -44,6 +44,10 @@ bool Symbol::add_member(Symbol s) {
         auto pair = std::make_pair<int, Symbol>(CLS_FUNC, std::move(s));
         members.push_back(pair);
     }
+    else if(class_ == CLS_EXTFUNC) {
+        auto pair = std::make_pair<int, Symbol>(CLS_EXTFUNC, std::move(s));
+        members.push_back(pair);
+    }
     else if(class_ == CLS_STRUCT) {
         auto pair = std::make_pair<int, Symbol>(CLS_STRUCT, std::move(s));
         members.push_back(pair);
@@ -68,4 +72,20 @@ Symbol& Symbol::operator=(const Symbol& symbol) {
         }
     }
     return *this;
+}
+
+Symbol Symbol::create_function(const std::string& name, 
+const std::vector<Symbol>& arr,
+const int& returning_type) {
+    Symbol symb{};
+    symb.name = name;
+    symb.class_ = CLS_EXTFUNC;
+    symb.memory_zone = MEM_GLOBAL;
+    symb.depth = 0;
+    symb.type = Type{returning_type};
+    for(auto x: arr) {
+        symb.add_member(x);
+    }
+
+    return symb;
 }

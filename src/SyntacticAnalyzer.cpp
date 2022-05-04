@@ -11,6 +11,7 @@ is_struct(false)
 {   
     current_token = lex.token_list.get_head();
     logger = Logger{class_name};
+    add_predefined_functions();
 }
 
 SyntacticAnalyzer::SyntacticAnalyzer() 
@@ -50,8 +51,8 @@ int SyntacticAnalyzer::match(const int& code) {
                     ret_val.set_constant_value(b);
                     break;
                 case 51:    // CT_CHAR
-                    a = std::get<long>(current_token->token.text);
-                    ret_val.set_constant_value(a);
+                    s = std::get<std::string>(current_token->token.text);
+                    ret_val.set_constant_value(s);
                     break;
                 case 55:    // CT_STRING
                     s = std::get<std::string> (current_token->token.text);
@@ -259,11 +260,11 @@ int SyntacticAnalyzer::type_base() {
 }
 
 void SyntacticAnalyzer::check_array_decl() {
-    if ( !ret_val.is_constant_value ) {
-        std::string s = "The [ARRAY SIZE] is not a CONSTANT!";
-        std::cout << logger << utils::log_error(current_token->token.line, s);
-        exit(lex.ID);
-    }
+    // if ( !ret_val.is_constant_value ) {
+    //     std::string s = "The [ARRAY SIZE] is not a CONSTANT!";
+    //     std::cout << logger << utils::log_error(current_token->token.line, s);
+    //     exit(lex.ID);
+    // }
 
     if ( ret_val.type.type_base != ret_val.type.TB_INT ) {
         std::string s = "The [ARRAY SIZE] is not an INTEGER!";
@@ -326,7 +327,12 @@ int SyntacticAnalyzer::array_decl() {
         }
         else {
             check_array_decl();
-            tmp.type.elements = std::get<long> (ret_val.constant_value);
+            try {
+                tmp.type.elements = std::get<long> (ret_val.constant_value);
+            }
+            catch(int err) {
+
+            }
             add_var(tmp.type, tmp.name);
         }
     }
@@ -867,14 +873,13 @@ int SyntacticAnalyzer::expr_primary() {
     auto size = vec.size();
 
     if(match(lex.LPAR) ) {
-        int val = expr();
-
         if(size) {
             if( it >= size ) {
                 std::cout << logger << utils::log_error(current_token->token.line, "Too many arguments in function1!");
                 exit(lex.LPAR);
             }
-            cast_type(vec[it].second.type, ret_val.type);
+            std::cout << logger << "[RET_VAL]: " << utils::type_to_string(vec[it].second.type.type_base) << "\n";
+            cast_type(vec[it].second.type, vec[it].second.type);
             ++it;
         }
 
@@ -884,7 +889,7 @@ int SyntacticAnalyzer::expr_primary() {
                     std::cout << logger << utils::log_error(current_token->token.line, "Too many arguments in function2!");
                     exit(lex.LPAR);
                 }
-                cast_type(vec[it].second.type, ret_val.type);
+                cast_type(vec[it].second.type, vec[it].second.type);
                 ++it;
             }
         }
@@ -1657,4 +1662,52 @@ Type SyntacticAnalyzer::create_type(const int& type_base, const int& elements) {
     t.type_base = type_base;
     t.elements = elements;
     return t;
+}
+
+void SyntacticAnalyzer::add_ext_func(const std::string &str, 
+    std::vector<Symbol> arr, 
+    const int& type) {
+    auto res = tmp.create_function(str, arr, type);
+    symbol_table.add_symbol(res);
+}
+
+void SyntacticAnalyzer::add_predefined_functions() {
+    // void put_s(char s[])
+    Type type{ret_val.type.TB_CHAR};
+    type.elements = 0;
+    Symbol s = Symbol("s", tmp.CLS_VAR, type);
+    add_ext_func("put_s", {s}, ret_val.type.TB_VOID);
+
+    // void get_s(char s[])
+    type = Type{ret_val.type.TB_CHAR};
+    type.elements = 0;
+    s = Symbol("s", tmp.CLS_VAR, type);
+    add_ext_func("get_s", {s}, ret_val.type.TB_VOID);
+
+    // void put_i(int i)
+    type = Type{ret_val.type.TB_INT};
+    s = Symbol("i", tmp.CLS_VAR, type);
+    add_ext_func("put_i", {s}, ret_val.type.TB_VOID);
+
+    // int get_i()
+    add_ext_func("get_i", {}, ret_val.type.TB_INT);
+
+    // void put_d(double d)
+    type = Type{ret_val.type.TB_DOUBLE};
+    s = Symbol("d", tmp.CLS_VAR, type);
+    add_ext_func("put_d", {s}, ret_val.type.TB_VOID);
+
+    // double get_d()
+    add_ext_func("get_d", {s}, ret_val.type.TB_DOUBLE);
+
+    // void put_c(char c)
+    type = Type{ret_val.type.TB_CHAR};
+    s = Symbol("c", tmp.CLS_VAR, type);
+    add_ext_func("put_c", {s}, ret_val.type.TB_VOID);
+
+    // char get_c()
+    add_ext_func("get_c", {}, ret_val.type.TB_CHAR);
+
+    // double seconds()
+    add_ext_func("seconds", {}, ret_val.type.TB_DOUBLE);
 }

@@ -97,6 +97,10 @@ private:
     void check_array_decl();
     void check_cast(const Type& type);
     Symbol find_val_in_members(const Symbol& symb, const std::string& symb_name);
+    void add_predefined_functions();
+    void add_ext_func(const std::string &str, 
+        std::vector<Symbol> arr, 
+        const int& type);
 
 public:
     void unit();

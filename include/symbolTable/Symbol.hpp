@@ -30,6 +30,9 @@ public:
     Symbol(const std::string& name, const int& class_, const Type& type);
     Symbol();
     Symbol& operator=(const Symbol& symbol);
+    Symbol create_function(const std::string& name, 
+    const std::vector<Symbol>& arr,
+    const int& returning_type);
 
     //void set_members(std::vector<std::string> members_);
     bool add_member(Symbol s);
