@@ -14,7 +14,7 @@ void main() {
 	double g;
 	double hello;
 	char goodbye;
-	return ;
+	return;
 }
 
 int * mamaliga(double abc, char mamaliga2, char macaroane) {
@@ -33,9 +33,9 @@ int * mamaliga(double abc, char mamaliga2, char macaroane) {
 
 	int omega;
 	double k;
-	//omega = gama[2];
+	omega = gama[1];
 	return 3;
-	omega = z[5].x;
+	omega = z[1].x;
 
 	//!omega;
 	//-omega;
@@ -45,7 +45,7 @@ int * mamaliga(double abc, char mamaliga2, char macaroane) {
 	// (struct pt) omega;
 	// (struct m) omega;
 
-	omega = 1 * 2 * omega * omega;
+	omega = 1 * 2 * omega * 2.34;
 	// 2 = z[5].x < 1.92e5;
 	//k = z[2].x < 1.92e5;
 	// k = 2 || 3 && 4 && 5 && z;
