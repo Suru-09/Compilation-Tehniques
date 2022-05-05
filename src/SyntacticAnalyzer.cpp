@@ -205,6 +205,9 @@ void SyntacticAnalyzer::unit() {
         if(decl_func()) {}
         else if(decl_struct() ) {}
         else if( decl_var() ) {}
+        else {
+            break;
+        }
     }
 }
 
@@ -299,6 +302,14 @@ int SyntacticAnalyzer::array_decl() {
             }
             else {
                 add_var(tmp.type, tmp.name);
+            }
+        }
+        else {
+            if( tmp.name != "" && symbol_table.find_symbol(tmp.name).name != "" && tmp.type.symbol_name == "FUNC_ARG") {
+                std::string s = "Symbol [" + tmp.name + "] with type: [" 
+                    + utils::type_to_string(tmp.type.type_base) + "] was already defined in the function arguments!";
+                std::cout << logger << utils::log_error(current_token->token.line, s);
+                exit(lex.ID);
             }
         }
         return 0;
@@ -559,6 +570,7 @@ int SyntacticAnalyzer::func_arg() {
         return 0;
     }
 
+    type.symbol_name = "FUNC_ARG";
     add_args_symbol_table(type);
 
     if(!match(lex.ID)) {
@@ -995,8 +1007,11 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
     }
 
     static ReturnValue ret;
+    static std::string name;
     if ( symbol_table.find_symbol(ret_val.type.symbol_name).name != "") {
+        name = symbol_table.find_symbol(ret_val.type.symbol_name).name;
         ret = ret_val;
+        ret.type.symbol_name = name;
     }
     ret.type.elements = ret_val.type.elements;
 
@@ -1007,7 +1022,7 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
         }
     
         check_postfix(ret);
-
+        
         if(!match(lex.ID)) {
             current_token = consumed_token;
             return 0;
@@ -1020,17 +1035,30 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
             exit(lex.LBRACKET);
         }
 
+        Type t = ret_val.type;
+
         int cnt = 0 ;
         while(expr()) {
             ++cnt;
         }
 
-        Type t = create_type(t.TB_INT, -1);
-        // std::cout << logger << "RET_VAL: " << ret_val.type.type_base << "   T: " << t.type_base << "\n";
-        // std::cout << logger << "RET_VAL: " << ret_val.type.elements << "   T: " << t.elements << "\n";
-        // std::cout << logger << "RET_VAL: " << ret_val.type.symbol_name << "   T: " << t.symbol_name << "\n";
+        if(t.type_base == t.TB_STRUCT && cnt == 1 && t.elements >= 0) {
+            auto symb_name = t.symbol_name;
+            t = create_type(t.TB_STRUCT, -1);
+            t.symbol_name = symb_name;
+        }
+        else {
+            t = create_type(t.TB_INT, -1);
+        }
+        std::cout << logger << "RET_VAL: " << ret_val.type.type_base << "   T: " << t.type_base << "\n";
+        std::cout << logger << "RET_VAL: " << ret_val.type.elements << "   T: " << t.elements << "\n";
+        std::cout << logger << "RET_VAL: " << ret_val.type.symbol_name << "   T: " << t.symbol_name << "\n";
 
-        cast_type(ret_val.type, t);
+        // TO DO: THIS IS STILL A BUG!
+        if (t.type_base == t.TB_INT) {
+            cast_type(ret_val.type, t);
+        }
+
         ret_val.type = t;
         ret_val.type.elements = -1;
         ret_val.is_left_value = true;
@@ -1609,6 +1637,8 @@ void SyntacticAnalyzer::cast_type(const Type& src, const Type& dest) {
             exit(lex.ID);          
     }
 
+    bool ok = false;
+
     switch(src.type_base) {
         case 0: // TB_INT
         case 1: //  TB_DOUBLE
@@ -1619,16 +1649,21 @@ void SyntacticAnalyzer::cast_type(const Type& src, const Type& dest) {
             case 2: //  TB_CHAR
                 return;
         }
-        case 3: // TB_STRUCT
-            if(dest.type_base == dest.TB_STRUCT) {
+        case 4: // TB_STRUCT
+            if(dest.type_base == src.TB_STRUCT ) {
+                std::cout << logger << "[" << src.symbol_name << "] and dest: [" << dest.symbol_name << "]\n";
                 // TO DO: Modify this to correspond in future
                 if(src.symbol_name != dest.symbol_name) {
-                    std::cout << logger << utils::log_error(current_token->token.line, "A struct cannot be converted to another struct!\n");
+                    std::cout << logger << utils::log_error(current_token->token.line, "A struct cannot be converted to another struct!");
                     exit(lex.ID);         
                 }
                 return;
             }
     }
+    // if ( src.type_base == dest.type_base && src.type_base == src.TB_STRUCT) {
+    //     return;
+    // }
+
     std::cout << logger << utils::log_error(current_token->token.line, "Incompatible types!");
     exit(lex.ID);    
 }
