@@ -1,0 +1,55 @@
+struct masina {
+    char nume;
+    char culoare;
+    int viteza_maxima;
+    int is_elektric, banana;
+    int vector[50];
+};
+
+int a, b;
+
+struct masina masinute[50];
+
+int main(int x, int y, double z) {
+
+    a = 10;
+    b = 15;
+
+    get_i(b);
+
+    if ( x < 5 && !z || y != 3 )
+        break;
+    
+    if ( a > b ) {
+        a = a - b;
+    }
+    else {
+        if( a == b) {
+            int c;
+            c = a * b;
+        }
+        else {
+            b = b / 100;
+        }
+    }
+
+    double pl[10];
+    int i;
+    for(i = 0; i < 10; i = i + 1) {
+        pl[i] = i * 10 + a - b;
+    }
+
+    struct masina m;
+    m.nume = 's';
+    m.vector[50] = 20;
+    m.culoare = 'n';
+    m.viteza_maxima = 469;
+    m.is_elektric = 1;
+
+    put_s(m.nume);
+    put_i(a);
+
+    masinute[2] = m;
+
+    return get_i(z);
+}

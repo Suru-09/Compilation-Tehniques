@@ -62,6 +62,7 @@ namespace utils {
         // test_file("../testing_files/dfa/delimiters+operators.txt");
         // test_file("../testing_files/dfa/line_comment.txt");
         // test_file("../testing_files/dfa/block_comment.txt");
+        test_file("../testing_files/main.c");
         test_file("../testing_files/input.txt");
         test_file("../testing_files/tests/0.c");
         test_file("../testing_files/tests/1.c");

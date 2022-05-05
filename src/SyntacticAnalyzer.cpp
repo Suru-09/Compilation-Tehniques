@@ -42,13 +42,33 @@ int SyntacticAnalyzer::match(const int& code) {
             double b = 0;
             std::string s = "";
             switch(code) {
-                case 34:    // CT_INT
-                    a = std::get<long>(current_token->token.text);
-                    ret_val.set_constant_value(a);
+                case lex.CT_INT:    // CT_INT
+                    try {
+                        s = std::get<std::string>(current_token->token.text);
+                        a = stoi(s);
+                        ret_val.set_constant_value(a);
+                    }
+                    catch(const std::exception& e) {
+                        try {
+                            a = std::get<long> (current_token->token.text);
+                            ret_val.set_constant_value(a);
+                        }
+                        catch(const std::exception& e2) {}
+                    }
                     break;
-                case 44:    // CT_REAL
-                    b = std::get<double>(current_token->token.text);
-                    ret_val.set_constant_value(b);
+                case lex.CT_REAL:    // CT_REAL
+                    try {
+                        s = std::get<std::string>(current_token->token.text);
+                        b = stod(s);
+                        ret_val.set_constant_value(b);
+                    }
+                    catch(const std::exception& e) {
+                        try {
+                            b = std::get<double> (current_token->token.text);
+                            ret_val.set_constant_value(b);
+                        }
+                        catch(const std::exception& e2) {}
+                    }
                     break;
                 case 51:    // CT_CHAR
                     s = std::get<std::string>(current_token->token.text);
@@ -62,9 +82,7 @@ int SyntacticAnalyzer::match(const int& code) {
                     break;
             }
         }
-        catch(int sth) {
-
-        }
+        catch(int sth) {}
 
         current_token = current_token->next;
         return 1;
@@ -205,9 +223,12 @@ void SyntacticAnalyzer::unit() {
         if(decl_func()) {}
         else if(decl_struct() ) {}
         else if( decl_var() ) {}
-        else {
-            break;
-        }
+        // else {
+        //     std::cout << logger << utils::log_error(current_token->token.line, "Program has been exited due to an unknown symbol!");
+        //     break;
+        // }
+
+        // std::cout << logger << "[CURRENT_TOKEN]: " << lex.print_pretty(current_token->token.code) << "\n";
     }
 }
 
@@ -328,6 +349,12 @@ int SyntacticAnalyzer::array_decl() {
                         exit(lex.ID);
                     }
                 }
+                std::cout << logger << "[RET_VAL:] " << std::get<long> (ret_val.constant_value) << "\n";
+                check_array_decl();
+                try {
+                    tmp.type.elements = std::get<long> (ret_val.constant_value);
+                }
+                catch(const std::exception& e) {}
                 symb.add_member(tmp);
             }
             else {
@@ -341,9 +368,7 @@ int SyntacticAnalyzer::array_decl() {
             try {
                 tmp.type.elements = std::get<long> (ret_val.constant_value);
             }
-            catch(int err) {
-
-            }
+            catch(const std::exception& e) {}
             add_var(tmp.type, tmp.name);
         }
     }
@@ -403,7 +428,7 @@ Type SyntacticAnalyzer::type_base_condition() {
             type.type_base = type.TB_CHAR;
             type.elements = -1;
         }
-        else if( v == lex.STRUCT && current_token->next->token.code == lex.ID ) {
+        else if( v == lex.STRUCT && current_token->next && current_token->next->token.code == lex.ID ) {
             type.type_base = type.TB_STRUCT;
             type.elements = -1;
             type.symbol_name = std::get<std::string> (current_token->next->token.text);
@@ -450,8 +475,7 @@ int SyntacticAnalyzer::decl_var() {
             std::cout << logger << utils::log_error(current_token->token.line, "Missing ID ");
             exit(lex.ID);
         }
-
-        array_decl();
+       array_decl();
     }
 
     if(match(lex.LPAR)) {
@@ -523,7 +547,6 @@ int SyntacticAnalyzer::decl_struct() {
     }
 
     current_depth++;
-    std::cout << "Eu sunt current_struct: " << current_struct << "\n";
     while( decl_var() ) {}
     current_depth--;
 
@@ -607,7 +630,7 @@ int SyntacticAnalyzer::decl_func() {
     auto type = type_base_condition();
 
     if( type_base()) {
-        match(lex.MUL);
+       match(lex.MUL);
     }
     else if(!match(lex.VOID)) {
         return 0;
@@ -625,8 +648,13 @@ int SyntacticAnalyzer::decl_func() {
         exit(lex.ID);
     }
 
-    if (match(lex.SEMICOLON) || match(lex.LBRACKET)) {
+    if ( match(lex.SEMICOLON) || match(lex.LBRACKET) || match(lex.COMMA) ) {
         current_token = consumed_token;
+        return 0;
+    }
+
+    if(!match(lex.LPAR)) {
+        consumed_token = current_token;
         return 0;
     }
 
@@ -634,11 +662,6 @@ int SyntacticAnalyzer::decl_func() {
     current_func = sym.name;
     // !!! BE CAREFUL with this
     current_depth++;
-
-    if(!match(lex.LPAR)) {
-        std::cout << logger << utils::log_error(current_token->token.line, "Missing ( ");
-        exit(lex.LPAR);
-    }
 
     while(1) {
         std::cout << logger << "[APELEZ] FUNC_ARG!\n";
@@ -882,7 +905,7 @@ int SyntacticAnalyzer::expr_primary() {
 
     auto vec = symb.members;
     auto it = 0;
-    auto size = vec.size();
+    int size = vec.size();
 
     if(match(lex.LPAR) ) {
         if(size) {
@@ -1050,9 +1073,9 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
         else {
             t = create_type(t.TB_INT, -1);
         }
-        std::cout << logger << "RET_VAL: " << ret_val.type.type_base << "   T: " << t.type_base << "\n";
-        std::cout << logger << "RET_VAL: " << ret_val.type.elements << "   T: " << t.elements << "\n";
-        std::cout << logger << "RET_VAL: " << ret_val.type.symbol_name << "   T: " << t.symbol_name << "\n";
+        // std::cout << logger << "RET_VAL: " << ret_val.type.type_base << "   T: " << t.type_base << "\n";
+        // std::cout << logger << "RET_VAL: " << ret_val.type.elements << "   T: " << t.elements << "\n";
+        // std::cout << logger << "RET_VAL: " << ret_val.type.symbol_name << "   T: " << t.symbol_name << "\n";
 
         // TO DO: THIS IS STILL A BUG!
         if (t.type_base == t.TB_INT) {
@@ -1637,8 +1660,6 @@ void SyntacticAnalyzer::cast_type(const Type& src, const Type& dest) {
             exit(lex.ID);          
     }
 
-    bool ok = false;
-
     switch(src.type_base) {
         case 0: // TB_INT
         case 1: //  TB_DOUBLE
@@ -1651,7 +1672,7 @@ void SyntacticAnalyzer::cast_type(const Type& src, const Type& dest) {
         }
         case 4: // TB_STRUCT
             if(dest.type_base == src.TB_STRUCT ) {
-                std::cout << logger << "[" << src.symbol_name << "] and dest: [" << dest.symbol_name << "]\n";
+                // std::cout << logger << "[" << src.symbol_name << "] and dest: [" << dest.symbol_name << "]\n";
                 // TO DO: Modify this to correspond in future
                 if(src.symbol_name != dest.symbol_name) {
                     std::cout << logger << utils::log_error(current_token->token.line, "A struct cannot be converted to another struct!");
@@ -1660,9 +1681,6 @@ void SyntacticAnalyzer::cast_type(const Type& src, const Type& dest) {
                 return;
             }
     }
-    // if ( src.type_base == dest.type_base && src.type_base == src.TB_STRUCT) {
-    //     return;
-    // }
 
     std::cout << logger << utils::log_error(current_token->token.line, "Incompatible types!");
     exit(lex.ID);    
