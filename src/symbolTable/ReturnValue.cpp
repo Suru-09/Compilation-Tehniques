@@ -10,7 +10,10 @@ class_name("ReturnValue")
 }
 
 ReturnValue::ReturnValue() 
-: class_name("ReturnValue")
+: type(Type{}),
+is_left_value(false),
+is_constant_value(false),
+class_name("ReturnValue")
 {
     logger = Logger{class_name};
 }
@@ -49,17 +52,17 @@ ReturnValue& ReturnValue::operator=(const ReturnValue& ret_val) {
                 auto x = std::get<std::string> (ret_val.constant_value);
                 set_constant_value(x);
             }
-            catch (int exception) {
+            catch (const std::exception& exception) {
                 try {
                     auto x = std::get<long> (ret_val.constant_value);
                     set_constant_value(x);
                 }
-                catch(int exception) {
+                catch(const std::exception& exception) {
                     try {
                         auto x = std::get<double> (ret_val.constant_value);
                         set_constant_value(x);
                     }
-                    catch(int exception) {
+                    catch(const std::exception& exception) {
                         std::cout << logger << "[ COPY ASSISGMENT OPERATOR FAILED ]\n";
                     }
                 }

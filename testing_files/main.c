@@ -38,6 +38,16 @@ int main(int x, int y, double z) {
     for(i = 0; i < 10; i = i + 1) {
         pl[i] = i * 10 + a - b;
     }
+    
+    while ( i != a && z < masinute[2].viteza_maxima ) {
+        if( masinute[i].viteza_maxima < 20) {
+            masinute[i].viteza_maxima = 53.7 - 4;
+            return 'k';
+        }
+        else {
+            get_i(masinute[i].viteza_maxima);
+        }
+    }
 
     struct masina m;
     m.nume = 's';

@@ -12,6 +12,8 @@ set(HEADERS_LIST
     include/symbolTable/SymbolTable.hpp
     include/symbolTable/ReturnValue.hpp
     include/virtualMachine/VirtualMachine.hpp
+    include/virtualMachine/Instruction.hpp
+    include/virtualMachine/InstructionList.hpp
 )
 
 set(SOURCES_LIST
@@ -28,4 +30,6 @@ set(SOURCES_LIST
     src/symbolTable/SymbolTable.cpp
     src/symbolTable/ReturnValue.cpp
     src/virtualMachine/VirtualMachine.cpp
+    src/virtualMachine/Instruction.cpp
+    src/virtualMachine/InstructionList.cpp
 )

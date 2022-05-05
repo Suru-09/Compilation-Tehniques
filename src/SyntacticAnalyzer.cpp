@@ -7,7 +7,8 @@ class_name("SyntacticAnalyzer"),
 current_depth(0),
 current_struct(""),
 current_func(""),
-is_struct(false)
+is_struct(false),
+ret_val(ReturnValue{})
 {   
     current_token = lex.token_list.get_head();
     logger = Logger{class_name};
@@ -19,7 +20,8 @@ SyntacticAnalyzer::SyntacticAnalyzer()
 current_depth(0),
 current_struct(""),
 current_func(""),
-is_struct(false)
+is_struct(false),
+ret_val(ReturnValue{})
 {   
     logger = Logger{class_name};
 }
@@ -703,6 +705,7 @@ int SyntacticAnalyzer::r_for() {
     if(!match(lex.FOR)) {
         return 0;
     }
+
 
     if(!match(lex.LPAR)) {
         std::cout << logger << utils::log_error(current_token->token.line, "Missing ( ");
