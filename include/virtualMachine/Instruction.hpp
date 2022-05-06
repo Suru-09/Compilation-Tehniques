@@ -19,10 +19,11 @@ private:
 
 public:
     Instruction();
+    Instruction(const int& op_code);
     friend std::ostream& operator<<(std::ostream& os, const Instruction& i);
     static std::string variant_to_type(std::variant<long, double, void *> x);
-    
-    
+    void set_args(const std::vector<std::variant<long, double, void *>>& arr);
+
     inline bool operator==(const Instruction& i) { // TO DO: Might need reimplementaion
         return (this->op_code == i.op_code && this->args == i.args);
     }
