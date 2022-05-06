@@ -919,6 +919,8 @@ int SyntacticAnalyzer::expr_primary() {
             std::cout << logger << "[RET_VAL]: " << utils::type_to_string(vec[it].second.type.type_base) << "\n";
             cast_type(vec[it].second.type, vec[it].second.type);
             ++it;
+
+            expr(); // NOTE: EXPR() ? [optional] [ , EXPR() ]* ...  
         }
 
         while(match(lex.COMMA) && expr()) {

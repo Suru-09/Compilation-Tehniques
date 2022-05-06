@@ -56,6 +56,8 @@ int main(int x, int y, double z) {
     m.viteza_maxima = 469;
     m.is_elektric = 1;
 
+    1 / ;
+
     put_s(m.nume);
     put_i(a);
 
