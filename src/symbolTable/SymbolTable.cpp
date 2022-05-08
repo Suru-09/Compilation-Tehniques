@@ -95,6 +95,13 @@ void SymbolTable::delete_symbols_from_given_level(const int& level) {
    std::cout << logger << "Deletion on level: " << level << " was succesfull!\n";
 }
 
+bool SymbolTable::symbol_exists(const std::string& key) {
+    if ( find_symbol(key).name != "" ) {
+        return true;
+    }
+    return false;
+}
+
 void SymbolTable::print_symbol_table() {;
     std::vector<std::string> headers{"Count", "Name", "Class", "TB Type",
         "IS_ARRAY", "Depth", "Members"};

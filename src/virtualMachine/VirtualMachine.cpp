@@ -92,6 +92,30 @@ void* VirtualMachine::alloc_heap(const int& size)
         exit(2);
     }
     void * p = globals + n_globals;
-    n_globals +=size;
+    n_globals += size;
     return p;
+}
+
+void VirtualMachine::set_il(const InstructionList& instr_list) {
+    this->instr_list = instr_list;
+}
+
+InstructionList VirtualMachine::get_il() {
+    return instr_list;
+}
+
+void VirtualMachine::run() {
+    long int i_val_1, i_val_2;
+    double d_val_1, d_val_2;
+    char * a_val;
+    char * frame_ptr = 0, old_sp;
+    stack_ptr = stack;
+    stack_after = stack + STACK_SIZE;
+    for ( const auto& it: instr_list.instr_list) {
+        std::cout << logger << " IP: " << it << " SP-stack: " << stack_ptr - stack << "\n";
+        switch (it.op_code) {
+            case 0: // O_HALT
+                return;
+        }
+    }
 }

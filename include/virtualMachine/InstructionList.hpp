@@ -22,6 +22,8 @@ public:
     void create_insert_instr(const int& op_code);
 
     void delete_instr_after(const Instruction& start);
+
+    friend class VirtualMachine;
 };
 
 #endif

@@ -5,6 +5,8 @@
 #include <any>
 
 #include "Logger.hpp"
+#include "Instruction.hpp"
+#include "InstructionList.hpp"
 
 #define STACK_SIZE (32 * 1024)
 #define GLOBAL_SIZE (32 * 1024)
@@ -14,6 +16,7 @@ private:
     char stack[STACK_SIZE], globals[GLOBAL_SIZE];
     char *stack_ptr, *stack_after;
     int n_globals;
+    InstructionList instr_list;
 
 
     std::string class_name;
@@ -21,6 +24,9 @@ private:
 public:
     VirtualMachine();
     ~VirtualMachine();
+
+    void set_il(const InstructionList& instr_list);
+    InstructionList get_il();
 
     // alloc global
     void* alloc_heap(const int& size);
@@ -34,6 +40,9 @@ public:
     char pop_c();
     void push_a(void* a);
     void * pop_a();
+
+    // RUN METHODS
+    void run();
 };
 
 #endif

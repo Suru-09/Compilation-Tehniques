@@ -44,7 +44,7 @@ int SyntacticAnalyzer::match(const int& code) {
             double b = 0;
             std::string s = "";
             switch(code) {
-                case lex.CT_INT:    // CT_INT
+                case 36:    // CT_INT
                     try {
                         s = std::get<std::string>(current_token->token.text);
                         a = stoi(s);
@@ -58,7 +58,7 @@ int SyntacticAnalyzer::match(const int& code) {
                         catch(const std::exception& e2) {}
                     }
                     break;
-                case lex.CT_REAL:    // CT_REAL
+                case 44:    // CT_REAL
                     try {
                         s = std::get<std::string>(current_token->token.text);
                         b = stod(s);
