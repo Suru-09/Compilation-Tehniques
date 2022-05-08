@@ -5,7 +5,7 @@ project(CT-compiler VERSION 1.0)
 include(sources.cmake)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED 14)
+set(CMAKE_CXX_STANDARD_REQUIRED 17)
 
 set(C_FLAGS 
     -Wall

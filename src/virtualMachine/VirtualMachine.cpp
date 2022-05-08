@@ -84,3 +84,14 @@ void * VirtualMachine::pop_a() {
     stack_ptr -= sizeof(void *);
     return *(void **)stack_ptr;
 }
+
+void* VirtualMachine::alloc_heap(const int& size)
+{
+    if ( n_globals + size > GLOBAL_SIZE ) {
+        std::cout << logger << "There is not enough memory on the Heap!\n";
+        exit(2);
+    }
+    void * p = globals + n_globals;
+    n_globals +=size;
+    return p;
+}

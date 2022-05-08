@@ -7,17 +7,23 @@
 #include "Logger.hpp"
 
 #define STACK_SIZE (32 * 1024)
+#define GLOBAL_SIZE (32 * 1024)
 
 class VirtualMachine {
 private:
-    char stack[STACK_SIZE];
+    char stack[STACK_SIZE], globals[GLOBAL_SIZE];
     char *stack_ptr, *stack_after;
+    int n_globals;
+
 
     std::string class_name;
     Logger logger;
 public:
     VirtualMachine();
     ~VirtualMachine();
+
+    // alloc global
+    void* alloc_heap(const int& size);
 
     // STACK METHODS
     void push_d(const double& d);
