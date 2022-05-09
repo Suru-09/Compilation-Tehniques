@@ -1,8 +1,7 @@
 #ifndef VIRTUAL_MACHINE_HPP
 #define VIRTUAL_MACHINE_HPP
 
-#include <stack>
-#include <any>
+#include <string.h>
 
 #include "Logger.hpp"
 #include "Instruction.hpp"
@@ -34,7 +33,7 @@ public:
     // STACK METHODS
     void push_d(const double& d);
     double pop_d();
-    void push_i(const int& i);
+    void push_i(const long& i);
     int pop_i();
     void push_c(const char& c);
     char pop_c();

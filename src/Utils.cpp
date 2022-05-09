@@ -6,7 +6,9 @@
 #include "SymbolTable.hpp"
 #include "Type.hpp"
 #include "Symbol.hpp"
-
+#include "VirtualMachine.hpp"
+#include "InstructionList.hpp"
+#include "Instruction.hpp"
 namespace utils {
 
     std::vector<char> read_file(const std::string& file_name) {
@@ -146,5 +148,40 @@ namespace utils {
                 break;
         }
         return "NOT A TYPE";     
+    }
+
+    void test_mv() {
+        VirtualMachine vm;
+        long * v = static_cast<long * > (vm.alloc_heap(sizeof(long)));
+        Instruction h;
+        InstructionList il;
+
+        h = Instruction{h.O_PUSHCT_A};
+        h.set_args({v});
+        il.insert_instr(h);
+
+        h = Instruction{h.O_PUSHCT_I};
+        h.set_args({static_cast<long> (3)});
+        il.insert_instr(h);
+
+        h = Instruction{h.O_STORE};
+        long val = sizeof(long);
+        h.set_args({val});
+        il.insert_instr(h);
+
+        h = Instruction{h.O_PUSHCT_A};
+        h.set_args({v});
+        il.insert_instr(h);
+
+        h = Instruction{h.O_LOAD};
+        h.set_args({val});
+        il.insert_instr(h);
+
+        h = Instruction{h.O_HALT};
+        il.insert_instr(h);
+
+        vm.set_il(il);
+        vm.run();
+
     }
 }

@@ -11,8 +11,8 @@
 int main() {
 
     std::cout << "Print something so that I know my script is working!\n\n";
-    utils::test_diagrams();
-    VirtualMachine vm;
+    // utils::test_diagrams();
+    utils::test_mv();
 
     return 0;
 }

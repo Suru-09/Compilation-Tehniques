@@ -17,23 +17,23 @@ std::ostream& operator<<(std::ostream& os, const Instruction& i) {
     for(const auto& x: i.args) {
         s += " " + std::string{Instruction::variant_to_type(x)};
     }
-    os << "Instruction code: [" << i.op_code << s;
+    os << "Instruction code: [" << i.op_code  << "]" << s;
     return os;
 }
 
 std::string Instruction::variant_to_type(std::variant<long, double, void *> x) {
     try {
-        long var = std::get<long> (x);
+        std::get<long> (x);
         return "long";
     }
     catch(const std::exception &e) {
         try {
-            double var = std::get<double> (x);
+            std::get<double> (x);
             return "double";
         }
         catch(const std::exception &e) {
             try {
-                void * var = std::get<void *> (x);
+                std::get<void *> (x);
                 return "void";
             }
             catch(const std::exception &e) {
