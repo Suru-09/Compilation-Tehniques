@@ -109,13 +109,88 @@ void VirtualMachine::run() {
     double d_val_1, d_val_2;
     char * a_val;
     char * frame_ptr = 0, old_sp;
-    stack_ptr = stack;
-    stack_after = stack + STACK_SIZE;
-    for ( const auto& it: instr_list.instr_list) {
-        std::cout << logger << " IP: " << it << " SP-stack: " << stack_ptr - stack << "\n";
-        switch (it.op_code) {
+    stack_ptr = stack;  // we allocated continuouus memory for the stack, use it
+    stack_after = stack + STACK_SIZE;   // this should be the first address after
+    // the stack's memory
+    for ( std::list<Instruction>::iterator it = instr_list.instr_list.begin() ; it != instr_list.instr_list.end() ;) {
+        std::cout << logger << " IP: " << (*it) << " SP-stack: " << stack_ptr - stack << "\n";
+        switch ((*it).op_code) {
             case 0: // O_HALT
+                std::cout << logger << "[O_HALT_INSTRUCTION]\n";
                 return;
+            case 1: // O_ADD_C
+                break;
+            case 2: // O_ADD_D
+                break;
+            case 3: // O_ADD_I
+                break;
+            case 4: // O_AND_C
+                break;
+            case 5: // O_AND_D
+                break;
+            case 6: // O_AND_I
+                break;
+            case 7: // O_CALL
+                std::cout << logger << "[O_CALL_INSTRUCTION]\n";
+                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "void") {
+                    a_val = (char *)std::get<void *> ((*it).args[0]);
+                    auto val = ++it;
+                    push_a(&val);
+                    it = val;
+                }
+                else {
+                    std::cout << logger << "[O_CALL] Wrong structure called!\n";
+                    exit(2);
+                }
+                break;
+            case 8: // O_CALLEXT
+                std::cout << logger << "[O_CALLEXT_INSTRUCTION]\n";
+                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "void") {
+                    auto IP = std::get<void *> ((*it).args[0]);
+                    (*(void(*)())IP)(); // This is really dangerous
+                }
+                else {
+                    std::cout << logger << "[O_CALLEXT] Wrong structure called!\n";
+                    exit(2);
+                }
+                ++it;
+                break;
+            case 9: // O_CAST_C_D
+                break;
+            case 10: // O_CAST_C_I
+                break;
+            case 11:  // O_CAST_D_C   
+                break;
+            case 12:
+                break;
+            case 13:
+                break;
+            case 14:    // O_CAST_I_D
+                i_val_1 = pop_i();
+                d_val_1 = static_cast<double>(i_val_1);
+                std::cout << logger << "[O_CAST_I_D] int: " << i_val_1 << "to double: " << d_val_1 << "\n";
+                push_d(d_val_1);
+                it++;
+                break;
+            case 15:
+                break;
+            case 16:
+                break;
+            case 17:
+                break;
+            case 18:    // O_DROP
+                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
+
+                }
+                else {
+                    std::cout << logger << "[O_DROP] Wrong structure calling!\n";
+                    exit(2);
+                }
+                break;
+            case 19:
+                break;
+            case 20:
+                break;
         }
     }
 }

@@ -1,12 +1,5 @@
 #include "Instruction.hpp"
 
-// Instruction::Instruction(const int& op_code, const std::vector<long>& args) 
-// : op_code(op_code),
-// args(args),
-// class_name("Instruction"),
-// logger(Logger{class_name})
-// {}
-
 Instruction::Instruction()
 : op_code(0),
 class_name("Instruction"),
@@ -29,7 +22,26 @@ std::ostream& operator<<(std::ostream& os, const Instruction& i) {
 }
 
 std::string Instruction::variant_to_type(std::variant<long, double, void *> x) {
-    return "";
+    try {
+        long var = std::get<long> (x);
+        return "long";
+    }
+    catch(const std::exception &e) {
+        try {
+            double var = std::get<double> (x);
+            return "double";
+        }
+        catch(const std::exception &e) {
+            try {
+                void * var = std::get<void *> (x);
+                return "void";
+            }
+            catch(const std::exception &e) {
+                std::cout << " [VARIANT_TO_TYPES] Didn't find any type to match with given VARIANT!\n";
+                exit(2);
+            }
+        }
+    }
 }
 
 void Instruction::set_args(const std::vector<std::variant<long, double, void *>>& arr) {
