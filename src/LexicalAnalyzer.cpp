@@ -456,7 +456,7 @@ int LexicalAnalyzer::get_next_token() {
 			default:
 				printf("Given state doesn't exist : %d (character = %c)\n", state, given_text[i]);
 				break;
-			}
+		}
 	}
 }
 
@@ -476,6 +476,11 @@ void LexicalAnalyzer::get_all_tokens() {
 
 	while(1) {
 		x = get_next_token();
+
+		if( x == 0x7777777F ) {
+			std::cout << logger << "Lexical Analysis couldn't be finished due to unknown token!\n";
+			exit(ID);
+		}
 		// std::cout << x << "\n";
 		if(x == -1)
 			break;

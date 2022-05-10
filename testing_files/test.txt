@@ -1,6 +1,4 @@
-int a;
-
-double a , b , c;
+//double a , b , c;
 
 struct mere {
     int a;

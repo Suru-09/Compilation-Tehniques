@@ -1,8 +1,13 @@
 struct Pt{
 	int x,y;
+	double banana;
 	};
 
 struct Pt points[20/4+5];
+
+struct ct {
+	int macaroana;
+};
 
 int		count()
 {
@@ -18,4 +23,8 @@ int		count()
 void main(int a)
 {
 	put_i(count());
+	struct Pt val;
+	struct ct portocala;
+	points[2] = val;
+	val = (struct Pt)val;
 }
