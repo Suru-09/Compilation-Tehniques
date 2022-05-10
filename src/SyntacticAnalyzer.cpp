@@ -1802,7 +1802,7 @@ void SyntacticAnalyzer::add_predefined_functions() {
 }
 
 void SyntacticAnalyzer::put_s() {
-    std::cout << " [PUT_S] " << vm.pop_c() << "\n";
+    std::cout << " [PUT_S] " << (int)vm.pop_c() << "\n";
 }
 
 void SyntacticAnalyzer::put_i() {
@@ -1864,8 +1864,8 @@ void SyntacticAnalyzer::test_mv() {
     il.insert_instr(h);
 
     h = Instruction{h.O_CALLEXT};
-    if ( Instruction::variant_to_type(symbol_table.symbol_exists("put_s").addr_offset) == "void" ) {
-        h.set_args({std::get<void *> (symbol_table.find_symbol("put_s").addr_offset)});
+    if ( Instruction::variant_to_type(symbol_table.symbol_exists("put_i").addr_offset) == "void" ) {
+        h.set_args({std::get<void *> (symbol_table.find_symbol("put_i").addr_offset)});
         il.insert_instr(h);
     }
 
@@ -1881,7 +1881,16 @@ void SyntacticAnalyzer::test_mv() {
     h = Instruction{h.O_PUSHCT_I};
     h.set_args({static_cast<long> (1)});
     il.insert_instr(h);
+    il.insert_instr(h);
 
+    il.insert_instr(Instruction{h.O_ADD_I});
+
+    h = Instruction{h.O_PUSHCT_I};
+    h.set_args({static_cast<long> (15)});
+    il.insert_instr(h);
+
+    il.insert_instr(Instruction{h.O_SUB_I});
+    
     h = Instruction{h.O_HALT};
     il.insert_instr(h);
 
