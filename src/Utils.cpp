@@ -40,19 +40,14 @@ namespace utils {
         std::cout << logger << "Testing " << file_name << ":\n";
         auto arr = read_file(file_name);
 
-        // int i = 0;
-        // for(auto const &x: arr) {
-        //     std::cout << i << " " << x << "    ";
-        //     ++i;
-        // }
-        // std::cout << "\n\n";
-
         LexicalAnalyzer lexic_int{arr};
         lexic_int.get_all_tokens(); 
 
         SyntacticAnalyzer syn{lexic_int};
         std::cout << logger << "Starting the syntactic analysis: \n";
         syn.unit();
+
+        syn.test_mv();
     }
 
     void test_diagrams() {
@@ -148,40 +143,5 @@ namespace utils {
                 break;
         }
         return "NOT A TYPE";     
-    }
-
-    void test_mv() {
-        VirtualMachine vm;
-        long * v = static_cast<long * > (vm.alloc_heap(sizeof(long)));
-        Instruction h;
-        InstructionList il;
-
-        h = Instruction{h.O_PUSHCT_A};
-        h.set_args({v});
-        il.insert_instr(h);
-
-        h = Instruction{h.O_PUSHCT_I};
-        h.set_args({static_cast<long> (3)});
-        il.insert_instr(h);
-
-        h = Instruction{h.O_STORE};
-        long val = sizeof(long);
-        h.set_args({val});
-        il.insert_instr(h);
-
-        h = Instruction{h.O_PUSHCT_A};
-        h.set_args({v});
-        il.insert_instr(h);
-
-        h = Instruction{h.O_LOAD};
-        h.set_args({val});
-        il.insert_instr(h);
-
-        h = Instruction{h.O_HALT};
-        il.insert_instr(h);
-
-        vm.set_il(il);
-        vm.run();
-
     }
 }

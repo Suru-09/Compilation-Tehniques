@@ -8,6 +8,7 @@
 #include "Symbol.hpp"
 #include "Type.hpp"
 #include "ReturnValue.hpp"
+#include "VirtualMachine.hpp"
 
 class SyntacticAnalyzer {
 private:
@@ -15,13 +16,17 @@ private:
     Logger logger;
     std::string class_name;
     std::shared_ptr<Node> current_token, consumed_token;
+    //SymbolTable
     SymbolTable symbol_table;
     int current_depth;
     std::string current_struct;
     std::string current_func;
     Symbol tmp;
     bool is_struct;
+    //Type checking
     ReturnValue ret_val;
+    // Virtual Machine
+    inline static VirtualMachine vm = VirtualMachine{};
 
     //  STATEMENTS
     int stm_block();
@@ -97,13 +102,25 @@ private:
     void check_array_decl();
     void check_cast(const Type& type);
     Symbol find_val_in_members(const Symbol& symb, const std::string& symb_name);
+
+    // VM STUFF
     void add_predefined_functions();
     void add_ext_func(const std::string &str, 
         std::vector<Symbol> arr, 
         const int& type);
+    void static put_s();
+    void static get_s();
+    void static put_i();
+    void static get_i();
+    void static put_d();
+    void static get_d();
+    void static put_c();
+    void static get_c();
+    void static seconds();
 
 public:
     void unit();
+    void test_mv();
 
     SyntacticAnalyzer(const LexicalAnalyzer &lex_analiz);
     SyntacticAnalyzer();

@@ -108,39 +108,79 @@ InstructionList VirtualMachine::get_il() {
 void VirtualMachine::run() {
     long int i_val_1, i_val_2;
     double d_val_1, d_val_2;
-    char * a_val;
+    char * a_val, * a_val_2;
     char * frame_ptr = 0, * old_sp;
     stack_ptr = stack;  // we allocated continuouus memory for the stack, use it
     stack_after = stack + STACK_SIZE;   // this should be the first address after
     // the stack's memory
     for ( std::list<Instruction>::iterator it = instr_list.instr_list.begin() ; it != instr_list.instr_list.end() ;) {
-        std::cout << logger << "IP: [" << (*it).op_code << "] SP-stack: [" 
-            << (stack_ptr - stack) << "]\n";
-        std::cout << logger << "STACK_PTR: [" << reinterpret_cast<void*> (&stack_ptr) << "]\n";
+        // std::cout << logger << "IP: [" << (int)(*it).op_code << "] SP-stack: [" 
+        //     << (stack_ptr - stack) << "]\n";
+        // std::cout << logger << "STACK_PTR: [" << reinterpret_cast<void*> (&stack_ptr) << "]\n";
         switch ((*it).op_code) {
             case 0: // O_HALT
                 std::cout << logger << "[O_HALT_INSTRUCTION]\n";
                 return;
             case 1: // O_ADD_C
+                i_val_1 = pop_c();
+                i_val_2 = pop_c();
+                std::cout << logger << "[O_ADD_C] Adding: " << i_val_1 << " + " << i_val_2 << " -> "
+                    << "[" << i_val_1 + i_val_2 << "]\n";
+                push_c(i_val_1 + i_val_2);
+                ++it;
                 break;
             case 2: // O_ADD_D
+                d_val_1 = pop_d();
+                d_val_2 = pop_d();
+                std::cout << logger << "[O_ADD_D] Adding: " << d_val_1 << " + " << d_val_2 << " -> "
+                    << "[" << d_val_1 + d_val_2 << "]\n";
+                push_d(d_val_1 + d_val_2);
                 break;
             case 3: // O_ADD_I
+                i_val_1 = pop_i();
+                i_val_2 = pop_i();
+                std::cout << logger << "[O_ADD_I] Adding: " << i_val_1 << " + " << i_val_2 << " -> "
+                    << "[" << i_val_1 + i_val_2 << "]\n";
+                push_i(i_val_1 + i_val_2);
+                ++it;
                 break;
             case 4: // O_AND_C
+                i_val_1 = pop_c();
+                i_val_2 = pop_c();
+                std::cout << logger << "[O_AND_C] AND: " << i_val_1 << " + " << i_val_2 << " -> "
+                    << "[" << (i_val_1 && i_val_2) << "]\n";
+                push_i(i_val_1 && i_val_2);
+                ++it;
                 break;
             case 5: // O_AND_D
+                d_val_1 = pop_d();
+                d_val_2 = pop_d();
+                std::cout << logger << "[O_AND_D] AND: " << d_val_1 << " + " << d_val_2 << " -> "
+                    << "[" << (d_val_1 && d_val_2) << "]\n";
+                push_i(d_val_1 && d_val_2);
+                ++it;
                 break;
             case 6: // O_AND_I
+                i_val_1 = pop_i();
+                i_val_2 = pop_i();
+                std::cout << logger << "[O_AND_I] AND: " << i_val_1 << " + " << i_val_2 << " -> "
+                    << "[" << (i_val_1 && i_val_2) << "]\n";
+                push_i(i_val_1 + i_val_2);
+                ++it;
                 break;
             case 7: // O_CALL
                 std::cout << logger << "[O_CALL_INSTRUCTION]\n";
                 if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "void") {
-                    a_val = (char *)std::get<void *> ((*it).args[0]);
-                    auto val = ++it;
-                    push_a(&val);
-                    // TO DO: REDO this when you know how (a_val)
-                    it = val;
+                    auto val = std::get<void *> ((*it).args[0]);
+                    auto itr = std::find(instr_list.instr_list.begin(), instr_list.instr_list.end(), (*static_cast<Instruction *> (val)));
+                    if ( itr != instr_list.instr_list.end()) {
+                        push_a(reinterpret_cast<void *>(&(++it)));
+                        it = itr;
+                    } 
+                    else {
+                        std::cout << logger << "[O_CALL_INSTRUCTION] Given instruction was wrong!\n";
+                        exit(3);
+                    }
                 }
                 else {
                     std::cout << logger << "[O_CALL] Wrong structure called!\n";
@@ -160,14 +200,39 @@ void VirtualMachine::run() {
                 ++it;
                 break;
             case 9: // O_CAST_C_D
+                i_val_1 = pop_c();
+                d_val_1 = static_cast<double>(i_val_1);
+                std::cout << logger << "[O_CAST_C_D] char: " << i_val_1 << "to double: " << d_val_1 << "\n";
+                push_d(d_val_1);
+                it++;
                 break;
             case 10: // O_CAST_C_I
+                i_val_1 = pop_c();
+                i_val_2 = static_cast<long>(i_val_1);
+                std::cout << logger << "[O_CAST_C_I] char: " << i_val_1 << "to integer: " << i_val_2 << "\n";
+                push_i(i_val_2);
+                it++;
                 break;
-            case 11:  // O_CAST_D_C   
+            case 11:  // O_CAST_D_C
+                d_val_1 = pop_d();
+                i_val_1 = static_cast<char>(d_val_1);
+                std::cout << logger << "[O_CAST_D_C] double: " << d_val_1 << "to char: " << i_val_1 << "\n";
+                push_i(i_val_1);
+                it++;   
                 break;
-            case 12:
+            case 12:    // O_CAST_D_I
+                d_val_1 = pop_d();
+                i_val_1 = static_cast<long>(d_val_1);
+                std::cout << logger << "[O_CAST_D_I] double: " << d_val_1 << "to integer: " << i_val_1 << "\n";
+                push_i(i_val_1);
+                it++;   
                 break;
-            case 13:
+            case 13:    // O_CAST_I_C
+                i_val_1 = pop_i();
+                i_val_2 = static_cast<char>(i_val_1);
+                std::cout << logger << "[O_CAST_I_C] integer: " << i_val_1 << "to char: " << i_val_2 << "\n";
+                push_i(i_val_2);
+                it++;   
                 break;
             case 14:    // O_CAST_I_D
                 i_val_1 = pop_i();
@@ -176,11 +241,29 @@ void VirtualMachine::run() {
                 push_d(d_val_1);
                 it++;
                 break;
-            case 15:
+            case 15:    // O_DIV_C
+                i_val_1 = pop_c();
+                i_val_2 = pop_c();
+                std::cout << logger << "[O_DIV_C] DIV: " << i_val_1 << " / " << i_val_2 << 
+                    " -> [" << i_val_1 / i_val_2 << "]\n";
+                push_c(i_val_1 / i_val_2);
+                it++;
                 break;
-            case 16:
+            case 16:    // O_DIV_D
+                d_val_1 = pop_d();
+                d_val_2 = pop_d();
+                std::cout << logger << "[O_DIV_D] DIV: " << d_val_1 << " / " << d_val_2 << 
+                    " -> [" << d_val_1 / d_val_2 << "]\n";
+                push_d(d_val_1 / d_val_2);
+                it++;
                 break;
-            case 17:
+            case 17:    // O_DIV_I
+                i_val_1 = pop_i();
+                i_val_2 = pop_i();
+                std::cout << logger << "[O_DIV_I] DIV: " << i_val_1 << " / " << i_val_2 << 
+                    " -> [" << i_val_1 / i_val_2 << "]\n";
+                push_i(i_val_1 / i_val_2);
+                it++;
                 break;
             case 18:    // O_DROP
                 if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
@@ -212,7 +295,21 @@ void VirtualMachine::run() {
                     exit(2);
                 }
                 break;
-            case 20:
+            case 20:    // O_EQ_A
+                a_val = static_cast<char *> (pop_a());
+                a_val_2 = static_cast<char *> (pop_a());
+                std::cout << logger << "[O_EQ_A] [" << a_val << "] == [" << a_val_2 << "] -> "
+                    << (d_val_1 == d_val_2) << "\n";
+                push_i(d_val_1 == d_val_2);
+                ++it;
+                break;
+            case 21:    // O_EQ_C
+                i_val_1 = pop_c();
+                i_val_2 = pop_c();
+                std::cout << logger << "[O_EQ_C] [" << i_val_1 << "] == [" << i_val_2 << "] -> "
+                    << (i_val_1 == i_val_2) << "\n";
+                push_i(i_val_1 == i_val_2);
+                ++it;
                 break;
             case 22:    // O_EQ_D
                 d_val_1 = pop_d();
@@ -220,6 +317,62 @@ void VirtualMachine::run() {
                 std::cout << logger << "[O_EQ_D] [" << d_val_1 << "] == [" << d_val_2 << "] -> "
                     << (d_val_1 == d_val_2) << "\n";
                 push_i(d_val_1 == d_val_2);
+                ++it;
+                break;
+            case 23:    // O_EQ_I
+                i_val_1 = pop_i();
+                i_val_2 = pop_i();
+                std::cout << logger << "[O_EQ_I] [" << i_val_1 << "] == [" << i_val_2 << "] -> "
+                    << (i_val_1 == i_val_2) << "\n";
+                push_i(i_val_1 == i_val_2);
+                ++it;
+                break;
+            case 24:    // O_GREATER_C
+                i_val_1 = pop_c();
+                i_val_2 = pop_c();
+                std::cout << logger << "[O_GREATER_C] [" << i_val_1 << "] > [" << i_val_2 << "] -> "
+                    << (i_val_1 > i_val_2) << "\n";
+                push_i(i_val_1 > i_val_2);
+                ++it;
+                break;
+            case 25:    // O_GREATER_D
+                d_val_1 = pop_d();
+                d_val_2 = pop_d();
+                std::cout << logger << "[O_GREATER_D] [" << d_val_1 << "] > [" << d_val_2 << "] -> "
+                    << (d_val_1 > d_val_2) << "\n";
+                push_i(d_val_1 > d_val_2);
+                ++it;
+                break;
+            case 26:    // O_GREATER_I
+                i_val_1 = pop_i();
+                i_val_2 = pop_i();
+                std::cout << logger << "[O_GREATER_I] [" << i_val_1 << "] > [" << i_val_2 << "] -> "
+                    << (i_val_1 > i_val_2) << "\n";
+                push_i(i_val_1 > i_val_2);
+                ++it;
+                break;
+            case 27:    // O_GREATEREQ_C
+                i_val_1 = pop_c();
+                i_val_2 = pop_c();
+                std::cout << logger << "[O_GREATEREQ_C] [" << i_val_1 << "] >= [" << i_val_2 << "] -> "
+                    << (i_val_1 >= i_val_2) << "\n";
+                push_i(i_val_1 >= i_val_2);
+                ++it;
+                break;
+            case 28:    // O_GREATEREQ_D
+                d_val_1 = pop_d();
+                d_val_2 = pop_d();
+                std::cout << logger << "[O_GREATEREQ_D] [" << d_val_1 << "] >= [" << d_val_2 << "] -> "
+                    << (d_val_1 >= d_val_2) << "\n";
+                push_i(d_val_1 >= d_val_2);
+                ++it;
+                break;
+            case 29:    // O_GREATEREQ_I
+                i_val_1 = pop_i();
+                i_val_2 = pop_i();
+                std::cout << logger << "[O_GREATEREQ_I] [" << i_val_1 << "] >= [" << i_val_2 << "] -> "
+                    << (i_val_1 >= i_val_2) << "\n";
+                push_i(i_val_1 >= i_val_2);
                 ++it;
                 break;
             case 30:    // O_INSERT
@@ -243,19 +396,325 @@ void VirtualMachine::run() {
                     exit(2);
                 }
                 break;
+            case 31:    // O_JF_A
+                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "void" ) {
+                    a_val = static_cast<char *> (pop_a());
+                    auto val = std::get<void *> ((*it).args[0]);
+                    std::cout << logger << "[O_JF_A] " << val << " (" << a_val << ")\n";
+                    auto itr = std::find(instr_list.instr_list.begin(), instr_list.instr_list.end(), (*static_cast<Instruction *> (val)));
+                    if ( itr != instr_list.instr_list.end()) {
+                        it = !a_val ? itr : ++it;
+                    } 
+                    else {
+                        std::cout << logger << "[O_JF_A] Given Instruction is not valid!\n";
+                        exit(2);
+                    }
+                }
+                else {
+                    std::cout << logger << "[O_JF_A] Wrong structure calling!\n";
+                    exit(2);
+                }
+                break;
+            case 32:    // O_JF_C
+                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "void" ) {
+                    i_val_1 = pop_c();
+                    auto val = std::get<void *> ((*it).args[0]);
+                    std::cout << logger << "[O_JF_C] " << val << " (" << i_val_1 << ")\n";
+                    auto itr = std::find(instr_list.instr_list.begin(), instr_list.instr_list.end(), (*static_cast<Instruction *> (val)));
+                    if ( itr != instr_list.instr_list.end()) {
+                        it = !i_val_1 ? itr : ++it;
+                    } 
+                    else {
+                        std::cout << logger << "[O_JF_C] Given Instruction is not valid!\n";
+                        exit(2);
+                    }
+                }
+                else {
+                    std::cout << logger << "[O_JF_C] Wrong structure calling!\n";
+                    exit(2);
+                }
+                break;
+            case 33:    // O_JF_D
+                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "void" ) {
+                    d_val_1 = pop_d();
+                    auto val = std::get<void *> ((*it).args[0]);
+                    std::cout << logger << "[O_JF_D] " << val << " (" << d_val_1 << ")\n";
+                    auto itr = std::find(instr_list.instr_list.begin(), instr_list.instr_list.end(), (*static_cast<Instruction *> (val)));
+                    if ( itr != instr_list.instr_list.end()) {
+                        it = !d_val_1 ? itr : ++it;
+                    } 
+                    else {
+                        std::cout << logger << "[O_JF_D] Given Instruction is not valid!\n";
+                        exit(2);
+                    }
+                }
+                else {
+                    std::cout << logger << "[O_JF_D] Wrong structure calling!\n";
+                    exit(2);
+                }
+                break;
+            case 34:    // O_JF_I
+                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "void" ) {
+                    i_val_1 = pop_i();
+                    auto val = std::get<void *> ((*it).args[0]);
+                    std::cout << logger << "[O_JF_I] " << val << " (" << i_val_1 << ")\n";
+                    auto itr = std::find(instr_list.instr_list.begin(), instr_list.instr_list.end(), (*static_cast<Instruction *> (val)));
+                    if ( itr != instr_list.instr_list.end()) {
+                        it = !i_val_1 ? itr : ++it;
+                    } 
+                    else {
+                        std::cout << logger << "[O_JF_I] Given Instruction is not valid!\n";
+                        exit(2);
+                    }
+                }
+                else {
+                    std::cout << logger << "[O_JF_I] Wrong structure calling!\n";
+                    exit(2);
+                }
+                break;
+            case 35:    // O_JMP
+                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "void" ) {
+                    auto val = std::get<void *> ((*it).args[0]);
+                    std::cout << logger << "[O_JMP] " << val << "\n";
+                    auto itr = std::find(instr_list.instr_list.begin(), instr_list.instr_list.end(), (*static_cast<Instruction *> (val)));
+                    if ( itr != instr_list.instr_list.end()) {
+                        it = itr;
+                    } 
+                    else {
+                        std::cout << logger << "[O_JMP] Given Instruction is not valid!\n";
+                        exit(2);
+                    }
+                }
+                else {
+                    std::cout << logger << "[O_JMP] Wrong structure calling!\n";
+                    exit(2);
+                }
+                break;
+            case 36:    // O_JT_A
+                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "void" ) {
+                    a_val = static_cast<char *> (pop_a());
+                    auto val = std::get<void *> ((*it).args[0]);
+                    std::cout << logger << "[O_JT_A] " << val << " (" << a_val << ")\n";
+                    auto itr = std::find(instr_list.instr_list.begin(), instr_list.instr_list.end(), (*static_cast<Instruction *> (val)));
+                    if ( itr != instr_list.instr_list.end()) {
+                        it = a_val ? itr : ++it;
+                    } 
+                    else {
+                        std::cout << logger << "[O_JT_A] Given Instruction is not valid!\n";
+                        exit(2);
+                    }
+                }
+                else {
+                    std::cout << logger << "[O_JT_A] Wrong structure calling!\n";
+                    exit(2);
+                }
+                break;
+            case 37:    // O_JT_C
+                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "void" ) {
+                    i_val_1 = pop_c();
+                    auto val = std::get<void *> ((*it).args[0]);
+                    std::cout << logger << "[O_JT_C] " << val << " (" << i_val_1 << ")\n";
+                    auto itr = std::find(instr_list.instr_list.begin(), instr_list.instr_list.end(), (*static_cast<Instruction *> (val)));
+                    if ( itr != instr_list.instr_list.end()) {
+                        it = i_val_1 ? itr : ++it;
+                    } 
+                    else {
+                        std::cout << logger << "[O_JT_C] Given Instruction is not valid!\n";
+                        exit(2);
+                    }
+                }
+                else {
+                    std::cout << logger << "[O_JT_C] Wrong structure calling!\n";
+                    exit(2);
+                }
+                break;
+            case 38:    // O_JT_D
+                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "void" ) {
+                    d_val_1 = pop_d();
+                    auto val = std::get<void *> ((*it).args[0]);
+                    std::cout << logger << "[O_JT_D] " << val << " (" << d_val_1 << ")\n";
+                    auto itr = std::find(instr_list.instr_list.begin(), instr_list.instr_list.end(), (*static_cast<Instruction *> (val)));
+                    if ( itr != instr_list.instr_list.end()) {
+                        it = d_val_1 ? itr : ++it;
+                    } 
+                    else {
+                        std::cout << logger << "[O_JT_D] Given Instruction is not valid!\n";
+                        exit(2);
+                    }
+                }
+                else {
+                    std::cout << logger << "[O_JT_D] Wrong structure calling!\n";
+                    exit(2);
+                }
+                break;
             case 39:    // O_JT_I
                 if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "void" ) {
                     i_val_1 = pop_i();
                     auto val = std::get<void *> ((*it).args[0]);
                     std::cout << logger << "[O_JT_I] " << val << " (" << i_val_1 << ")\n";
-                    //it = i_val_1 ? static_cast<Instruction>(val) : it++;
-                    // TO DO: Redo this when you know how
-                    ++it;
+                    auto itr = std::find(instr_list.instr_list.begin(), instr_list.instr_list.end(), (*static_cast<Instruction *> (val)));
+                    if ( itr != instr_list.instr_list.end()) {
+                        it = i_val_1 ? itr : ++it;
+                    } 
+                    else {
+                        std::cout << logger << "[O_JT_I] Given Instruction is not valid!\n";
+                        exit(2);
+                    }
                 }
                 else {
                     std::cout << logger << "[O_JT_I] Wrong structure calling!\n";
                     exit(2);
                 }
+                break;
+            case 40:    // O_LESS_C
+                i_val_1 = pop_c();
+                i_val_2 = pop_c();
+                std::cout << logger << "[O_LESS_C] [" << i_val_1 << "] < [" << i_val_2 << "] -> "
+                    << (i_val_1 < i_val_2) << "\n";
+                push_i(i_val_1 < i_val_2);
+                ++it;
+                break;
+            case 41:    // O_LESS_D
+                d_val_1 = pop_d();
+                d_val_2 = pop_d();
+                std::cout << logger << "[O_LESS_D] [" << d_val_1 << "] < [" << d_val_2 << "] -> "
+                    << (d_val_1 < d_val_2) << "\n";
+                push_i(d_val_1 < d_val_2);
+                ++it;
+                break;
+            case 42:    //  O_LESS_I
+                i_val_1 = pop_i();
+                i_val_2 = pop_i();
+                std::cout << logger << "[O_LESS_I] [" << i_val_1 << "] < [" << i_val_2 << "] -> "
+                    << (i_val_1 < i_val_2) << "\n";
+                push_i(i_val_1 < i_val_2);
+                ++it;
+                break;
+            case 43:    //  O_LESSEQ_C
+                i_val_1 = pop_c();
+                i_val_2 = pop_c();
+                std::cout << logger << "[O_LESSEQ_C] [" << i_val_1 << "] <= [" << i_val_2 << "] -> "
+                    << (i_val_1 <= i_val_2) << "\n";
+                push_i(i_val_1 <= i_val_2);
+                ++it;
+                break;
+            case 44:    // O_LESSEQ_D
+                d_val_1 = pop_d();
+                d_val_2 = pop_d();
+                std::cout << logger << "[O_LESSEQ_D] [" << d_val_1 << "] <= [" << d_val_2 << "] -> "
+                    << (d_val_1 <= d_val_2) << "\n";
+                push_i(d_val_1 <= d_val_2);
+                ++it;
+                break;
+            case 45:    // O_LESSEQ_I
+                i_val_1 = pop_i();
+                i_val_2 = pop_i();
+                std::cout << logger << "[O_LESSEQ_I] [" << i_val_1 << "] <= [" << i_val_2 << "] -> "
+                    << (i_val_1 <= i_val_2) << "\n";
+                push_i(i_val_1 <= i_val_2);
+                ++it;
+                break;
+            case 46:     // O_MUL_C
+                i_val_1 = pop_c();
+                i_val_2 = pop_c();
+                std::cout << logger << "[O_MUL_C] MUL: " << i_val_1 << " * " << i_val_2 << " -> "
+                    << "[" << i_val_1 * i_val_2 << "]\n";
+                push_c(i_val_1 * i_val_2);
+                ++it;
+                break;
+            case 47:    // O_MUL_D
+                d_val_1 = pop_d();
+                d_val_2 = pop_d();
+                std::cout << logger << "[O_MUL_D] MUL: " << d_val_1 << " * " << d_val_2 << " -> "
+                    << "[" << d_val_1 * d_val_2 << "]\n";
+                push_c(d_val_1 * d_val_2);
+                ++it;
+                break;
+            case 48:    // O_MUL_I
+                i_val_1 = pop_i();
+                i_val_2 = pop_i();
+                std::cout << logger << "[O_MUL_I] MUL: " << i_val_1 << " * " << i_val_2 << " -> "
+                    << "[" << i_val_1 * i_val_2 << "]\n";
+                push_c(i_val_1 * i_val_2);
+                ++it;
+                break;
+            case 49:    // O_NEG_C
+                i_val_1 = pop_c();
+                std::cout << logger << "[O_NEG_C] [-" << i_val_1 << "]\n";
+                push_c(-i_val_1);
+                ++it; 
+                break;
+            case 50:    // O_NEG_D
+                d_val_1 = pop_d();
+                std::cout << logger << "[O_NEG_D] [-" << d_val_1 << "]\n";
+                push_c(-d_val_1);
+                ++it; 
+                break;
+            case 51:    // O_NEG_I
+                i_val_1 = pop_i();
+                std::cout << logger << "[O_NEG_I] [-" << i_val_1 << "]\n";
+                push_i(-i_val_1);
+                ++it; 
+                break;
+            case 52:    // O_NOP
+                std::cout << logger << "[O_NOP]\n";
+                ++it;
+                break;
+            case 53:    // O_NOT_A
+                a_val = static_cast<char *>(pop_a());
+                std::cout << logger << "[O_NOT_A] [-" << a_val << "]\n";
+                push_i(!a_val);
+                ++it;
+                break;
+            case 54:    // O_NOT_C
+                i_val_1 = pop_c();
+                std::cout << logger << "[O_NOT_C] [-" << i_val_1 << "]\n";
+                push_i(!i_val_1);
+                ++it;
+                break;
+            case 55:    // O_NOT_D
+                d_val_1 = pop_d();
+                std::cout << logger << "[O_NOT_D] [-" << d_val_1 << "]\n";
+                push_i(!d_val_1);
+                ++it;
+                break;
+            case 56:    // O_NOT_I
+                i_val_1 = pop_i();
+                std::cout << logger << "[O_NOT_I] [-" << i_val_1 << "]\n";
+                push_i(!i_val_1);
+                ++it;
+                break;
+            case 57:    // O_NOTEQ_A
+                a_val = static_cast<char *> (pop_a());
+                a_val_2 = static_cast<char *> (pop_a());
+                std::cout << logger << "[O_NOTEQ_A] [" << a_val << "] != [" << a_val_2 << "] -> "
+                    << (a_val != a_val_2) << "\n";
+                push_i(a_val != a_val_2);
+                it++;
+                break;
+            case 58:    // O_NOTEQ_C
+                i_val_1 = pop_c();
+                i_val_2 = pop_c();
+                std::cout << logger << "[O_NOTEQ_C] [" << i_val_1 << "] != [" << i_val_2 << "] -> "
+                    << (i_val_1 != i_val_2) << "\n";
+                push_i(i_val_1 != i_val_2);
+                it++;
+                break;
+            case 59:    // O_NOTEQ_D
+                d_val_1 = pop_d();
+                d_val_2 = pop_d();
+                std::cout << logger << "[O_NOTEQ_D] [" << d_val_1 << "] != [" << d_val_2 << "] -> "
+                    << (d_val_1 != d_val_2) << "\n";
+                push_i(d_val_1 != d_val_2);
+                it++;
+                break;
+            case 60:    //  O_NOTEQ_I
+                i_val_1 = pop_i();
+                i_val_2 = pop_i();
+                std::cout << logger << "[O_NOTEQ_I] [" << i_val_1 << "] != [" << i_val_2 << "] -> "
+                    << (i_val_1 != i_val_2) << "\n";
+                push_i(i_val_1 != i_val_2);
+                it++;
                 break;
             case 61:    // O_OFFSET
                 i_val_1 = pop_i();
@@ -264,6 +723,30 @@ void VirtualMachine::run() {
                     << a_val + i_val_1 << "\n";
                 push_a(a_val + i_val_1);
                 ++it;
+                break;
+            case 62:    // O_OR_A
+                a_val = static_cast<char *> (pop_a());
+                a_val_2 = static_cast<char *> (pop_a());
+                std::cout << logger << "[O_OR_A] [" << a_val << "] || [" << a_val_2 << "] -> "
+                    << (a_val || a_val_2) << "\n";
+                push_i(a_val || a_val_2);
+                it++;
+                break;
+            case 63:    // O_OR_D
+                d_val_1 = pop_d();
+                d_val_2 = pop_d();
+                std::cout << logger << "[O_OR_D] [" << d_val_1 << "] || [" << d_val_2 << "] -> "
+                    << (d_val_1 || d_val_2) << "\n";
+                push_i(d_val_1 || d_val_2);
+                it++;
+                break;
+            case 64:    // O_OR_I
+                i_val_1 = pop_i();
+                i_val_2 = pop_i();
+                std::cout << logger << "[O_OR_I] [" << i_val_1 << "] || [" << i_val_2 << "] -> "
+                    << (i_val_1 || i_val_2) << "\n";
+                push_i(i_val_1 || i_val_2);
+                it++;
                 break;
             case 65:    // O_PUSHFPADDR
                 if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
@@ -287,6 +770,30 @@ void VirtualMachine::run() {
                 }
                 else {
                     std::cout << logger << "[O_PUSHCT_A] Wrong structure calling!\n";
+                    exit(2);
+                }
+                break;
+            case 67:    // O_PUSHCT_C
+                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
+                    i_val_1 = static_cast<char> (std::get<long> ((*it).args[0]));
+                    std::cout << logger << "[O_PUSHCT_C] " << std::hex << i_val_1 << "\n";
+                    push_i(std::get<long> ((*it).args[0]));
+                    ++it;
+                }
+                else {
+                    std::cout << logger << "[O_PUSHCT_C] Wrong structure calling!\n";
+                    exit(2);
+                }
+                break;
+            case 68:    // O_PUSHCT_D
+                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "double" ) {
+                    d_val_1 = std::get<double> ((*it).args[0]);
+                    std::cout << logger << "[O_PUSHCT_D] " << std::hex << d_val_1 << "\n";
+                    push_i(std::get<double> ((*it).args[0]));
+                    ++it;
+                }
+                else {
+                    std::cout << logger << "[O_PUSHCT_D] Wrong structure calling!\n";
                     exit(2);
                 }
                 break;
@@ -346,12 +853,28 @@ void VirtualMachine::run() {
                     exit(2);
                 }
                 break;
+            case 72:    // O_SUB_C
+                i_val_1 = pop_c();
+                i_val_2 = pop_c();
+                std::cout << logger << "[O_SUB_C] " << i_val_1 << " - " << i_val_2 << " -> "
+                    << i_val_1 - i_val_2 << "\n";
+                push_d(i_val_1 - i_val_2);
+                ++it;
+                break;
             case 73:    // O_SUB_D
                 d_val_1 = pop_d();
                 d_val_2 = pop_d();
                 std::cout << logger << "[O_SUB_D] " << d_val_2 << " - " << d_val_1 << " -> "
                     << d_val_2 - d_val_1 << "\n";
                 push_d(d_val_2 - d_val_1);
+                ++it;
+                break;
+            case 74:    //  O_SUB_I
+                i_val_1 = pop_i();
+                i_val_2 = pop_i();
+                std::cout << logger << "[O_SUB_I] " << i_val_1 << " - " << i_val_2 << " -> "
+                    << i_val_1 - i_val_2 << "\n";
+                push_d(i_val_1 - i_val_2);
                 ++it;
                 break;
             case 75:    // O_LOAD
@@ -372,6 +895,22 @@ void VirtualMachine::run() {
                     std::cout << logger << "[O_LOAD] Wrong structure calling!\n";
                     exit(2);
                 }
+                break;
+            case 76:    // O_AND_A
+                a_val = static_cast<char *> (pop_a());
+                a_val_2 = static_cast<char*> (pop_a());
+                std::cout << logger << "[O_AND_A] Adding: " << a_val << " + " << a_val_2 << " -> "
+                    << "[" << (a_val && a_val_2) << "]\n";
+                push_i(a_val && a_val_2);
+                ++it;
+                break;
+            case 77:    // O_OR_C
+                i_val_1 = pop_c();
+                i_val_2 = pop_c();
+                std::cout << logger << "[O_OR_C] [" << i_val_1 << "] || [" << i_val_2 << "] -> "
+                    << (i_val_1 || i_val_2) << "\n";
+                push_i(i_val_1 || i_val_2);
+                it++;
                 break;
 
             default:

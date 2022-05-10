@@ -2,6 +2,7 @@
 #define VIRTUAL_MACHINE_HPP
 
 #include <string.h>
+#include<iostream>
 
 #include "Logger.hpp"
 #include "Instruction.hpp"
@@ -42,6 +43,8 @@ public:
 
     // RUN METHODS
     void run();
+
+    friend class SyntacticAnalyzer;
 };
 
 #endif
