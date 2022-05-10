@@ -42,6 +42,8 @@ public:
 
     // RUN METHODS
     void run();
+
+    friend class SyntacticAnalyzer;
 };
 
 #endif

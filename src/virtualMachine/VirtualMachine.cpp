@@ -108,13 +108,13 @@ InstructionList VirtualMachine::get_il() {
 void VirtualMachine::run() {
     long int i_val_1, i_val_2;
     double d_val_1, d_val_2;
-    char * a_val;
+    char * a_val, * a_val_2;
     char * frame_ptr = 0, * old_sp;
     stack_ptr = stack;  // we allocated continuouus memory for the stack, use it
     stack_after = stack + STACK_SIZE;   // this should be the first address after
     // the stack's memory
     for ( std::list<Instruction>::iterator it = instr_list.instr_list.begin() ; it != instr_list.instr_list.end() ;) {
-        std::cout << logger << "IP: [" << (*it).op_code << "] SP-stack: [" 
+        std::cout << logger << "IP: [" << (int)(*it).op_code << "] SP-stack: [" 
             << (stack_ptr - stack) << "]\n";
         std::cout << logger << "STACK_PTR: [" << reinterpret_cast<void*> (&stack_ptr) << "]\n";
         switch ((*it).op_code) {
@@ -122,16 +122,51 @@ void VirtualMachine::run() {
                 std::cout << logger << "[O_HALT_INSTRUCTION]\n";
                 return;
             case 1: // O_ADD_C
+                i_val_1 = pop_c();
+                i_val_2 = pop_c();
+                std::cout << logger << "[O_ADD_C] Adding: " << i_val_1 << " + " << i_val_2 << " -> "
+                    << "[" << i_val_1 + i_val_2 << "]\n";
+                push_c(i_val_1 + i_val_2);
+                ++it;
                 break;
             case 2: // O_ADD_D
+                d_val_1 = pop_d();
+                d_val_2 = pop_d();
+                std::cout << logger << "[O_ADD_D] Adding: " << d_val_1 << " + " << d_val_2 << " -> "
+                    << "[" << d_val_1 + d_val_2 << "]\n";
+                push_d(d_val_1 + d_val_2);
                 break;
             case 3: // O_ADD_I
+                i_val_1 = pop_i();
+                i_val_2 = pop_i();
+                std::cout << logger << "[O_ADD_I] Adding: " << i_val_1 << " + " << i_val_2 << " -> "
+                    << "[" << i_val_1 + i_val_2 << "]\n";
+                push_i(i_val_1 + i_val_2);
+                ++it;
                 break;
             case 4: // O_AND_C
+                i_val_1 = pop_c();
+                i_val_2 = pop_c();
+                std::cout << logger << "[O_AND_C] AND: " << i_val_1 << " + " << i_val_2 << " -> "
+                    << "[" << (i_val_1 && i_val_2) << "]\n";
+                push_i(i_val_1 && i_val_2);
+                ++it;
                 break;
             case 5: // O_AND_D
+                d_val_1 = pop_d();
+                d_val_2 = pop_d();
+                std::cout << logger << "[O_AND_D] AND: " << d_val_1 << " + " << d_val_2 << " -> "
+                    << "[" << (d_val_1 && d_val_2) << "]\n";
+                push_i(d_val_1 && d_val_2);
+                ++it;
                 break;
             case 6: // O_AND_I
+                i_val_1 = pop_i();
+                i_val_2 = pop_i();
+                std::cout << logger << "[O_AND_I] AND: " << i_val_1 << " + " << i_val_2 << " -> "
+                    << "[" << (i_val_1 && i_val_2) << "]\n";
+                push_i(i_val_1 + i_val_2);
+                ++it;
                 break;
             case 7: // O_CALL
                 std::cout << logger << "[O_CALL_INSTRUCTION]\n";
@@ -160,14 +195,39 @@ void VirtualMachine::run() {
                 ++it;
                 break;
             case 9: // O_CAST_C_D
+                i_val_1 = pop_c();
+                d_val_1 = static_cast<double>(i_val_1);
+                std::cout << logger << "[O_CAST_C_D] char: " << i_val_1 << "to double: " << d_val_1 << "\n";
+                push_d(d_val_1);
+                it++;
                 break;
             case 10: // O_CAST_C_I
+                i_val_1 = pop_c();
+                i_val_2 = static_cast<long>(i_val_1);
+                std::cout << logger << "[O_CAST_C_I] char: " << i_val_1 << "to integer: " << i_val_2 << "\n";
+                push_i(i_val_2);
+                it++;
                 break;
-            case 11:  // O_CAST_D_C   
+            case 11:  // O_CAST_D_C
+                d_val_1 = pop_d();
+                i_val_1 = static_cast<char>(d_val_1);
+                std::cout << logger << "[O_CAST_D_C] double: " << d_val_1 << "to char: " << i_val_1 << "\n";
+                push_i(i_val_1);
+                it++;   
                 break;
-            case 12:
+            case 12:    // O_CAST_D_I
+                d_val_1 = pop_d();
+                i_val_1 = static_cast<long>(d_val_1);
+                std::cout << logger << "[O_CAST_D_I] double: " << d_val_1 << "to integer: " << i_val_1 << "\n";
+                push_i(i_val_1);
+                it++;   
                 break;
-            case 13:
+            case 13:    // O_CAST_I_C
+                i_val_1 = pop_i();
+                i_val_2 = static_cast<char>(i_val_1);
+                std::cout << logger << "[O_CAST_I_C] integer: " << i_val_1 << "to char: " << i_val_2 << "\n";
+                push_i(i_val_2);
+                it++;   
                 break;
             case 14:    // O_CAST_I_D
                 i_val_1 = pop_i();
@@ -176,11 +236,29 @@ void VirtualMachine::run() {
                 push_d(d_val_1);
                 it++;
                 break;
-            case 15:
+            case 15:    // O_DIV_C
+                i_val_1 = pop_c();
+                i_val_2 = pop_c();
+                std::cout << logger << "[O_DIV_C] DIV: " << i_val_1 << " / " << i_val_2 << 
+                    " -> [" << i_val_1 / i_val_2 << "]\n";
+                push_c(i_val_1 / i_val_2);
+                it++;
                 break;
-            case 16:
+            case 16:    // O_DIV_D
+                d_val_1 = pop_d();
+                d_val_2 = pop_d();
+                std::cout << logger << "[O_DIV_D] DIV: " << d_val_1 << " / " << d_val_2 << 
+                    " -> [" << d_val_1 / d_val_2 << "]\n";
+                push_d(d_val_1 / d_val_2);
+                it++;
                 break;
-            case 17:
+            case 17:    // O_DIV_I
+                i_val_1 = pop_i();
+                i_val_2 = pop_i();
+                std::cout << logger << "[O_DIV_I] DIV: " << i_val_1 << " / " << i_val_2 << 
+                    " -> [" << i_val_1 / i_val_2 << "]\n";
+                push_i(i_val_1 / i_val_2);
+                it++;
                 break;
             case 18:    // O_DROP
                 if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
@@ -212,7 +290,21 @@ void VirtualMachine::run() {
                     exit(2);
                 }
                 break;
-            case 20:
+            case 20:    // O_EQ_A
+                a_val = static_cast<char *> (pop_a());
+                a_val_2 = static_cast<char *> (pop_a());
+                std::cout << logger << "[O_EQ_A] [" << a_val << "] == [" << a_val_2 << "] -> "
+                    << (d_val_1 == d_val_2) << "\n";
+                push_i(d_val_1 == d_val_2);
+                ++it;
+                break;
+            case 21:    // O_EQ_C
+                i_val_1 = pop_c();
+                i_val_2 = pop_c();
+                std::cout << logger << "[O_EQ_C] [" << i_val_1 << "] == [" << i_val_2 << "] -> "
+                    << (i_val_1 == i_val_2) << "\n";
+                push_i(i_val_1 == i_val_2);
+                ++it;
                 break;
             case 22:    // O_EQ_D
                 d_val_1 = pop_d();
@@ -221,6 +313,26 @@ void VirtualMachine::run() {
                     << (d_val_1 == d_val_2) << "\n";
                 push_i(d_val_1 == d_val_2);
                 ++it;
+                break;
+            case 23:    // O_EQ_I
+                i_val_1 = pop_i();
+                i_val_2 = pop_i();
+                std::cout << logger << "[O_EQ_I] [" << i_val_1 << "] == [" << i_val_2 << "] -> "
+                    << (i_val_1 == i_val_2) << "\n";
+                push_i(i_val_1 == i_val_2);
+                ++it;
+                break;
+            case 24:    // O_GREATER_C
+                break;
+            case 25:    // O_GREATER_D
+                break;
+            case 26:    // O_GREATER_I
+                break;
+            case 27:    // O_GREATEREQ_C
+                break;
+            case 28:    // O_GREATEREQ_D
+                break;
+            case 29:    // O_GREATEREQ_I
                 break;
             case 30:    // O_INSERT
                 if ( (*it).args.size() == 2 && Instruction::variant_to_type((*it).args[0]) == "long"
@@ -372,6 +484,14 @@ void VirtualMachine::run() {
                     std::cout << logger << "[O_LOAD] Wrong structure calling!\n";
                     exit(2);
                 }
+                break;
+            case 76:    // O_AND_A
+                a_val = static_cast<char *> (pop_a());
+                a_val_2 = static_cast<char*> (pop_a());
+                std::cout << logger << "[O_AND_A] Adding: " << a_val << " + " << a_val_2 << " -> "
+                    << "[" << (a_val && a_val_2) << "]\n";
+                push_i(a_val && a_val_2);
+                ++it;
                 break;
 
             default:

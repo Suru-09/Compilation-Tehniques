@@ -1,7 +1,8 @@
 #ifndef SYMBOL_HPP
 #define SYMBOL_HPP
 
-#include<vector>
+#include <vector>
+#include <variant>
 
 #include "Type.hpp"
 #include "Logger.hpp"
@@ -24,6 +25,7 @@ private:
     int depth;
     int memory_zone;
     std::vector<std::pair<int, Symbol>> members;
+    std::variant<long, double, void *> addr_offset;
 
 public:
     std::string get_name();

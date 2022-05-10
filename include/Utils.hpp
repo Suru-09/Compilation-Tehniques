@@ -19,7 +19,6 @@ namespace utils {
     std::string type_to_string(int type);
     std::string log_error(const int& line, const std::string& message);
     void add_predefined_functions(SymbolTable& symbol_table);
-    void test_mv();
 }
 
 #endif

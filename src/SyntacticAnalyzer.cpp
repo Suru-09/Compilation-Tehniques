@@ -12,6 +12,7 @@ ret_val(ReturnValue{})
 {   
     current_token = lex.token_list.get_head();
     logger = Logger{class_name};
+    vm = VirtualMachine{};
     add_predefined_functions();
 }
 
@@ -1723,14 +1724,44 @@ Type SyntacticAnalyzer::create_type(const int& type_base, const int& elements) {
 }
 
 void SyntacticAnalyzer::add_ext_func(const std::string &str, 
-    std::vector<Symbol> arr, 
-    const int& type) {
+        std::vector<Symbol> arr, 
+        const int& type) {
+
     auto res = tmp.create_function(str, arr, type);
+    if ( str == "put_s") {
+        res.addr_offset = reinterpret_cast<void *>(SyntacticAnalyzer::put_s);
+        // auto val = std::get<void * > (res.addr_offset);
+        // std::cout << logger << static_cast<void *> (&val) << "\n";
+    }
+    else if (str == "get_s") {
+        res.addr_offset = reinterpret_cast<void *> (SyntacticAnalyzer::get_s);
+    }
+    else if (str == "put_i") {
+        res.addr_offset = reinterpret_cast<void *> (SyntacticAnalyzer::put_i);
+    }
+    else if( str == "get_i") {
+        res.addr_offset = reinterpret_cast<void *> (SyntacticAnalyzer::get_i);
+    }
+    else if (str == "put_d") {
+        res.addr_offset = reinterpret_cast<void *> (SyntacticAnalyzer::put_d);
+    }
+    else if( str == "get_d") {
+        res.addr_offset = reinterpret_cast<void *> (SyntacticAnalyzer::get_d);
+    }
+    else if ( str == "put_c") {
+        res.addr_offset = reinterpret_cast<void *> (SyntacticAnalyzer::put_c);
+    }
+    else if ( str == "get_c") {
+        res.addr_offset = reinterpret_cast<void *> (SyntacticAnalyzer::get_c);
+    }
+    else if ( str == "seconds") {
+        res.addr_offset = reinterpret_cast<void *> (SyntacticAnalyzer::seconds);
+    }
     symbol_table.add_symbol(res);
 }
 
 void SyntacticAnalyzer::add_predefined_functions() {
-    // void put_s(char s[])
+    // void put_s()
     Type type{ret_val.type.TB_CHAR};
     type.elements = 0;
     Symbol s = Symbol("s", tmp.CLS_VAR, type);
@@ -1768,4 +1799,92 @@ void SyntacticAnalyzer::add_predefined_functions() {
 
     // double seconds()
     add_ext_func("seconds", {}, ret_val.type.TB_DOUBLE);
+}
+
+void SyntacticAnalyzer::put_s() {
+    std::cout << " [PUT_S] " << vm.pop_c() << "\n";
+}
+
+void SyntacticAnalyzer::put_i() {
+    std::cout << " [PUT_I] " << vm.pop_i() << "\n";
+}
+
+void SyntacticAnalyzer::put_c() {
+    std::cout << " [PUT_C] " << vm.pop_c() << "\n";
+}
+
+void SyntacticAnalyzer::put_d() {
+    std::cout << " [PUT_D] " << vm.pop_d() << "\n";
+}
+
+void SyntacticAnalyzer::get_i() {
+    std::cout << " [GET_I] " << 5 << "\n";
+}
+
+void SyntacticAnalyzer::get_d() {
+    std::cout << " [GET_D] " << 5<< "\n";
+}
+
+void SyntacticAnalyzer::get_s() {
+    std::cout << " [GET_S] " << 5 << "\n";
+}
+
+void SyntacticAnalyzer::get_c() {
+    std::cout << " [GET_C] " << 5 << "\n";
+}
+
+void SyntacticAnalyzer::seconds() {
+    std::cout << " [SECONDS] " << time(0) << "\n";
+}
+
+void SyntacticAnalyzer::test_mv() {
+    long * v = static_cast<long * > (vm.alloc_heap(sizeof(long)));
+    Instruction h;
+    InstructionList il;
+
+    h = Instruction{h.O_PUSHCT_A};
+    h.set_args({v});
+    il.insert_instr(h);
+
+    h = Instruction{h.O_PUSHCT_I};
+    h.set_args({static_cast<long> (3)});
+    il.insert_instr(h);
+
+    h = Instruction{h.O_STORE};
+    long val = sizeof(long);
+    h.set_args({val});
+    il.insert_instr(h);
+
+    h = Instruction{h.O_PUSHCT_A};
+    h.set_args({v});
+    il.insert_instr(h);
+
+    h = Instruction{h.O_LOAD};
+    h.set_args({val});
+    il.insert_instr(h);
+
+    h = Instruction{h.O_CALLEXT};
+    if ( Instruction::variant_to_type(symbol_table.symbol_exists("put_s").addr_offset) == "void" ) {
+        h.set_args({std::get<void *> (symbol_table.find_symbol("put_s").addr_offset)});
+        il.insert_instr(h);
+    }
+
+    h = Instruction{h.O_PUSHCT_A};
+    h.set_args({v});
+    il.insert_instr(h);
+    il.insert_instr(h);
+
+    h = Instruction{h.O_LOAD};
+    h.set_args({val});
+    il.insert_instr(h);
+
+    h = Instruction{h.O_PUSHCT_I};
+    h.set_args({static_cast<long> (1)});
+    il.insert_instr(h);
+
+    h = Instruction{h.O_HALT};
+    il.insert_instr(h);
+
+    vm.set_il(il);
+    vm.run();
 }

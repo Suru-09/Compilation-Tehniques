@@ -19,7 +19,7 @@ public:
     void delete_symbol(const std::string& key);
     void delete_symbols_from_given_level(const int& level);
     void print_symbol_table();
-    bool symbol_exists(const std::string& key);
+    Symbol symbol_exists(const std::string& key);
 
 
     friend class SyntacticAnalyzer;

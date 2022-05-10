@@ -32,7 +32,7 @@ public:
         O_OR_I = 64, O_PUSHFPADDR = 65, O_PUSHCT_A = 66,
         O_PUSHCT_C = 67, O_PUSHCT_D = 68, O_PUSHCT_I = 69,
         O_RET = 70, O_STORE = 71, O_SUB_C = 72, O_SUB_D = 73,
-        O_SUB_I = 74, O_LOAD = 75
+        O_SUB_I = 74, O_LOAD = 75, O_AND_A = 76
     };
 
     int op_code;
