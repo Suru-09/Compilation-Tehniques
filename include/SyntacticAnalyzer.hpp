@@ -118,9 +118,12 @@ private:
     void static get_c();
     void static seconds();
 
+    //CODE GENERATION
+    long type_base_size(const Type& type);
+
 public:
     void unit();
-    void test_mv();
+    void test_vm();
 
     SyntacticAnalyzer(const LexicalAnalyzer &lex_analiz);
     SyntacticAnalyzer();

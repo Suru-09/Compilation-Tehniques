@@ -1837,7 +1837,7 @@ void SyntacticAnalyzer::seconds() {
     std::cout << " [SECONDS] " << time(0) << "\n";
 }
 
-void SyntacticAnalyzer::test_mv() {
+void SyntacticAnalyzer::test_vm() {
     long * v = static_cast<long * > (vm.alloc_heap(sizeof(long)));
     Instruction h;
     InstructionList il;
@@ -1863,11 +1863,11 @@ void SyntacticAnalyzer::test_mv() {
     h.set_args({val});
     il.insert_instr(h);
 
-    // h = Instruction{h.O_CALLEXT};
-    // if ( Instruction::variant_to_type(symbol_table.symbol_exists("put_i").addr_offset) == "void" ) {
-    //     h.set_args({std::get<void *> (symbol_table.find_symbol("put_i").addr_offset)});
-    //     il.insert_instr(h);
-    // }
+    h = Instruction{h.O_CALLEXT};
+    if ( Instruction::variant_to_type(symbol_table.symbol_exists("put_i").addr_offset) == "void" ) {
+        h.set_args({std::get<void *> (symbol_table.find_symbol("put_i").addr_offset)});
+        il.insert_instr(h);
+    }
 
     h = Instruction{h.O_PUSHCT_I};
     h.set_args({static_cast<long> (3)});
@@ -1878,7 +1878,7 @@ void SyntacticAnalyzer::test_mv() {
     il.insert_instr(h);
 
     auto j = Instruction{h.O_HALT};
-    h = Instruction{h.O_JMP};
+    h = Instruction{h.O_JT_I};
     h.set_args({reinterpret_cast<void *>(&j)});
     il.insert_instr(h);
 
@@ -1909,4 +1909,34 @@ void SyntacticAnalyzer::test_mv() {
 
     vm.set_il(il);
     vm.run();
+}
+
+long SyntacticAnalyzer::type_base_size(const Type& type) {
+    long size = 0;
+    Symbol symb;
+    switch(type.type_base) {
+        case Type::TB_INT:
+            return sizeof(long);
+        case Type::TB_DOUBLE:
+            return sizeof(double);
+        case Type::TB_CHAR:
+            return sizeof(char);
+        case Type::TB_STRUCT:
+            symb = symbol_table.find_symbol(type.symbol_name);
+            if ( symb.name == "") {
+                std::cout << logger << " [TYPE_BASE_SIZE] Given type doesn't have a valid STRUCT name!\n";
+                exit(2);
+            }
+            for( auto const& x: symb.members) {
+                size += (type_base_size(x.second.type) 
+                    * (x.second.type.elements > 0 ? x.second.type.elements : 1));
+            }
+            return size;
+        case Type::TB_VOID:
+            return 0;
+        default:
+            std::cout << logger << "[TYPE_BASE_SIZE] Wrong type given!\n";
+            exit(3);
+    }
+    return size;
 }

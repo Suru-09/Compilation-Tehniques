@@ -56,6 +56,7 @@ bool Symbol::add_member(Symbol s) {
         std::cout << logger << " Wrong type given in add_member() function!\n";
         exit(-1);
     }
+    return true;
 }
 
 Symbol& Symbol::operator=(const Symbol& symbol) {
