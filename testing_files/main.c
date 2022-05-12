@@ -10,6 +10,10 @@ int a, b;
 
 struct masina masinute[50];
 
+void ceva(int w1, char w2, int w3) {
+
+}
+
 int main(int x, int y, double z) {
 
     a = 10;
@@ -58,10 +62,11 @@ int main(int x, int y, double z) {
 
     1 / ;
 
-    put_s(m.nume);
-    put_i(a);
+    //put_s(m.nume);
+    //put_i(a);
 
     masinute[2] = m;
 
+    ceva(z, z, z);
     return get_i(z);
 }

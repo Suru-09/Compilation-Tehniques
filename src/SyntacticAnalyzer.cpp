@@ -11,7 +11,8 @@ is_struct(false),
 ret_val(ReturnValue{}),
 il(InstructionList{}),
 size_args(0),
-offset(0)
+offset(0),
+last_instruction(Instruction{})
 {
     current_token = lex.token_list.get_head();
     logger = Logger{class_name};
@@ -28,7 +29,8 @@ is_struct(false),
 ret_val(ReturnValue{}),
 il(InstructionList{}),
 size_args(0),
-offset(0)
+offset(0),
+last_instruction(Instruction{})
 {
     logger = Logger{class_name};
 }
@@ -868,7 +870,7 @@ int SyntacticAnalyzer::expr_primary() {
         return 1;
     }
     else if(match(lex.CT_STRING)) {
-        ret_val.type = create_type(ret_val.type.TB_STRING, -1);
+        ret_val.type = create_type(ret_val.type.TB_STRING, 1);
         ret_val.is_left_value = false;
         ret_val.is_constant_value = true;
         std::cout << logger << "Found a PRIMARY (CT_STRING)!\n";
@@ -923,11 +925,17 @@ int SyntacticAnalyzer::expr_primary() {
                 std::cout << logger << utils::log_error(current_token->token.line, "Too many arguments in function1!");
                 exit(lex.LPAR);
             }
-            std::cout << logger << "[RET_VAL]: " << utils::type_to_string(vec[it].second.type.type_base) << "\n";
-            cast_type(vec[it].second.type, vec[it].second.type);
+            std::cout << logger << " ID LPAR () RPAR [FUNCTION_CALL]: " << utils::type_to_string(vec[it].second.type.type_base) << "\n";
+            expr(); // NOTE: EXPR() ? [ , EXPR() ]*
+            cast_type(vec[it].second.type, ret_val.type);
+            // if ( ret_val.type.elements < 0 ) {
+                last_instruction = get_r_val(ret_val);
+               
+            // }
+            add_cast_instr(last_instruction, vec[it].second.type, ret_val.type);
             ++it;
 
-            expr(); // NOTE: EXPR() ? [optional] [ , EXPR() ]* ...
+           
         }
 
         while(match(lex.COMMA) && expr()) {
@@ -936,7 +944,11 @@ int SyntacticAnalyzer::expr_primary() {
                     std::cout << logger << utils::log_error(current_token->token.line, "Too many arguments in function2!");
                     exit(lex.LPAR);
                 }
-                cast_type(vec[it].second.type, vec[it].second.type);
+                cast_type(vec[it].second.type, ret_val.type);
+                if ( ret_val.type.elements < 0 ) {
+                    last_instruction = get_r_val(ret_val);
+                }
+                add_cast_instr(last_instruction, vec[it].second.type, ret_val.type);
                 ++it;
             }
         }
@@ -1331,7 +1343,8 @@ int SyntacticAnalyzer::expr_add() {
 }
 
 void SyntacticAnalyzer::check_rel(const ReturnValue& rv) {
-    if (rv.type.elements >= 0 || ret_val.type.elements >= 0) {
+    if ( (rv.type.elements >= 0 || ret_val.type.elements >= 0) &&  rv.type.type_base != Type::TB_STRING
+        && ret_val.type.type_base != Type::TB_STRING) {
         std::cout << logger << utils::log_error(current_token->token.line, "An [ARRAY] can't be [COMPARED]!");
         exit(lex.MUL);
     }
@@ -1388,7 +1401,8 @@ int SyntacticAnalyzer::expr_rel() {
 }
 
 void SyntacticAnalyzer::check_eq(const ReturnValue& rv) {
-    if (rv.type.elements >= 0 || ret_val.type.elements >= 0) {
+    if ( (rv.type.elements >= 0 || ret_val.type.elements >= 0) &&  rv.type.type_base != Type::TB_STRING
+        && ret_val.type.type_base != Type::TB_STRING) {
         std::cout << logger << utils::log_error(current_token->token.line, "An [ARRAY] can't be [COMPARED]!");
         exit(lex.MUL);
     }
@@ -1676,10 +1690,12 @@ void SyntacticAnalyzer::cast_type(const Type& src, const Type& dest) {
         case 0: // TB_INT
         case 1: //  TB_DOUBLE
         case 2: //  TB_CHAR
+        case 3: // TB_STRING
         switch(dest.type_base) {
             case 0: // TB_INT
             case 1: //  TB_DOUBLE
             case 2: //  TB_CHAR
+            case 3: // TB_STRING
                 return;
         }
         case 4: // TB_STRUCT
@@ -1768,8 +1784,8 @@ void SyntacticAnalyzer::add_ext_func(const std::string &str,
 
 void SyntacticAnalyzer::add_predefined_functions() {
     // void put_s()
-    Type type{ret_val.type.TB_CHAR};
-    type.elements = 0;
+    Type type{ret_val.type.TB_STRING};
+    type.elements = 1;
     Symbol s = Symbol("s", tmp.CLS_VAR, type);
     add_ext_func("put_s", {s}, ret_val.type.TB_VOID);
 
@@ -1990,7 +2006,7 @@ void SyntacticAnalyzer::add_cast_instr(const Instruction& after,
                         il.insert_instr_after(after, Instruction{Instruction::O_CAST_C_D});
                         break;
                     default:
-                        std::cout << logger << "[ADD_CAST_INSTR] Can't convert: " << utils::type_to_string(actual_t.type_base)
+                        std::cout << logger << "[ADD_CAST_INSTR_] Can't convert: " << utils::type_to_string(actual_t.type_base)
                             << " to: " << utils::type_to_string(needed_t.type_base) << "\n";
                         exit(2);
                 }
@@ -2005,7 +2021,7 @@ void SyntacticAnalyzer::add_cast_instr(const Instruction& after,
                         il.insert_instr_after(after, Instruction{Instruction::O_CAST_I_D});
                         break;
                     default:
-                        std::cout << logger << "[ADD_CAST_INSTR] Can't convert: " << utils::type_to_string(actual_t.type_base)
+                        std::cout << logger << "[ADD_CAST_INSTR_] Can't convert: " << utils::type_to_string(actual_t.type_base)
                             << " to: " << utils::type_to_string(needed_t.type_base) << "\n";
                         exit(2);
                 }
@@ -2020,14 +2036,14 @@ void SyntacticAnalyzer::add_cast_instr(const Instruction& after,
                     case Type::TB_DOUBLE:
                         break;
                     default:
-                        std::cout << logger << "[ADD_CAST_INSTR] Can't convert: " << utils::type_to_string(actual_t.type_base)
+                        std::cout << logger << "[ADD_CAST_INSTR_] Can't convert: " << utils::type_to_string(actual_t.type_base)
                             << " to: " << utils::type_to_string(needed_t.type_base) << "\n";
                         exit(2);
                 }
             break;
 
             default:
-                std::cout << logger << "[ADD_CAST_INSTR] Invalid type_base: "
+                std::cout << logger << "[ADD_CAST_INSTR_] Invalid type_base: "
                         << utils::type_to_string(actual_t.type_base) << "\n";
                 exit(2);
         }

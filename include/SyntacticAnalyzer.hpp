@@ -36,6 +36,7 @@ private:
 
     // Code Generation
     long size_args, offset;
+    Instruction last_instruction;
 
     //  STATEMENTS
     int stm_block();

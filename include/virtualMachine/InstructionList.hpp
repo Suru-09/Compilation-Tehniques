@@ -4,6 +4,7 @@
 #include <list>
 
 #include "Instruction.hpp"
+#include "VariadicTable.hpp"
 #include "Logger.hpp"
 
 class InstructionList {
@@ -22,8 +23,8 @@ public:
     void create_insert_instr(const int& op_code);
 
     void delete_instr_after(const Instruction& start);
-
     void update_instr(const  Instruction& to_update);
+    void print_instruction_list();
 
     friend class VirtualMachine;
 };

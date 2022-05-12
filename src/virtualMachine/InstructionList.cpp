@@ -50,3 +50,31 @@ void InstructionList::update_instr(const Instruction& to_update) {
         exit(1);
     }
 }
+
+
+void InstructionList::print_instruction_list() {
+    std::vector<std::string> headers{"Count", "Operation CODE", "Arg 1", "Arg 2"};
+    VariadicTable<int, int, std::string, std::string> vt(headers);
+    vt.setColumnFormat({VariadicTableColumnFormat::AUTO,
+                        VariadicTableColumnFormat::AUTO,
+                        VariadicTableColumnFormat::AUTO,
+                        VariadicTableColumnFormat::AUTO});
+
+    std::cout << logger << " Printing the Instruction List: \n";
+    int counter = 0;
+    for (const auto& x: instr_list) {
+        counter++;
+        int op_code = x.op_code;
+        std::vector<std::string> tmp;
+        std::string s1 = "Empty", s2 = "Empty";
+        for (const auto& y: x.args) {
+             tmp.push_back(x.variant_to_type(y));
+        }
+        if (tmp.size() == 2) {
+            s1 = tmp[0];
+            s2 = tmp[1];
+        }
+        vt.addRow(counter, op_code, s1, s2);
+    }
+    vt.print(std::cout);    
+}
