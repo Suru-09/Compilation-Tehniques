@@ -1,7 +1,7 @@
 #include "Instruction.hpp"
 
 Instruction::Instruction()
-: op_code(0),
+: op_code(-1),
 class_name("Instruction"),
 logger(Logger{class_name})
 {}
@@ -64,4 +64,8 @@ void Instruction::set_args(const std::vector<std::variant<long, double, void *>>
             }
         }
     }
+}
+
+bool Instruction::empty() {
+    return op_code == 0 ? true : false;
 }

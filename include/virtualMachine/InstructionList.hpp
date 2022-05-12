@@ -23,6 +23,8 @@ public:
 
     void delete_instr_after(const Instruction& start);
 
+    void update_instr(const  Instruction& to_update);
+
     friend class VirtualMachine;
 };
 

@@ -9,6 +9,8 @@
 #include "Type.hpp"
 #include "ReturnValue.hpp"
 #include "VirtualMachine.hpp"
+#include "Instruction.hpp"
+#include "InstructionList.hpp"
 
 class SyntacticAnalyzer {
 private:
@@ -16,17 +18,24 @@ private:
     Logger logger;
     std::string class_name;
     std::shared_ptr<Node> current_token, consumed_token;
-    //SymbolTable
+
+    // SymbolTable
     SymbolTable symbol_table;
     int current_depth;
     std::string current_struct;
     std::string current_func;
     Symbol tmp;
     bool is_struct;
-    //Type checking
+
+    // Type checking
     ReturnValue ret_val;
+
     // Virtual Machine
     inline static VirtualMachine vm = VirtualMachine{};
+    InstructionList il;
+
+    // Code Generation
+    long size_args, offset;
 
     //  STATEMENTS
     int stm_block();
@@ -120,6 +129,10 @@ private:
 
     //CODE GENERATION
     long type_base_size(const Type& type);
+    long type_arg_size(const Type& type);
+    Instruction get_r_val(const ReturnValue& ret_val);
+    void add_cast_instr(const Instruction& after, const Type& actual_t, const Type& needed_t);
+    Instruction create_cond_jump(const ReturnValue& ret_val);
 
 public:
     void unit();

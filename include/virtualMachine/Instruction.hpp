@@ -46,9 +46,19 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const Instruction& i);
     static std::string variant_to_type(std::variant<long, double, void *> x);
     void set_args(const std::vector<std::variant<long, double, void *>>& arr);
+    bool empty();
 
     inline bool operator==(const Instruction& i) { // TO DO: Might need reimplementaion
-        return (this->op_code == i.op_code && this->args == i.args);
+        if (this->op_code == i.op_code ) {
+            size_t index = 0;
+            for (auto const& x : args) {
+                if ( variant_to_type(x) != variant_to_type(i.args[index++])) {
+                    return false;
+                }
+            }
+            return true;
+        }   
+        return false;
     }
 
 

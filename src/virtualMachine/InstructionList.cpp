@@ -11,7 +11,7 @@ void InstructionList::insert_instr_after(const Instruction& after, const Instruc
         instr_list.insert(it, i);
     }
     else {
-        std::cout << logger << "Element: [" << i << "] NOT FOUND in INSTRUCTION_LIST!\n";
+        std::cout << logger <<" [INSERT_AFTER] Element: [" << i << "] NOT FOUND in INSTRUCTION_LIST!\n";
         exit(1);
     }
 }
@@ -37,4 +37,16 @@ void InstructionList::delete_instr_after(const Instruction& start) {
         std::cout << logger << "Element: [" << start << "] NOT FOUND in INSTRUCTION_LIST!\n";
         exit(1);
     }    
+}
+
+void InstructionList::update_instr(const Instruction& to_update) {
+    auto it = std::find(instr_list.begin(), instr_list.end(), to_update);
+    if ( it != instr_list.end() ) {
+        insert_instr_after( (*it), to_update);
+        instr_list.erase(it);
+    }
+    else {
+        std::cout << logger << "[UPDATE_INSTR] Element: [" << to_update << "] NOT FOUND in INSTRUCTION_LIST!\n";
+        exit(1);
+    }
 }
