@@ -57,12 +57,12 @@ int SyntacticAnalyzer::match(const int& code) {
                     try {
                         s = std::get<std::string>(current_token->token.text);
                         a = stoi(s);
-                        ret_val.set_constant_value(a);
+                        ret_val.set_constant_value(static_cast<long>(a));
                     }
                     catch(const std::exception& e) {
                         try {
                             a = std::get<long> (current_token->token.text);
-                            ret_val.set_constant_value(a);
+                            ret_val.set_constant_value(static_cast<long>(a));
                         }
                         catch(const std::exception& e2) {}
                     }
@@ -71,12 +71,12 @@ int SyntacticAnalyzer::match(const int& code) {
                     try {
                         s = std::get<std::string>(current_token->token.text);
                         b = stod(s);
-                        ret_val.set_constant_value(b);
+                        ret_val.set_constant_value(static_cast<double>(b));
                     }
                     catch(const std::exception& e) {
                         try {
                             b = std::get<double> (current_token->token.text);
-                            ret_val.set_constant_value(b);
+                            ret_val.set_constant_value(static_cast<double>(b));
                         }
                         catch(const std::exception& e2) {}
                     }
@@ -228,6 +228,9 @@ void SyntacticAnalyzer::unit() {
     while(1) {
         if(current_token->token.code == lex.END) {
             symbol_table.print_symbol_table();
+            vm.set_il(il);
+            vm.run();
+            il.print_instruction_list();
             break;
         }
 
@@ -418,6 +421,9 @@ Symbol SyntacticAnalyzer::add_decl_var_to_symbol(Type& type) {
         sym.class_ = sym.CLS_STRUCT;
         sym.depth = current_depth;
         sym.type = type;
+        if (sym.depth == 0) {
+            sym.addr_offset = reinterpret_cast<void *> (&sym);
+        }
     }
     return sym;
 }
@@ -630,6 +636,7 @@ Symbol SyntacticAnalyzer::check_decl_func_helper(Type& type) {
         tmp.type = type;
         tmp.name = possible_key;
         tmp.class_ = tmp.CLS_FUNC;
+        // tmp.addr_offset = reinterpret_cast<void *> (&current_token->token.code);
         tmp.depth = current_depth;
     }
 
@@ -853,6 +860,12 @@ int SyntacticAnalyzer::expr_primary() {
         ret_val.is_left_value = false;
         ret_val.is_constant_value = true;
         std::cout << logger << "Found a PRIMARY (CT_INT) !\n";
+        // CODE GENERATION
+        Instruction h = Instruction{Instruction::O_PUSHCT_I};
+        long a = std::get<long> (ret_val.constant_value);
+        std::cout << a << " \n";
+        h.set_args({a});
+        il.insert_instr(h);
         return 1;
     }
     else if(match(lex.CT_REAL)){
@@ -860,6 +873,20 @@ int SyntacticAnalyzer::expr_primary() {
         ret_val.is_left_value = false;
         ret_val.is_constant_value = true;
         std::cout << logger << "Found a PRIMARY (CT_REAL) \n";
+        // CODE GENERATION
+        Instruction h = Instruction{Instruction::O_PUSHCT_D};
+        try {
+            h.set_args({std::stod(std::get<std::string> (ret_val.constant_value))});
+        }
+        catch(const std::exception& e) {
+            try {
+                h.set_args({std::get<double> (ret_val.constant_value)});
+            }
+            catch(const std::exception& e1) {
+                h.set_args({static_cast<double> (std::get<long> (ret_val.constant_value))});
+            }
+        }
+        il.insert_instr(h);
         return 1;
     }
     else if(match(lex.CT_CHAR)) {
@@ -867,6 +894,19 @@ int SyntacticAnalyzer::expr_primary() {
         ret_val.is_left_value = false;
         ret_val.is_constant_value = true;
         std::cout << logger << "Found a PRIMARY (CT_CHAR) !\n";
+        // CODE GENERATION
+        Instruction h = Instruction{Instruction::O_PUSHCT_C};
+        try {
+            h.set_args({static_cast<char> (std::get<std::string> (ret_val.constant_value)[1])});
+            std::cout << logger << "[BELIRE]: " << (std::get<std::string> (ret_val.constant_value))[1] << "\n";
+        }
+        catch(const std::exception& e) {
+            try {
+                h.set_args({static_cast<char> (std::get<long> (ret_val.constant_value))});
+            }
+            catch(const std::exception& e) {}
+        }
+        il.insert_instr(h);
         return 1;
     }
     else if(match(lex.CT_STRING)) {
@@ -874,6 +914,10 @@ int SyntacticAnalyzer::expr_primary() {
         ret_val.is_left_value = false;
         ret_val.is_constant_value = true;
         std::cout << logger << "Found a PRIMARY (CT_STRING)!\n";
+        // CODE GENERATION
+        Instruction h = Instruction{Instruction::O_PUSHCT_A};
+        h.set_args({&std::get<std::string>(ret_val.constant_value)});
+        il.insert_instr(h);
         return 1;
     }
     else if(match(lex.LPAR)){
@@ -928,14 +972,14 @@ int SyntacticAnalyzer::expr_primary() {
             std::cout << logger << " ID LPAR () RPAR [FUNCTION_CALL]: " << utils::type_to_string(vec[it].second.type.type_base) << "\n";
             expr(); // NOTE: EXPR() ? [ , EXPR() ]*
             cast_type(vec[it].second.type, ret_val.type);
-            // if ( ret_val.type.elements < 0 ) {
-                last_instruction = get_r_val(ret_val);
-               
-            // }
-            add_cast_instr(last_instruction, vec[it].second.type, ret_val.type);
-            ++it;
 
-           
+            // CODE GENERATION
+            if ( ret_val.type.elements < 0 ) {
+                last_instruction = get_r_val(ret_val);
+            }
+            add_cast_instr(last_instruction, vec[it].second.type, ret_val.type);
+
+            ++it;
         }
 
         while(match(lex.COMMA) && expr()) {
@@ -972,6 +1016,11 @@ int SyntacticAnalyzer::expr_primary() {
             exit(lex.RPAR);
         }
 
+        // CODE GENERATION
+        Instruction h{symb.class_ == Symbol::CLS_FUNC ? Instruction::O_CALLEXT : Instruction::O_CALLEXT};
+        h.set_args({symb.addr_offset});
+        il.insert_instr(h);
+
         if( it < size && size) {
             std::cout << logger << utils::log_error(current_token->token.line, "Too little arguments in function!");
             exit(lex.RPAR);
@@ -994,6 +1043,18 @@ int SyntacticAnalyzer::expr_primary() {
             if(expr_postfix_bracket() == 1) {
                 return 1;
             }
+        }
+        else {
+            // if (current_depth) {
+            //     Instruction h{Instruction::O_PUSHFPADDR};
+            //     h.set_args({symb.addr_offset});
+            //     il.insert_instr(h);
+            // }
+        // else {
+        //     Instruction h{Instruction::O_PUSHCT_A};
+        //     h.set_args({symb.addr_offset});
+        //     il.insert_instr(h);
+        // }
         }
     }
 
@@ -1840,19 +1901,23 @@ void SyntacticAnalyzer::put_d() {
 }
 
 void SyntacticAnalyzer::get_i() {
-    std::cout << " [GET_I] " << 5 << "\n";
+    std::cout << " [GET_I]\n";
+    vm.push_d(static_cast<long>(5));
 }
 
 void SyntacticAnalyzer::get_d() {
-    std::cout << " [GET_D] " << 5<< "\n";
+    std::cout << " [GET_D]\n";
+    vm.push_d(static_cast<double>(5.01));
 }
 
 void SyntacticAnalyzer::get_s() {
-    std::cout << " [GET_S] " << 5 << "\n";
+    std::cout << " [GET_S]\n";
+    vm.push_c('c');
 }
 
 void SyntacticAnalyzer::get_c() {
-    std::cout << " [GET_C] " << 5 << "\n";
+    std::cout << " [GET_C]\n";
+    vm.push_c('c');
 }
 
 void SyntacticAnalyzer::seconds() {
@@ -1886,8 +1951,8 @@ void SyntacticAnalyzer::test_vm() {
     il.insert_instr(h);
 
     h = Instruction{h.O_CALLEXT};
-    if ( Instruction::variant_to_type(symbol_table.symbol_exists("put_i").addr_offset) == "void" ) {
-        h.set_args({std::get<void *> (symbol_table.find_symbol("put_i").addr_offset)});
+    if ( Instruction::variant_to_type(symbol_table.symbol_exists("get_i").addr_offset) == "void" ) {
+        h.set_args({std::get<void *> (symbol_table.find_symbol("get_i").addr_offset)});
         il.insert_instr(h);
     }
 

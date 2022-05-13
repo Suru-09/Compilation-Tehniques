@@ -47,7 +47,7 @@ namespace utils {
         std::cout << logger << "Starting the syntactic analysis: \n";
         syn.unit();
 
-        syn.test_vm();
+        // syn.test_vm();
     }
 
     void test_diagrams() {

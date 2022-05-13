@@ -17,9 +17,9 @@ private:
 public:
     ReturnValue();
     ReturnValue(const Type& type, const bool& is_left_value, const bool& is_constant_value = 0);
-    bool set_constant_value(long val);
-    bool set_constant_value(double val);
-    bool set_constant_value(std::string val);
+    bool set_constant_value(const long& val);
+    bool set_constant_value(const double& val);
+    bool set_constant_value(const std::string& val);
     ReturnValue& operator=(const ReturnValue& ret_val);
 
     friend class SyntacticAnalyzer;

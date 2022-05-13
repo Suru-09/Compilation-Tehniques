@@ -18,28 +18,19 @@ class_name("ReturnValue")
     logger = Logger{class_name};
 }
 
-bool ReturnValue::set_constant_value(long val) {
-    if( is_constant_value ) {
-        constant_value = val;
-        return true;
-    }
-    return false;
+bool ReturnValue::set_constant_value(const long& val) {
+    constant_value = val;
+    return true;
 }
 
-bool ReturnValue::set_constant_value(double val) {
-    if( is_constant_value ) {
-        constant_value = val;
-        return true;
-    }
-    return false;
+bool ReturnValue::set_constant_value(const double& val) {
+    constant_value = val;
+    return true;
 }
 
-bool ReturnValue::set_constant_value(std::string val) {
-    if( is_constant_value ) {
-        constant_value = val;
-        return true;
-    }
-    return false;
+bool ReturnValue::set_constant_value(const std::string& val) {
+    constant_value = val;
+    return true;
 }
 
 ReturnValue& ReturnValue::operator=(const ReturnValue& ret_val) {

@@ -65,14 +65,16 @@ void InstructionList::print_instruction_list() {
     for (const auto& x: instr_list) {
         counter++;
         int op_code = x.op_code;
-        std::vector<std::string> tmp;
-        std::string s1 = "Empty", s2 = "Empty";
+        std::string s1 = std::string{"Empty"}, s2 = std::string{"Empty"};
+        int count = 0;
         for (const auto& y: x.args) {
-             tmp.push_back(x.variant_to_type(y));
-        }
-        if (tmp.size() == 2) {
-            s1 = tmp[0];
-            s2 = tmp[1];
+             if ( count == 0) {
+                 s1 = x.variant_to_type(y);
+             }
+             else if( count == 1) {
+                 s2 = x.variant_to_type(y);
+             }
+             count++;
         }
         vt.addRow(counter, op_code, s1, s2);
     }

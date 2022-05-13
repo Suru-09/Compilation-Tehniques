@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED 17)
 
 set(C_FLAGS 
     -Wall
-    -o3
+    -O2
     -ggdb
 )
 

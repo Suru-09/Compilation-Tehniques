@@ -202,42 +202,42 @@ void VirtualMachine::run() {
             case 9: // O_CAST_C_D
                 i_val_1 = pop_c();
                 d_val_1 = static_cast<double>(i_val_1);
-                std::cout << logger << "[O_CAST_C_D] char: " << i_val_1 << "to double: " << d_val_1 << "\n";
+                std::cout << logger << "[O_CAST_C_D] char: [" << i_val_1 << "] to double: [" << d_val_1 << "]\n";
                 push_d(d_val_1);
                 it++;
                 break;
             case 10: // O_CAST_C_I
                 i_val_1 = pop_c();
                 i_val_2 = static_cast<long>(i_val_1);
-                std::cout << logger << "[O_CAST_C_I] char: " << i_val_1 << "to integer: " << i_val_2 << "\n";
+                std::cout << logger << "[O_CAST_C_I] char: [" << i_val_1 << "] to integer: [" << i_val_2 << "]\n";
                 push_i(i_val_2);
                 it++;
                 break;
             case 11:  // O_CAST_D_C
                 d_val_1 = pop_d();
                 i_val_1 = static_cast<char>(d_val_1);
-                std::cout << logger << "[O_CAST_D_C] double: " << d_val_1 << "to char: " << i_val_1 << "\n";
+                std::cout << logger << "[O_CAST_D_C] double: [" << d_val_1 << "] to char: [" << i_val_1 << "]\n";
                 push_i(i_val_1);
                 it++;   
                 break;
             case 12:    // O_CAST_D_I
                 d_val_1 = pop_d();
                 i_val_1 = static_cast<long>(d_val_1);
-                std::cout << logger << "[O_CAST_D_I] double: " << d_val_1 << "to integer: " << i_val_1 << "\n";
+                std::cout << logger << "[O_CAST_D_I] double: [" << d_val_1 << "] to integer: [" << i_val_1 << "]\n";
                 push_i(i_val_1);
                 it++;   
                 break;
             case 13:    // O_CAST_I_C
                 i_val_1 = pop_i();
                 i_val_2 = static_cast<char>(i_val_1);
-                std::cout << logger << "[O_CAST_I_C] integer: " << i_val_1 << "to char: " << i_val_2 << "\n";
+                std::cout << logger << "[O_CAST_I_C] integer: [" << i_val_1 << "] to char: [" << i_val_2 << "]\n";
                 push_i(i_val_2);
                 it++;   
                 break;
             case 14:    // O_CAST_I_D
                 i_val_1 = pop_i();
                 d_val_1 = static_cast<double>(i_val_1);
-                std::cout << logger << "[O_CAST_I_D] int: " << i_val_1 << "to double: " << d_val_1 << "\n";
+                std::cout << logger << "[O_CAST_I_D] int: [" << i_val_1 << "] to double: [" << d_val_1 << "]\n";
                 push_d(d_val_1);
                 it++;
                 break;
@@ -776,7 +776,7 @@ void VirtualMachine::run() {
             case 67:    // O_PUSHCT_C
                 if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
                     i_val_1 = static_cast<char> (std::get<long> ((*it).args[0]));
-                    std::cout << logger << "[O_PUSHCT_C] " << std::hex << i_val_1 << "\n";
+                    std::cout << logger << "[O_PUSHCT_C] " << (char)i_val_1 << "\n";
                     push_i(std::get<long> ((*it).args[0]));
                     ++it;
                 }
@@ -788,7 +788,7 @@ void VirtualMachine::run() {
             case 68:    // O_PUSHCT_D
                 if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "double" ) {
                     d_val_1 = std::get<double> ((*it).args[0]);
-                    std::cout << logger << "[O_PUSHCT_D] " << std::hex << d_val_1 << "\n";
+                    std::cout << logger << "[O_PUSHCT_D] " << (double)d_val_1 << "\n";
                     push_i(std::get<double> ((*it).args[0]));
                     ++it;
                 }
@@ -800,7 +800,7 @@ void VirtualMachine::run() {
             case 69:    // O_PUSHCT_I
                 if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
                     i_val_1 = std::get<long> ((*it).args[0]);
-                    std::cout << logger << "[O_PUSHCT_I] " << i_val_1 << "\n";
+                    std::cout << logger << "[O_PUSHCT_I] " << (int)i_val_1 << "\n";
                     push_i(i_val_1);
                     ++it;
                 }
@@ -883,11 +883,11 @@ void VirtualMachine::run() {
                     a_val = static_cast<char*> (pop_a());
                     std::cout << logger << "[O_LOAD]\t" << i_val_1 << " at " << 
                         static_cast<void *> (&a_val) << "\n";
-                    if ( stack_ptr + i_val_1 > stack_after ) {
+                    if ( stack_ptr + i_val_1 >= stack_after ) {
                         std::cout << logger << "[O_LOAD] Out of stack!\n";
                         exit(2);
                     }
-                    memcpy(stack_ptr, a_val, i_val_1);  // loading from address a_val [i_val_1] bytes on stack
+                    memcpy(stack_ptr, &a_val, i_val_1);  // loading from address a_val [i_val_1] bytes on stack
                     stack_ptr += i_val_1;
                     it++;
                 }

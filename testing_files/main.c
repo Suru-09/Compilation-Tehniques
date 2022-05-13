@@ -37,10 +37,10 @@ int main(int x, int y, double z) {
         }
     }
 
-    double pl[10];
+    double cl[10];
     int i;
     for(i = 0; i < 10; i = i + 1) {
-        pl[i] = i * 10 + a - b;
+        cl[i] = i * 10 + a - b;
     }
     
     while ( i != a && z < masinute[2].viteza_maxima ) {
@@ -62,11 +62,10 @@ int main(int x, int y, double z) {
 
     1 / ;
 
-    //put_s(m.nume);
-    //put_i(a);
+    put_i(a);
 
     masinute[2] = m;
 
-    ceva(z, z, z);
+    // ceva(z, z, z);
     return get_i(z);
 }
