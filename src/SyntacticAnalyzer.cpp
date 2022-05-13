@@ -424,6 +424,9 @@ Symbol SyntacticAnalyzer::add_decl_var_to_symbol(Type& type) {
         if (sym.depth == 0) {
             sym.addr_offset = reinterpret_cast<void *> (&sym);
         }
+        else {
+            sym.addr_offset = reinterpret_cast<void *> (&sym);
+        }
     }
     return sym;
 }
@@ -563,6 +566,7 @@ int SyntacticAnalyzer::decl_struct() {
         return 0;
     }
 
+    offset = 0;
     current_depth++;
     while( decl_var() ) {}
     current_depth--;
@@ -594,6 +598,9 @@ bool SyntacticAnalyzer::add_args_symbol_table(Type& type) {
                 tmp.depth = current_depth;
                 tmp.type = type;
                 tmp.memory_zone = sym.MEM_ARG;
+                // CODE GENERATION
+                tmp.addr_offset = offset;
+                offset += type_arg_size(tmp.type);
 
                 sym.add_member(tmp);
                 symbol_table.update_symbol(sym);
@@ -671,6 +678,8 @@ int SyntacticAnalyzer::decl_func() {
         return 0;
     }
 
+    size_args = offset = 0;
+
     if(!match(lex.LPAR)) {
         consumed_token = current_token;
         return 0;
@@ -702,6 +711,22 @@ int SyntacticAnalyzer::decl_func() {
         exit(lex.RPAR);
     }
 
+    // CODE GENERATION
+    size_args = offset;
+    Instruction h={Instruction::O_ENTER};
+    h.set_args({offset});
+    sym.addr_offset = reinterpret_cast<void *> (&h);
+    symbol_table.update_symbol(sym);
+    il.insert_instr(h);
+
+    for (auto x: symbol_table.symbol_table) {
+        if ( x.second.depth == 1) {
+            x.second.addr_offset = static_cast<long> (size_args + 2 * sizeof(void *));
+            symbol_table.update_symbol(x.second);
+        }
+    }
+    offset = 0;
+    
 
     if(!stm_block()) {
         std::cout << logger << utils::log_error(current_token->token.line, "Creating a function without a body ");
@@ -709,6 +734,11 @@ int SyntacticAnalyzer::decl_func() {
     }
 
     // !!! BE CAREFUL with this
+    if ( sym.type.type_base == Type::TB_VOID ) {
+        Instruction h{Instruction::O_RET};
+        h.set_args({size_args, 0});
+        il.insert_instr(h);
+    }
     current_func = "";
     symbol_table.delete_symbols_from_given_level(current_depth);
     current_depth--;
@@ -977,7 +1007,7 @@ int SyntacticAnalyzer::expr_primary() {
             if ( ret_val.type.elements < 0 ) {
                 last_instruction = get_r_val(ret_val);
             }
-            add_cast_instr(last_instruction, vec[it].second.type, ret_val.type);
+            add_cast_instr(il.instr_list.back(), vec[it].second.type, ret_val.type);
 
             ++it;
         }
@@ -989,10 +1019,12 @@ int SyntacticAnalyzer::expr_primary() {
                     exit(lex.LPAR);
                 }
                 cast_type(vec[it].second.type, ret_val.type);
+
+                // CODE GENERATION
                 if ( ret_val.type.elements < 0 ) {
                     last_instruction = get_r_val(ret_val);
                 }
-                add_cast_instr(last_instruction, vec[it].second.type, ret_val.type);
+                add_cast_instr(il.instr_list.back(), vec[it].second.type, ret_val.type);
                 ++it;
             }
         }
@@ -1045,16 +1077,16 @@ int SyntacticAnalyzer::expr_primary() {
             }
         }
         else {
-            // if (current_depth) {
-            //     Instruction h{Instruction::O_PUSHFPADDR};
-            //     h.set_args({symb.addr_offset});
-            //     il.insert_instr(h);
-            // }
-        // else {
-        //     Instruction h{Instruction::O_PUSHCT_A};
-        //     h.set_args({symb.addr_offset});
-        //     il.insert_instr(h);
-        // }
+            if (current_depth) {
+                Instruction h{Instruction::O_PUSHFPADDR};
+                h.set_args({symb.addr_offset});
+                il.insert_instr(h);
+            }
+            else {
+                Instruction h{Instruction::O_PUSHCT_A};
+                h.set_args({symb.addr_offset});
+                il.insert_instr(h);
+            }
         }
     }
 
@@ -1135,6 +1167,20 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
             current_token = consumed_token;
             return 0;
         }
+
+        // CODE GENERATION
+        add_cast_instr(il.instr_list.back(), ret_val.type, Type::TB_INT);
+        get_r_val(ret_val);
+        if ( type_base_size(ret_val.type) >= 1) {
+            Instruction h{Instruction::O_PUSHCT_I};
+            h.set_args({type_base_size(ret_val.type)});
+            il.insert_instr(h);
+            h = Instruction{Instruction::O_MUL_I};
+            il.insert_instr(h);
+        }
+        Instruction h{Instruction::O_OFFSET};
+        il.insert_instr(h);
+
         expr_postfix_bracket();
     }
     else {
@@ -2051,7 +2097,7 @@ Instruction SyntacticAnalyzer::get_r_val(const ReturnValue& ret_val) {
                 exit(2);
         }
     }
-    return instr;
+    return il.instr_list.back();
 }
 
 void SyntacticAnalyzer::add_cast_instr(const Instruction& after,

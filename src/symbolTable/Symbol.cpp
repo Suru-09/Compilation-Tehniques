@@ -66,6 +66,7 @@ Symbol& Symbol::operator=(const Symbol& symbol) {
         memory_zone = symbol.memory_zone;
         depth = symbol.depth;
         type = symbol.type;
+        addr_offset = symbol.addr_offset;
 
         members.clear();
         for(auto x: symbol.members) {

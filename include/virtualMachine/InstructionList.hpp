@@ -27,6 +27,7 @@ public:
     void print_instruction_list();
 
     friend class VirtualMachine;
+    friend class SyntacticAnalyzer;
 };
 
 #endif

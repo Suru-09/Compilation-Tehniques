@@ -719,8 +719,8 @@ void VirtualMachine::run() {
             case 61:    // O_OFFSET
                 i_val_1 = pop_i();
                 a_val = static_cast<char *> (pop_a());
-                std::cout << logger << "[O_OFFSET] " << a_val << " + " << i_val_1 << " -> "
-                    << a_val + i_val_1 << "\n";
+                std::cout << logger << "[O_OFFSET] " << i_val_1 << " + " << i_val_1 << " -> \n";
+                    //<< a_val + i_val_1 << "\n"; 
                 push_a(a_val + i_val_1);
                 ++it;
                 break;
@@ -752,14 +752,14 @@ void VirtualMachine::run() {
                 if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
                     i_val_1 = std::get<long> ((*it).args[0]);
                     std::cout << logger << "[O_PUSHFPADDR] " << i_val_1 << " " 
-                        << i_val_1 + frame_ptr << "\n";
+                        << i_val_1 << "\n"; //  + frame_ptr
                     push_a(frame_ptr + i_val_1);
-                    ++it;
                 }
                 else {
                     std::cout << logger << "[O_PUSHFPADDR] Wrong structure calling!\n";
                     exit(2);
                 }
+                ++it;
                 break;
             case 66:    // O_PUSHCT_A
                 if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "void" ) {
@@ -821,7 +821,7 @@ void VirtualMachine::run() {
                     frame_ptr = static_cast<char *> (pop_a());
                     if ( stack_ptr - i_val_1 < stack ) {
                         std::cout << logger << "[O_RET] Not enough stack!\n";
-                        exit(2);
+                        // exit(2);
                     }
                     stack_ptr -= i_val_1;
                     memmove(stack_ptr, old_sp - i_val_2, i_val_2);
@@ -831,6 +831,7 @@ void VirtualMachine::run() {
                     std::cout << logger << "[O_RET] Wrong structure calling!\n";
                     exit(2);
                 }
+                ++it;
                 break;
             case 71:    // O_STORE
                 if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ){
