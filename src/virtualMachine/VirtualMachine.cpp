@@ -380,7 +380,7 @@ void VirtualMachine::run() {
                     && Instruction::variant_to_type((*it).args[1]) == "long" ) {
                     i_val_1 = std::get<long> ((*it).args[0]);   // Destination
                     i_val_2 = std::get<long> ((*it).args[1]);   // No. of bytes
-                    std::cout << logger << "[O_INSERT]/t" << i_val_1 << ", " << i_val_2 << "\n";
+                    std::cout << logger << "[O_INSERT]  " << i_val_1 << ", " << i_val_2 << "\n";
                     if ( stack_ptr + i_val_2 > stack_after) {
                         std::cout << logger << "[O_INSERT] OUT of stack!\n";
                         exit(2);
@@ -878,7 +878,7 @@ void VirtualMachine::run() {
                 i_val_2 = pop_c();
                 std::cout << logger << "[O_SUB_C] " << i_val_1 << " - " << i_val_2 << " -> "
                     << i_val_1 - i_val_2 << "\n";
-                push_d(i_val_1 - i_val_2);
+                push_c(i_val_1 - i_val_2);
                 ++it;
                 break;
             case 73:    // O_SUB_D
@@ -894,7 +894,7 @@ void VirtualMachine::run() {
                 i_val_2 = pop_i();
                 std::cout << logger << "[O_SUB_I] " << i_val_1 << " - " << i_val_2 << " -> "
                     << i_val_1 - i_val_2 << "\n";
-                push_d(i_val_1 - i_val_2);
+                push_i(i_val_1 - i_val_2);
                 ++it;
                 break;
             case 75:    // O_LOAD

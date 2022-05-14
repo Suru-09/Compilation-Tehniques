@@ -25,7 +25,7 @@ int main(int x, int y, double z) {
     if ( x < 5 && !z || y != 3 )
         break;
     
-    if ( a > b ) {
+    if ( 2 > 3 ) {
         a = a - b;
     }
 
@@ -40,10 +40,24 @@ int main(int x, int y, double z) {
 
     int alfa;
     if ( 2.3 * 5 ) {
-
+        if ( 14.67 / 5 ) {
+            if (2 + 3 ) {
+                if ( 10 - 15) {
+                    if ( 10 == 10 ) {
+                        if ( 15 <= 15) {
+                            if ( 10 && 15) {
+                                if ( 15 || -20 ) {
+                                    
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    if ( 23 ) {
+    if ( a > b ) {
         a = 'd';
         return 'c';
     }

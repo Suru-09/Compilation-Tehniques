@@ -101,12 +101,12 @@ private:
     void check_unary_sub();
     void check_unary_not();
     void check_mul(const ReturnValue& rv, const long& tk_op);
-    void check_add(const ReturnValue& rv);
-    void check_rel(const ReturnValue& rv);
-    void check_eq(const ReturnValue& rv);
-    void check_or(const ReturnValue& rv);
-    void check_and(const ReturnValue& rv);
-    void check_assign(const ReturnValue& rv);
+    void check_add(const ReturnValue& rv, const long& tk_op);
+    void check_rel(const ReturnValue& rv, const long& tk_op);
+    void check_eq(const ReturnValue& rv, const long& tk_op);
+    void check_or(const ReturnValue& rv, const long& tk_op);
+    void check_and(const ReturnValue& rv, const long& tk_op);
+    void check_assign(const ReturnValue& rv, const long& tk_op);
     void check_r_if();
     void check_r_return();
     void check_array_decl();

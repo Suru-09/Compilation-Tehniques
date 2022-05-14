@@ -13,7 +13,7 @@
 
 class VirtualMachine {
 private:
-    char stack[STACK_SIZE], globals[GLOBAL_SIZE];
+    char stack[STACK_SIZE] = {0}, globals[GLOBAL_SIZE] = {0};
     char *stack_ptr, *stack_after;
     int n_globals;
     InstructionList instr_list;

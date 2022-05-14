@@ -1546,7 +1546,7 @@ int SyntacticAnalyzer::expr_mul() {
     return 0;
 }
 
-void SyntacticAnalyzer::check_add(const ReturnValue& rv) {
+void SyntacticAnalyzer::check_add(const ReturnValue& rv, const long& tk_op) {
     if (rv.type.elements >= 0 || ret_val.type.elements >= 0) {
         std::cout << logger << utils::log_error(current_token->token.line, "An [ARRAY] can't be [ADDED] or [SUBSTRACTED]!");
         exit(lex.MUL);
@@ -1557,7 +1557,50 @@ void SyntacticAnalyzer::check_add(const ReturnValue& rv) {
         exit(lex.MUL);
     }
     cast_type(ret_val.type, rv.type);
-    ret_val.type = get_arithmetic_type(rv.type, ret_val.type);
+    
+    // CODE GENERATION
+    Instruction h1, h2;
+    h1 = get_r_val(ret_val);
+    h2 = get_r_val(rv);
+    
+    add_cast_instr(il.instr_list.back(), ret_val.type, rv.type);
+    ret_val.type = get_arithmetic_type(ret_val.type, rv.type);
+
+    Instruction h;
+    if (tk_op == lex.ADD) {
+        switch (ret_val.type.type_base) {
+            case Type::TB_INT:
+                h = Instruction{Instruction::O_ADD_I};
+                il.insert_instr(h);
+                break;
+            case Type::TB_DOUBLE:
+                h = Instruction{Instruction::O_ADD_D};
+                il.insert_instr(h);
+                break;
+            case Type::TB_CHAR:
+                h = Instruction{Instruction::O_ADD_C};
+                il.insert_instr(h);
+                 break;
+        }
+    }
+    else {
+        switch (ret_val.type.type_base) {
+            case Type::TB_INT:
+                h = Instruction{Instruction::O_SUB_I};
+                il.insert_instr(h);
+                break;
+            case Type::TB_DOUBLE:
+                h = Instruction{Instruction::O_SUB_D};
+                il.insert_instr(h);
+                break;
+            case Type::TB_CHAR:
+                h = Instruction{Instruction::O_SUB_C};
+                il.insert_instr(h);
+                 break;
+        }
+    }
+
+
     ret_val.is_constant_value = false;
     ret_val.is_left_value = false;
 }
@@ -1566,6 +1609,7 @@ int SyntacticAnalyzer::expr_add_helper() {
     consumed_token = std::make_shared<Node> (*current_token);
 
     ReturnValue rv = ret_val;
+    long tk_op = current_token->token.code;
     if(match(lex.ADD) || match(lex.SUB) ) {
         if(!expr_mul()) {
             current_token = consumed_token;
@@ -1578,7 +1622,7 @@ int SyntacticAnalyzer::expr_add_helper() {
     }
 
     while(expr_add_helper() ) {}
-    check_add(rv);
+    check_add(rv, tk_op);
     return 1;
 }
 
@@ -1604,7 +1648,7 @@ int SyntacticAnalyzer::expr_add() {
     return 0;
 }
 
-void SyntacticAnalyzer::check_rel(const ReturnValue& rv) {
+void SyntacticAnalyzer::check_rel(const ReturnValue& rv, const long& op_code) {
     if ( (rv.type.elements >= 0 || ret_val.type.elements >= 0) &&  rv.type.type_base != Type::TB_STRING
         && ret_val.type.type_base != Type::TB_STRING) {
         std::cout << logger << utils::log_error(current_token->token.line, "An [ARRAY] can't be [COMPARED]!");
@@ -1615,6 +1659,83 @@ void SyntacticAnalyzer::check_rel(const ReturnValue& rv) {
         std::cout << logger << utils::log_error(current_token->token.line, "A [STRUCT] can't be [COMPARED]!");
         exit(lex.MUL);
     }
+
+        // CODE GENERATION
+    Instruction h1, h2;
+    h1 = get_r_val(ret_val);
+    h2 = get_r_val(rv);
+    
+    add_cast_instr(il.instr_list.back(), ret_val.type, rv.type);
+    ret_val.type = get_arithmetic_type(ret_val.type, rv.type);
+
+    Instruction h;
+    switch (op_code) {
+        case lex.LESS:
+            switch (ret_val.type.type_base) {
+                case Type::TB_INT:
+                    h = Instruction{Instruction::O_LESS_I};
+                    il.insert_instr(h);
+                    break;
+                case Type::TB_DOUBLE:
+                    h = Instruction{Instruction::O_LESS_D};
+                    il.insert_instr(h);
+                    break;
+                case Type::TB_CHAR:
+                    h = Instruction{Instruction::O_LESS_C};
+                    il.insert_instr(h);
+                    break;
+            }
+            break;
+        case lex.LESSEQ:
+            switch (ret_val.type.type_base) {
+                case Type::TB_INT:
+                    h = Instruction{Instruction::O_LESSEQ_I};
+                    il.insert_instr(h);
+                    break;
+                case Type::TB_DOUBLE:
+                    h = Instruction{Instruction::O_LESSEQ_D};
+                    il.insert_instr(h);
+                    break;
+                case Type::TB_CHAR:
+                    h = Instruction{Instruction::O_LESSEQ_C};
+                    il.insert_instr(h);
+                    break;
+            }
+            break;
+        case lex.GREATER:
+            switch (ret_val.type.type_base) {
+                case Type::TB_INT:
+                    h = Instruction{Instruction::O_GREATER_I};
+                    il.insert_instr(h);
+                    break;
+                case Type::TB_DOUBLE:
+                    h = Instruction{Instruction::O_GREATER_D};
+                    il.insert_instr(h);
+                    break;
+                case Type::TB_CHAR:
+                    h = Instruction{Instruction::O_GREATER_C};
+                    il.insert_instr(h);
+                    break;
+            }
+            break;
+        case lex.GREATEREQ:
+            switch (ret_val.type.type_base) {
+                case Type::TB_INT:
+                    h = Instruction{Instruction::O_GREATEREQ_I};
+                    il.insert_instr(h);
+                    break;
+                case Type::TB_DOUBLE:
+                    h = Instruction{Instruction::O_GREATEREQ_I};
+                    il.insert_instr(h);
+                    break;
+                case Type::TB_CHAR:
+                    h = Instruction{Instruction::O_GREATEREQ_I};
+                    il.insert_instr(h);
+                    break;
+            }
+            break;
+    }
+
     ret_val.type = create_type(ret_val.type.TB_INT, -1);
     ret_val.is_constant_value = false;
     ret_val.is_left_value = false;
@@ -1624,6 +1745,7 @@ int SyntacticAnalyzer::expr_rel_helper() {
     consumed_token = std::make_shared<Node> (*current_token);
 
     ReturnValue rv = ret_val;
+    long op_code = current_token->token.code;
     if(match(lex.LESS) || match(lex.LESSEQ) || match(lex.GREATER) || match(lex.GREATEREQ) ) {
         if(!expr_add()) {
             current_token = consumed_token;
@@ -1636,7 +1758,7 @@ int SyntacticAnalyzer::expr_rel_helper() {
     }
 
     while(expr_rel_helper() ) {}
-    check_rel(rv);
+    check_rel(rv, op_code);
     return 1;
 }
 
@@ -1662,7 +1784,7 @@ int SyntacticAnalyzer::expr_rel() {
     return 0;
 }
 
-void SyntacticAnalyzer::check_eq(const ReturnValue& rv) {
+void SyntacticAnalyzer::check_eq(const ReturnValue& rv, const long& op_code) {
     if ( (rv.type.elements >= 0 || ret_val.type.elements >= 0) &&  rv.type.type_base != Type::TB_STRING
         && ret_val.type.type_base != Type::TB_STRING) {
         std::cout << logger << utils::log_error(current_token->token.line, "An [ARRAY] can't be [COMPARED]!");
@@ -1673,6 +1795,56 @@ void SyntacticAnalyzer::check_eq(const ReturnValue& rv) {
         std::cout << logger << utils::log_error(current_token->token.line, "A [STRUCT] can't be [COMPARED]!");
         exit(lex.MUL);
     }
+
+    // CODE GENERATION
+    if ( ret_val.type.elements >= 0) {
+        Instruction h{op_code == lex.EQUAL ? Instruction::O_EQ_A : Instruction::O_NOTEQ_A};
+        il.insert_instr(h);
+    }
+    else {
+        Instruction h1, h2;
+        h1 = get_r_val(ret_val);
+        h2 = get_r_val(rv);
+        
+        add_cast_instr(il.instr_list.back(), ret_val.type, rv.type);
+        ret_val.type = get_arithmetic_type(ret_val.type, rv.type);
+
+        Instruction h;
+        if (op_code == lex.EQUAL) {
+            switch (ret_val.type.type_base) {
+                case Type::TB_INT:
+                    h = Instruction{Instruction::O_EQ_I};
+                    il.insert_instr(h);
+                    break;
+                case Type::TB_DOUBLE:
+                    h = Instruction{Instruction::O_EQ_D};
+                    il.insert_instr(h);
+                    break;
+                case Type::TB_CHAR:
+                    h = Instruction{Instruction::O_EQ_C};
+                    il.insert_instr(h);
+                    break;
+            }
+        }
+        else {
+            switch (ret_val.type.type_base) {
+                case Type::TB_INT:
+                    h = Instruction{Instruction::O_NOTEQ_I};
+                    il.insert_instr(h);
+                    break;
+                case Type::TB_DOUBLE:
+                    h = Instruction{Instruction::O_NOTEQ_D};
+                    il.insert_instr(h);
+                    break;
+                case Type::TB_CHAR:
+                    h = Instruction{Instruction::O_NOTEQ_C};
+                    il.insert_instr(h);
+                    break;
+            }
+        }
+    }
+
+
     ret_val.type = create_type(ret_val.type.TB_INT, -1);
     ret_val.is_constant_value = false;
     ret_val.is_left_value = false;
@@ -1682,6 +1854,7 @@ int SyntacticAnalyzer::expr_eq_helper() {
     consumed_token = std::make_shared<Node> (*current_token);
 
     ReturnValue rv = ret_val;
+    long op_code = current_token->token.code;
     if(match(lex.EQUAL) || match(lex.NOTEQ)  ) {
         if(!expr_rel()) {
             current_token = consumed_token;
@@ -1694,7 +1867,7 @@ int SyntacticAnalyzer::expr_eq_helper() {
     }
 
     while(expr_eq_helper() ) {}
-    check_eq(rv);
+    check_eq(rv, op_code);
 
     return 1;
 }
@@ -1721,11 +1894,45 @@ int SyntacticAnalyzer::expr_eq() {
     return 0;
 }
 
-void SyntacticAnalyzer::check_and(const ReturnValue& rv) {
+void SyntacticAnalyzer::check_and(const ReturnValue& rv, const long& op_code) {
     if (rv.type.type_base == rv.type.TB_STRUCT || ret_val.type.type_base == rv.type.TB_STRUCT) {
         std::cout << logger << utils::log_error(current_token->token.line, "A [STRUCT] can't be [LOGICALLY TESTED]!");
         exit(lex.MUL);
     }
+
+    // CODE GENERATION
+    if ( ret_val.type.elements >= 0) {
+        Instruction h{Instruction::O_AND_A};
+        il.insert_instr(h);
+    }
+    else {
+        Instruction h1, h2;
+        h1 = get_r_val(ret_val);
+        h2 = get_r_val(rv);
+        
+        add_cast_instr(il.instr_list.back(), ret_val.type, rv.type);
+        ret_val.type = get_arithmetic_type(ret_val.type, rv.type);
+
+        Instruction h;
+        if (op_code == lex.AND) {
+            switch (ret_val.type.type_base) {
+                case Type::TB_INT:
+                    h = Instruction{Instruction::O_AND_I};
+                    il.insert_instr(h);
+                    break;
+                case Type::TB_DOUBLE:
+                    h = Instruction{Instruction::O_AND_D};
+                    il.insert_instr(h);
+                    break;
+                case Type::TB_CHAR:
+                    h = Instruction{Instruction::O_AND_C};
+                    il.insert_instr(h);
+                    break;
+            }
+        }
+    }
+
+
     ret_val.type = create_type(ret_val.type.TB_INT, -1);
     ret_val.is_constant_value = false;
     ret_val.is_left_value = false;
@@ -1735,6 +1942,7 @@ int SyntacticAnalyzer::expr_and_helper() {
     consumed_token = std::make_shared<Node> (*current_token);
 
     ReturnValue rv = ret_val;
+    long op_code = current_token->token.code;
     if(match(lex.AND)) {
         if(!expr_eq()) {
             current_token = consumed_token;
@@ -1747,7 +1955,7 @@ int SyntacticAnalyzer::expr_and_helper() {
     }
 
     while(expr_and_helper() ) {}
-    check_and(rv);
+    check_and(rv, op_code);
     return 1;
 }
 
@@ -1773,11 +1981,44 @@ int SyntacticAnalyzer::expr_and() {
     return 0;
 }
 
-void SyntacticAnalyzer::check_or(const ReturnValue& rv) {
+void SyntacticAnalyzer::check_or(const ReturnValue& rv, const long& op_code) {
     if (rv.type.type_base == rv.type.TB_STRUCT || ret_val.type.type_base == rv.type.TB_STRUCT) {
         std::cout << logger << utils::log_error(current_token->token.line, "A [STRUCT] can't be [LOGICALLY TESTED]!");
         exit(lex.MUL);
     }
+
+    // CODE GENERATION
+    if ( ret_val.type.elements >= 0) {
+        Instruction h{Instruction::O_OR_A};
+        il.insert_instr(h);
+    }
+    else {
+        Instruction h1, h2;
+        h1 = get_r_val(ret_val);
+        h2 = get_r_val(rv);
+        
+        add_cast_instr(il.instr_list.back(), ret_val.type, rv.type);
+        ret_val.type = get_arithmetic_type(ret_val.type, rv.type);
+
+        Instruction h;
+        if (op_code == lex.OR) {
+            switch (ret_val.type.type_base) {
+                case Type::TB_INT:
+                    h = Instruction{Instruction::O_OR_I};
+                    il.insert_instr(h);
+                    break;
+                case Type::TB_DOUBLE:
+                    h = Instruction{Instruction::O_OR_D};
+                    il.insert_instr(h);
+                    break;
+                case Type::TB_CHAR:
+                    h = Instruction{Instruction::O_OR_C};
+                    il.insert_instr(h);
+                    break;
+            }
+        }
+    }
+
     ret_val.type = create_type(ret_val.type.TB_INT, -1);
     ret_val.is_constant_value = false;
     ret_val.is_left_value = false;
@@ -1787,6 +2028,7 @@ int SyntacticAnalyzer::expr_or_helper() {
     consumed_token = std::make_shared<Node> (*current_token);
 
     ReturnValue rv = ret_val;
+    long op_code = current_token->token.code;
     if(match(lex.OR) ) {
         if(!expr_and()) {
             current_token = consumed_token;
@@ -1799,7 +2041,7 @@ int SyntacticAnalyzer::expr_or_helper() {
     }
 
     while(expr_or_helper() ) {}
-    check_or(rv);
+    check_or(rv, op_code);
 
     return 1;
 }
@@ -1825,7 +2067,7 @@ int SyntacticAnalyzer::expr_or() {
     return 0;
 }
 
-void SyntacticAnalyzer::check_assign(const ReturnValue& rv) {
+void SyntacticAnalyzer::check_assign(const ReturnValue& rv, const long& op_code) {
     if ( !rv.is_left_value ) {
         std::string s = "Can't [ASSIGN] to [NON-LVAL]!";
         std::cout << logger << utils::log_error(current_token->token.line , s);
@@ -1836,6 +2078,24 @@ void SyntacticAnalyzer::check_assign(const ReturnValue& rv) {
         std::cout << logger << utils::log_error(current_token->token.line, "Arrays can't be [ASSIGNED]!");
         exit(lex.ID);
     }
+
+    // CODE GENERATION
+    Instruction h1, h2;
+    h1 = get_r_val(rv);
+    add_cast_instr(il.instr_list.back(), ret_val.type, rv.type);
+
+    h2 = Instruction{Instruction::O_INSERT};
+    long val = sizeof(void *) + type_arg_size(rv.type);
+    long val2 = type_arg_size(rv.type);
+    h2.set_args({val, val2});
+    h1 = Instruction{Instruction::O_STORE};
+    h1.set_args({val2});
+
+    il.insert_instr(h2);
+    il.insert_instr(h1);
+
+
+
     cast_type(ret_val.type, rv.type);
     ret_val.is_constant_value = false;
     ret_val.is_left_value = false;
@@ -1845,6 +2105,7 @@ int SyntacticAnalyzer::expr_assign_helper() {
     consumed_token = std::make_shared<Node> (*current_token);
 
     ReturnValue rv = ret_val;
+    long op_code = current_token->token.code;
     if( match(lex.ASSIGN) ) {
         if( !expr_assign()) {
             current_token = consumed_token;
@@ -1857,7 +2118,7 @@ int SyntacticAnalyzer::expr_assign_helper() {
     }
 
     while(expr_eq_helper() ) {}
-    check_assign(rv);
+    check_assign(rv, op_code);
     return 1;
 }
 
