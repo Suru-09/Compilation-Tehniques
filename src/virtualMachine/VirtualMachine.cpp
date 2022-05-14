@@ -1,8 +1,7 @@
 #include "VirtualMachine.hpp"
 
 VirtualMachine::~VirtualMachine() {
-    // delete stack_ptr;
-    // delete stack_ptr;
+    // free(stack_ptr);
 }
 
 VirtualMachine::VirtualMachine()
@@ -29,7 +28,7 @@ double VirtualMachine::pop_d() {
         exit(1); 
     }
     stack_ptr -= sizeof(double);
-    return *(double *)stack_ptr;
+    return *(reinterpret_cast<double *>(stack_ptr));
 }
 
 void VirtualMachine::push_i(const long& i) {
@@ -108,6 +107,7 @@ InstructionList VirtualMachine::get_il() {
 void VirtualMachine::run() {
     long int i_val_1, i_val_2;
     double d_val_1, d_val_2;
+    double helper;
     char * a_val, * a_val_2;
     char * frame_ptr = 0, * old_sp;
     stack_ptr = stack;  // we allocated continuouus memory for the stack, use it
@@ -237,8 +237,8 @@ void VirtualMachine::run() {
             case 14:    // O_CAST_I_D
                 i_val_1 = pop_i();
                 d_val_1 = static_cast<double>(i_val_1);
-                std::cout << logger << "[O_CAST_I_D] int: [" << i_val_1 << "] to double: [" << d_val_1 << "]\n";
-                push_d(d_val_1);
+                std::cout << logger << "[O_CAST_I_D] int: [" << i_val_1 << "] to double: [" << (double)d_val_1 << "]\n";
+                push_d(static_cast<double>(d_val_1));
                 it++;
                 break;
             case 15:    // O_DIV_C
@@ -406,8 +406,12 @@ void VirtualMachine::run() {
                         it = !a_val ? itr : ++it;
                     } 
                     else {
-                        std::cout << logger << "[O_JF_A] Given Instruction is not valid!\n";
-                        exit(2);
+                        if (i_val_1 == 0) {
+                            std::cout << logger << "[O_JF_A] Given Instruction is not valid!\n";
+                            exit(2);
+                        }
+                        std::cout << logger << "[O_JF_A] Given instruction was not found ++it!\n";
+                        ++it;
                     }
                 }
                 else {
@@ -425,8 +429,12 @@ void VirtualMachine::run() {
                         it = !i_val_1 ? itr : ++it;
                     } 
                     else {
-                        std::cout << logger << "[O_JF_C] Given Instruction is not valid!\n";
-                        exit(2);
+                        if (i_val_1 == 0) {
+                            std::cout << logger << "[O_JF_C] Given Instruction is not valid!\n";
+                            exit(2);
+                        }
+                        std::cout << logger << "[O_JF_C] Given instruction was not found ++it!\n";
+                        ++it;
                     }
                 }
                 else {
@@ -444,8 +452,12 @@ void VirtualMachine::run() {
                         it = !d_val_1 ? itr : ++it;
                     } 
                     else {
-                        std::cout << logger << "[O_JF_D] Given Instruction is not valid!\n";
-                        exit(2);
+                        if (i_val_1 == 0) {
+                            std::cout << logger << "[O_JF_D] Given Instruction is not valid!\n";
+                            exit(2);
+                        }
+                        std::cout << logger << "[O_JF_D] Given instruction was not found ++it!\n";
+                        ++it;
                     }
                 }
                 else {
@@ -458,13 +470,19 @@ void VirtualMachine::run() {
                     i_val_1 = pop_i();
                     auto val = std::get<void *> ((*it).args[0]);
                     std::cout << logger << "[O_JF_I] " << val << " (" << i_val_1 << ")\n";
+                    // Instruction copy = (*static_cast<Instruction *> (val));
                     auto itr = std::find(instr_list.instr_list.begin(), instr_list.instr_list.end(), (*static_cast<Instruction *> (val)));
+                    // std::list<Instruction>::iterator itr;
                     if ( itr != instr_list.instr_list.end()) {
                         it = !i_val_1 ? itr : ++it;
                     } 
                     else {
-                        std::cout << logger << "[O_JF_I] Given Instruction is not valid!\n";
-                        exit(2);
+                        if (i_val_1 == 0) {
+                            std::cout << logger << "[O_JF_I] Given Instruction is not valid!\n";
+                            exit(2);
+                        }
+                        std::cout << logger << "[O_JF_I] Given instruction was not found ++it!\n";
+                        ++it;
                     }
                 }
                 else {
@@ -625,9 +643,10 @@ void VirtualMachine::run() {
             case 47:    // O_MUL_D
                 d_val_1 = pop_d();
                 d_val_2 = pop_d();
+                helper = d_val_1 * d_val_2;
                 std::cout << logger << "[O_MUL_D] MUL: " << d_val_1 << " * " << d_val_2 << " -> "
-                    << "[" << d_val_1 * d_val_2 << "]\n";
-                push_c(d_val_1 * d_val_2);
+                    << "[" << helper << "]\n";
+                push_d(static_cast<double> (helper));
                 ++it;
                 break;
             case 48:    // O_MUL_I
@@ -635,7 +654,7 @@ void VirtualMachine::run() {
                 i_val_2 = pop_i();
                 std::cout << logger << "[O_MUL_I] MUL: " << i_val_1 << " * " << i_val_2 << " -> "
                     << "[" << i_val_1 * i_val_2 << "]\n";
-                push_c(i_val_1 * i_val_2);
+                push_i(i_val_1 * i_val_2);
                 ++it;
                 break;
             case 49:    // O_NEG_C
@@ -777,7 +796,7 @@ void VirtualMachine::run() {
                 if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
                     i_val_1 = static_cast<char> (std::get<long> ((*it).args[0]));
                     std::cout << logger << "[O_PUSHCT_C] " << (char)i_val_1 << "\n";
-                    push_i(std::get<long> ((*it).args[0]));
+                    push_c(std::get<long> ((*it).args[0]));
                     ++it;
                 }
                 else {
@@ -789,7 +808,7 @@ void VirtualMachine::run() {
                 if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "double" ) {
                     d_val_1 = std::get<double> ((*it).args[0]);
                     std::cout << logger << "[O_PUSHCT_D] " << (double)d_val_1 << "\n";
-                    push_i(std::get<double> ((*it).args[0]));
+                    push_d(std::get<double> ((*it).args[0]));
                     ++it;
                 }
                 else {

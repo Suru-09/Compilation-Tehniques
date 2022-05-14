@@ -3,6 +3,7 @@
 
 #include "Logger.hpp"
 
+#include <list>
 #include <iostream>
 #include <variant>
 #include <vector>
@@ -49,16 +50,7 @@ public:
     bool empty();
 
     inline bool operator==(const Instruction& i) { // TO DO: Might need reimplementaion
-        if (this->op_code == i.op_code ) {
-            size_t index = 0;
-            for (auto const& x : args) {
-                if ( variant_to_type(x) != variant_to_type(i.args[index++])) {
-                    return false;
-                }
-            }
-            return true;
-        }   
-        return false;
+        return (this->op_code == i.op_code && (&i) == this );
     }
 
 

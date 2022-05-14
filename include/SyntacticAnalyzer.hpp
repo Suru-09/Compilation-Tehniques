@@ -100,7 +100,7 @@ private:
     void check_postfix(const ReturnValue& rv);
     void check_unary_sub();
     void check_unary_not();
-    void check_mul(const ReturnValue& rv);
+    void check_mul(const ReturnValue& rv, const long& tk_op);
     void check_add(const ReturnValue& rv);
     void check_rel(const ReturnValue& rv);
     void check_eq(const ReturnValue& rv);

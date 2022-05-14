@@ -3,7 +3,7 @@ struct masina {
     char culoare;
     int viteza_maxima;
     int is_elektric, banana;
-    // int vector[50];
+    int vector[50];
 };
 
 int a, b;
@@ -20,6 +20,7 @@ int main(int x, int y, double z) {
     b = 15;
 
     get_i(b);
+    put_i(125);
 
     if ( x < 5 && !z || y != 3 )
         break;
@@ -27,21 +28,45 @@ int main(int x, int y, double z) {
     if ( a > b ) {
         a = a - b;
     }
-    else {
-        if( a == b) {
-            int c;
-            c = a * b;
-        }
-        else {
-            b = b / 100;
-        }
+
+    if ( -5 ) {
+        a = 123;
+        b = 459;
+        return 2;
     }
 
-    double cl[10];
-    int i;
-    for(i = 0; i < 10; i = i + 1) {
-        cl[i] = i * 10 + a - b;
+    double zx;
+    zx = 15;
+
+    int alfa;
+    if ( 2.3 * 5 ) {
+
     }
+
+    if ( 23 ) {
+        a = 'd';
+        return 'c';
+    }
+    // else {
+    //     return 14;
+    // }
+
+    // masinute[1].viteza_maxima = 4769;
+    // else {
+    //     if( a == b) {
+    //         int c;
+    //         c = a * b;
+    //     }
+    //     else {
+    //         b = b / 100;
+    //     }
+    // }
+
+    // double cl[10];
+    // int i;
+    // for(i = 0; i < 10; i = i + 1) {
+    //     cl[i] = i * 10 + a - b;
+    // }
     
     // while ( i != a && z < masinute[2].viteza_maxima ) {
     //     if( masinute[i].viteza_maxima < 20) {
