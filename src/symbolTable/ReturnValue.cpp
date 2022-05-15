@@ -38,6 +38,7 @@ ReturnValue& ReturnValue::operator=(const ReturnValue& ret_val) {
         is_left_value = ret_val.is_left_value;
         is_constant_value = ret_val.is_constant_value;
         type = ret_val.type;
+        symbol_name = ret_val.symbol_name;
         if(ret_val.is_constant_value) {
             try {
                 auto x = std::get<std::string> (ret_val.constant_value);

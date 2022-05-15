@@ -112,6 +112,9 @@ void VirtualMachine::run() {
     char * frame_ptr = 0, * old_sp;
     stack_ptr = stack;  // we allocated continuouus memory for the stack, use it
     stack_after = stack + STACK_SIZE;   // this should be the first address after
+    Symbol symb;
+    std::string str;
+    std::variant<long, double, void *> symb_val;
     // the stack's memory
     for ( std::list<Instruction>::iterator it = instr_list.instr_list.begin() ; it != instr_list.instr_list.end() ;) {
         // std::cout << logger << "IP: [" << (int)(*it).op_code << "] SP-stack: [" 
@@ -124,48 +127,48 @@ void VirtualMachine::run() {
             case 1: // O_ADD_C
                 i_val_1 = pop_c();
                 i_val_2 = pop_c();
-                std::cout << logger << "[O_ADD_C] Adding: " << i_val_1 << " + " << i_val_2 << " -> "
-                    << "[" << i_val_1 + i_val_2 << "]\n";
+                std::cout << logger << "[O_ADD_C] Adding: " << i_val_2 << " + " << i_val_1 << " -> "
+                    << "[" << i_val_2 + i_val_1 << "]\n";
                 push_c(i_val_1 + i_val_2);
                 ++it;
                 break;
             case 2: // O_ADD_D
                 d_val_1 = pop_d();
                 d_val_2 = pop_d();
-                std::cout << logger << "[O_ADD_D] Adding: " << d_val_1 << " + " << d_val_2 << " -> "
-                    << "[" << d_val_1 + d_val_2 << "]\n";
-                push_d(d_val_1 + d_val_2);
+                std::cout << logger << "[O_ADD_D] Adding: " << d_val_2 << " + " << d_val_1 << " -> "
+                    << "[" << d_val_2 + d_val_1 << "]\n";
+                push_d(d_val_2 + d_val_1);
                 break;
             case 3: // O_ADD_I
                 i_val_1 = pop_i();
                 i_val_2 = pop_i();
-                std::cout << logger << "[O_ADD_I] Adding: " << i_val_1 << " + " << i_val_2 << " -> "
-                    << "[" << i_val_1 + i_val_2 << "]\n";
+                std::cout << logger << "[O_ADD_I] Adding: " << i_val_2 << " + " << i_val_1 << " -> "
+                    << "[" << i_val_2 + i_val_1 << "]\n";
                 push_i(i_val_1 + i_val_2);
                 ++it;
                 break;
             case 4: // O_AND_C
                 i_val_1 = pop_c();
                 i_val_2 = pop_c();
-                std::cout << logger << "[O_AND_C] AND: " << i_val_1 << " + " << i_val_2 << " -> "
-                    << "[" << (i_val_1 && i_val_2) << "]\n";
-                push_i(i_val_1 && i_val_2);
+                std::cout << logger << "[O_AND_C] AND: " << i_val_2 << " + " << i_val_1 << " -> "
+                    << "[" << (i_val_2 && i_val_1) << "]\n";
+                push_i(i_val_2 && i_val_1);
                 ++it;
                 break;
             case 5: // O_AND_D
                 d_val_1 = pop_d();
                 d_val_2 = pop_d();
-                std::cout << logger << "[O_AND_D] AND: " << d_val_1 << " + " << d_val_2 << " -> "
-                    << "[" << (d_val_1 && d_val_2) << "]\n";
-                push_i(d_val_1 && d_val_2);
+                std::cout << logger << "[O_AND_D] AND: " << d_val_2 << " + " << d_val_1 << " -> "
+                    << "[" << (d_val_2 && d_val_1) << "]\n";
+                push_i(d_val_2 && d_val_1);
                 ++it;
                 break;
             case 6: // O_AND_I
                 i_val_1 = pop_i();
                 i_val_2 = pop_i();
-                std::cout << logger << "[O_AND_I] AND: " << i_val_1 << " + " << i_val_2 << " -> "
-                    << "[" << (i_val_1 && i_val_2) << "]\n";
-                push_i(i_val_1 + i_val_2);
+                std::cout << logger << "[O_AND_I] AND: " << i_val_2 << " + " << i_val_1 << " -> "
+                    << "[" << (i_val_2 && i_val_1) << "]\n";
+                push_i(i_val_2 + i_val_1);
                 ++it;
                 break;
             case 7: // O_CALL
@@ -252,17 +255,17 @@ void VirtualMachine::run() {
             case 16:    // O_DIV_D
                 d_val_1 = pop_d();
                 d_val_2 = pop_d();
-                std::cout << logger << "[O_DIV_D] DIV: " << d_val_1 << " / " << d_val_2 << 
-                    " -> [" << d_val_1 / d_val_2 << "]\n";
-                push_d(d_val_1 / d_val_2);
+                std::cout << logger << "[O_DIV_D] DIV: " << d_val_2 << " / " << d_val_1 << 
+                    " -> [" << d_val_2 / d_val_1 << "]\n";
+                push_d(d_val_2 / d_val_1);
                 it++;
                 break;
             case 17:    // O_DIV_I
                 i_val_1 = pop_i();
                 i_val_2 = pop_i();
-                std::cout << logger << "[O_DIV_I] DIV: " << i_val_1 << " / " << i_val_2 << 
-                    " -> [" << i_val_1 / i_val_2 << "]\n";
-                push_i(i_val_1 / i_val_2);
+                std::cout << logger << "[O_DIV_I] DIV: " << i_val_2 << " / " << i_val_1 << 
+                    " -> [" << i_val_2 / i_val_1 << "]\n";
+                push_i(i_val_2 / i_val_1);
                 it++;
                 break;
             case 18:    // O_DROP
@@ -282,19 +285,19 @@ void VirtualMachine::run() {
                 }
                 break;
             case 19:    // O_ENTER
-                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
-                    i_val_1 = std::get<long> ((*it).args[0]);
-                    push_a(frame_ptr);
-                    frame_ptr = stack_ptr;
-                    std::cout << logger << "[O_ENTER] ENTER: " << static_cast<void *> (&frame_ptr) <<
-                        " + [" << i_val_1  << "]\n";
-                    stack_ptr += i_val_1;
+                // if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
+                //     i_val_1 = std::get<long> ((*it).args[0]);
+                //     push_a(frame_ptr);
+                //     frame_ptr = stack_ptr;
+                //     std::cout << logger << "[O_ENTER] ENTER: " << static_cast<void *> (&frame_ptr) <<
+                //         " + [" << i_val_1  << "]\n";
+                //     stack_ptr += i_val_1;
                     ++it;
-                }
-                else {
-                    std::cout << logger << "[O_ENTER] Wrong structure calling!\n";
-                    exit(2);
-                }
+                // }
+                // else {
+                //     std::cout << logger << "[O_ENTER] Wrong structure calling!\n";
+                //     exit(2);
+                // }
                 break;
             case 20:    // O_EQ_A
                 a_val = static_cast<char *> (pop_a());
@@ -307,77 +310,73 @@ void VirtualMachine::run() {
             case 21:    // O_EQ_C
                 i_val_1 = pop_c();
                 i_val_2 = pop_c();
-                std::cout << logger << "[O_EQ_C] [" << i_val_1 << "] == [" << i_val_2 << "] -> "
-                    << (i_val_1 == i_val_2) << "\n";
-                push_i(i_val_1 == i_val_2);
+                std::cout << logger << "[O_EQ_C] [" << i_val_2 << "] == [" << i_val_1 << "] -> "
+                    << (i_val_2 == i_val_1) << "\n";
+                push_i(i_val_2 == i_val_1);
                 ++it;
                 break;
             case 22:    // O_EQ_D
                 d_val_1 = pop_d();
                 d_val_2 = pop_d();
-                std::cout << logger << "[O_EQ_D] [" << d_val_1 << "] == [" << d_val_2 << "] -> "
-                    << (d_val_1 == d_val_2) << "\n";
-                push_i(d_val_1 == d_val_2);
+                std::cout << logger << "[O_EQ_D] [" << d_val_2 << "] == [" << d_val_1 << "] -> "
+                    << (d_val_2 == d_val_1) << "\n";
+                push_i(d_val_2 == d_val_1);
                 ++it;
                 break;
             case 23:    // O_EQ_I
                 i_val_1 = pop_i();
                 i_val_2 = pop_i();
-                std::cout << logger << "[O_EQ_I] [" << i_val_1 << "] == [" << i_val_2 << "] -> "
-                    << (i_val_1 == i_val_2) << "\n";
-                push_i(i_val_1 == i_val_2);
+                std::cout << logger << "[O_EQ_I] [" << i_val_2 << "] == [" << i_val_1 << "] -> "
+                    << (i_val_2 == i_val_1) << "\n";
+                push_i(i_val_2 == i_val_1);
                 ++it;
                 break;
             case 24:    // O_GREATER_C
                 i_val_1 = pop_c();
                 i_val_2 = pop_c();
-                std::cout << logger << "[O_GREATER_C] [" << i_val_1 << "] > [" << i_val_2 << "] -> "
-                    << (i_val_1 > i_val_2) << "\n";
-                push_i(i_val_1 > i_val_2);
+                std::cout << logger << "[O_GREATER_C] [" << i_val_2 << "] > [" << i_val_1 << "] -> "
+                    << (i_val_2 > i_val_1) << "\n";
+                push_i(i_val_2 > i_val_1);
                 ++it;
                 break;
             case 25:    // O_GREATER_D
                 d_val_1 = pop_d();
                 d_val_2 = pop_d();
-                std::cout << logger << "[O_GREATER_D] [" << d_val_1 << "] > [" << d_val_2 << "] -> "
-                    << (d_val_1 > d_val_2) << "\n";
-                push_i(d_val_1 > d_val_2);
+                std::cout << logger << "[O_GREATER_D] [" << d_val_2 << "] > [" << d_val_1 << "] -> "
+                    << (d_val_2 > d_val_1) << "\n";
+                push_i(d_val_2 > d_val_1);
                 ++it;
                 break;
             case 26:    // O_GREATER_I
                 i_val_1 = pop_i();
                 i_val_2 = pop_i();
-                std::cout << logger << "[O_GREATER_I] [" << i_val_1 << "] > [" << i_val_2 << "] -> "
-                    << (i_val_1 > i_val_2) << "\n";
-                push_i(i_val_1 > i_val_2);
+                std::cout << logger << "[O_GREATER_I] [" << i_val_2 << "] > [" << i_val_1 << "] -> "
+                    << (i_val_2 > i_val_1) << "\n";
+                push_i(i_val_2 > i_val_1);
                 ++it;
                 break;
             case 27:    // O_GREATEREQ_C
                 i_val_1 = pop_c();
                 i_val_2 = pop_c();
-                std::cout << logger << "[O_GREATEREQ_C] [" << i_val_1 << "] >= [" << i_val_2 << "] -> "
-                    << (i_val_1 >= i_val_2) << "\n";
-                push_i(i_val_1 >= i_val_2);
+                std::cout << logger << "[O_GREATEREQ_C] [" << i_val_2 << "] >= [" << i_val_1 << "] -> "
+                    << (i_val_2 >= i_val_1) << "\n";
+                push_i(i_val_2 >= i_val_1);
                 ++it;
                 break;
             case 28:    // O_GREATEREQ_D
                 d_val_1 = pop_d();
                 d_val_2 = pop_d();
-                std::cout << logger << "[O_GREATEREQ_D] [" << d_val_1 << "] >= [" << d_val_2 << "] -> "
-                    << (d_val_1 >= d_val_2) << "\n";
-                push_i(d_val_1 >= d_val_2);
+                std::cout << logger << "[O_GREATEREQ_D] [" << d_val_2 << "] >= [" << d_val_1 << "] -> "
+                    << (d_val_2 >= d_val_1) << "\n";
+                push_i(d_val_2 >= d_val_1);
                 ++it;
                 break;
             case 29:    // O_GREATEREQ_I
-                // i_val_1 = pop_i();
-                // i_val_2 = pop_i();
-                a_val = static_cast<char *> (pop_a());
-                a_val_2 = static_cast<char *>(pop_a());
-                // std::cout << logger << "[O_GREATEREQ_I] [" << i_val_1 << "] >= [" << i_val_2 << "] -> "
-                //     << (i_val_1 >= i_val_2) << "\n";
-                std::cout << logger << "[O_GREATEREQ_I] [" << *reinterpret_cast<long *>(a_val) << "] >= [" << *reinterpret_cast<long *>(a_val_2) << "] -> "
-                    << (i_val_1 >= i_val_2) << "\n";
-                push_i(i_val_1 >= i_val_2);
+                i_val_1 = pop_i();
+                i_val_2 = pop_i();
+                std::cout << logger << "[O_GREATEREQ_I] [" << i_val_2 << "] >= [" << i_val_1 << "] -> "
+                    << (i_val_2 >= i_val_1) << "\n";
+                push_i(i_val_2 >= i_val_1);
                 ++it;
                 break;
             case 30:    // O_INSERT
@@ -592,64 +591,64 @@ void VirtualMachine::run() {
             case 40:    // O_LESS_C
                 i_val_1 = pop_c();
                 i_val_2 = pop_c();
-                std::cout << logger << "[O_LESS_C] [" << i_val_1 << "] < [" << i_val_2 << "] -> "
-                    << (i_val_1 < i_val_2) << "\n";
-                push_i(i_val_1 < i_val_2);
+                std::cout << logger << "[O_LESS_C] [" << i_val_2 << "] < [" << i_val_1 << "] -> "
+                    << (i_val_2 < i_val_1) << "\n";
+                push_i(i_val_2 < i_val_1);
                 ++it;
                 break;
             case 41:    // O_LESS_D
                 d_val_1 = pop_d();
                 d_val_2 = pop_d();
-                std::cout << logger << "[O_LESS_D] [" << d_val_1 << "] < [" << d_val_2 << "] -> "
-                    << (d_val_1 < d_val_2) << "\n";
-                push_i(d_val_1 < d_val_2);
+                std::cout << logger << "[O_LESS_D] [" << d_val_2 << "] < [" << d_val_1 << "] -> "
+                    << (d_val_2 < d_val_1) << "\n";
+                push_i(d_val_2 < d_val_1);
                 ++it;
                 break;
             case 42:    //  O_LESS_I
                 i_val_1 = pop_i();
                 i_val_2 = pop_i();
-                std::cout << logger << "[O_LESS_I] [" << i_val_1 << "] < [" << i_val_2 << "] -> "
-                    << (i_val_1 < i_val_2) << "\n";
-                push_i(i_val_1 < i_val_2);
+                std::cout << logger << "[O_LESS_I] [" << i_val_2 << "] < [" << i_val_1 << "] -> "
+                    << (i_val_2 < i_val_1) << "\n";
+                push_i(i_val_2 < i_val_1);
                 ++it;
                 break;
             case 43:    //  O_LESSEQ_C
                 i_val_1 = pop_c();
                 i_val_2 = pop_c();
-                std::cout << logger << "[O_LESSEQ_C] [" << i_val_1 << "] <= [" << i_val_2 << "] -> "
-                    << (i_val_1 <= i_val_2) << "\n";
-                push_i(i_val_1 <= i_val_2);
+                std::cout << logger << "[O_LESSEQ_C] [" << i_val_2 << "] <= [" << i_val_1 << "] -> "
+                    << (i_val_2 <= i_val_1) << "\n";
+                push_i(i_val_2 <= i_val_1);
                 ++it;
                 break;
             case 44:    // O_LESSEQ_D
                 d_val_1 = pop_d();
                 d_val_2 = pop_d();
-                std::cout << logger << "[O_LESSEQ_D] [" << d_val_1 << "] <= [" << d_val_2 << "] -> "
-                    << (d_val_1 <= d_val_2) << "\n";
-                push_i(d_val_1 <= d_val_2);
+                std::cout << logger << "[O_LESSEQ_D] [" << d_val_2 << "] <= [" << d_val_1 << "] -> "
+                    << (d_val_2 <= d_val_1) << "\n";
+                push_i(d_val_2 <= d_val_1);
                 ++it;
                 break;
             case 45:    // O_LESSEQ_I
                 i_val_1 = pop_i();
                 i_val_2 = pop_i();
-                std::cout << logger << "[O_LESSEQ_I] [" << i_val_1 << "] <= [" << i_val_2 << "] -> "
-                    << (i_val_1 <= i_val_2) << "\n";
-                push_i(i_val_1 <= i_val_2);
+                std::cout << logger << "[O_LESSEQ_I] [" << i_val_2 << "] <= [" << i_val_1 << "] -> "
+                    << (i_val_2 <= i_val_1) << "\n";
+                push_i(i_val_2 <= i_val_1);
                 ++it;
                 break;
             case 46:     // O_MUL_C
                 i_val_1 = pop_c();
                 i_val_2 = pop_c();
-                std::cout << logger << "[O_MUL_C] MUL: " << i_val_1 << " * " << i_val_2 << " -> "
-                    << "[" << i_val_1 * i_val_2 << "]\n";
-                push_c(i_val_1 * i_val_2);
+                std::cout << logger << "[O_MUL_C] MUL: " << i_val_2 << " * " << i_val_1 << " -> "
+                    << "[" << i_val_2 * i_val_1 << "]\n";
+                push_c(i_val_2 * i_val_1);
                 ++it;
                 break;
             case 47:    // O_MUL_D
                 d_val_1 = pop_d();
                 d_val_2 = pop_d();
                 helper = d_val_1 * d_val_2;
-                std::cout << logger << "[O_MUL_D] MUL: " << d_val_1 << " * " << d_val_2 << " -> "
+                std::cout << logger << "[O_MUL_D] MUL: " << d_val_2 << " * " << d_val_1 << " -> "
                     << "[" << helper << "]\n";
                 push_d(static_cast<double> (helper));
                 ++it;
@@ -657,7 +656,7 @@ void VirtualMachine::run() {
             case 48:    // O_MUL_I
                 i_val_1 = pop_i();
                 i_val_2 = pop_i();
-                std::cout << logger << "[O_MUL_I] MUL: " << i_val_1 << " * " << i_val_2 << " -> "
+                std::cout << logger << "[O_MUL_I] MUL: " << i_val_2 << " * " << i_val_1 << " -> "
                     << "[" << i_val_1 * i_val_2 << "]\n";
                 push_i(i_val_1 * i_val_2);
                 ++it;
@@ -711,7 +710,7 @@ void VirtualMachine::run() {
             case 57:    // O_NOTEQ_A
                 a_val = static_cast<char *> (pop_a());
                 a_val_2 = static_cast<char *> (pop_a());
-                std::cout << logger << "[O_NOTEQ_A] [" << a_val << "] != [" << a_val_2 << "] -> "
+                std::cout << logger << "[O_NOTEQ_A] [" << a_val_2 << "] != [" << a_val << "] -> "
                     << (a_val != a_val_2) << "\n";
                 push_i(a_val != a_val_2);
                 it++;
@@ -719,7 +718,7 @@ void VirtualMachine::run() {
             case 58:    // O_NOTEQ_C
                 i_val_1 = pop_c();
                 i_val_2 = pop_c();
-                std::cout << logger << "[O_NOTEQ_C] [" << i_val_1 << "] != [" << i_val_2 << "] -> "
+                std::cout << logger << "[O_NOTEQ_C] [" << i_val_2 << "] != [" << i_val_1 << "] -> "
                     << (i_val_1 != i_val_2) << "\n";
                 push_i(i_val_1 != i_val_2);
                 it++;
@@ -727,7 +726,7 @@ void VirtualMachine::run() {
             case 59:    // O_NOTEQ_D
                 d_val_1 = pop_d();
                 d_val_2 = pop_d();
-                std::cout << logger << "[O_NOTEQ_D] [" << d_val_1 << "] != [" << d_val_2 << "] -> "
+                std::cout << logger << "[O_NOTEQ_D] [" << d_val_2 << "] != [" << d_val_1 << "] -> "
                     << (d_val_1 != d_val_2) << "\n";
                 push_i(d_val_1 != d_val_2);
                 it++;
@@ -735,7 +734,7 @@ void VirtualMachine::run() {
             case 60:    //  O_NOTEQ_I
                 i_val_1 = pop_i();
                 i_val_2 = pop_i();
-                std::cout << logger << "[O_NOTEQ_I] [" << i_val_1 << "] != [" << i_val_2 << "] -> "
+                std::cout << logger << "[O_NOTEQ_I] [" << i_val_2 << "] != [" << i_val_1 << "] -> "
                     << (i_val_1 != i_val_2) << "\n";
                 push_i(i_val_1 != i_val_2);
                 it++;
@@ -751,7 +750,7 @@ void VirtualMachine::run() {
             case 62:    // O_OR_A
                 a_val = static_cast<char *> (pop_a());
                 a_val_2 = static_cast<char *> (pop_a());
-                std::cout << logger << "[O_OR_A] [" << a_val << "] || [" << a_val_2 << "] -> "
+                std::cout << logger << "[O_OR_A] [" << a_val_2 << "] || [" << a_val << "] -> "
                     << (a_val || a_val_2) << "\n";
                 push_i(a_val || a_val_2);
                 it++;
@@ -759,7 +758,7 @@ void VirtualMachine::run() {
             case 63:    // O_OR_D
                 d_val_1 = pop_d();
                 d_val_2 = pop_d();
-                std::cout << logger << "[O_OR_D] [" << d_val_1 << "] || [" << d_val_2 << "] -> "
+                std::cout << logger << "[O_OR_D] [" << d_val_2 << "] || [" << d_val_1 << "] -> "
                     << (d_val_1 || d_val_2) << "\n";
                 push_i(d_val_1 || d_val_2);
                 it++;
@@ -767,26 +766,26 @@ void VirtualMachine::run() {
             case 64:    // O_OR_I
                 i_val_1 = pop_i();
                 i_val_2 = pop_i();
-                std::cout << logger << "[O_OR_I] [" << i_val_1 << "] || [" << i_val_2 << "] -> "
+                std::cout << logger << "[O_OR_I] [" << i_val_2 << "] || [" << i_val_1 << "] -> "
                     << (i_val_1 || i_val_2) << "\n";
                 push_i(i_val_1 || i_val_2);
                 it++;
                 break;
             case 65:    // O_PUSHFPADDR
-                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
-                    i_val_1 = std::get<long> ((*it).args[0]);
-                    std::cout << logger << "[O_PUSHFPADDR] " << frame_ptr << " +  [" 
-                        << i_val_1 << "]\n";
-                    if ( frame_ptr + i_val_1 > stack_after ) {
-                        std::cout << logger << "[O_PUSHFPADDR] OUT OF STACK!\n";
-                        exit(3);
-                    }
-                    push_a(frame_ptr + i_val_1);
-                }
-                else {
-                    std::cout << logger << "[O_PUSHFPADDR] Wrong structure calling!\n";
-                    exit(2);
-                }
+                // if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
+                //     i_val_1 = std::get<long> ((*it).args[0]);
+                //     std::cout << logger << "[O_PUSHFPADDR] " << frame_ptr << " +  [" 
+                //         << i_val_1 << "]\n";
+                //     if ( frame_ptr + i_val_1 > stack_after ) {
+                //         std::cout << logger << "[O_PUSHFPADDR] OUT OF STACK!\n";
+                //         exit(3);
+                //     }
+                //     push_a(frame_ptr + i_val_1);
+                // }
+                // else {
+                //     std::cout << logger << "[O_PUSHFPADDR] Wrong structure calling!\n";
+                //     exit(2);
+                // }
                 ++it;
                 break;
             case 66:    // O_PUSHCT_A
@@ -839,55 +838,45 @@ void VirtualMachine::run() {
                 break;
                 break;
             case 70:    // O_RET
-                if ( (*it).args.size() == 2 && Instruction::variant_to_type((*it).args[0]) == "long"
-                    && Instruction::variant_to_type((*it).args[1]) == "long" ) {
-                    i_val_1 = std::get<long> ((*it).args[0]);   // size args
-                    i_val_2 = std::get<long> ((*it).args[1]);   // sizeof(retType)
-                    std::cout << logger << "[O_RET] " << i_val_1 << " " << i_val_2 << "\n";
-                    old_sp = stack_ptr;
-                    stack_ptr = frame_ptr;
-                    frame_ptr = static_cast<char *> (pop_a());
-                    if ( stack_ptr - i_val_1 < stack ) {
-                        std::cout << logger << "[O_RET] Not enough stack!\n";
-                        // exit(2);
-                    }
-                    stack_ptr -= i_val_1;
-                    memmove(stack_ptr, old_sp - i_val_2, i_val_2);
-                    stack_ptr+= i_val_2;
-                }
-                else {
-                    std::cout << logger << "[O_RET] Wrong structure calling!\n";
-                    exit(2);
-                }
+                // if ( (*it).args.size() == 2 && Instruction::variant_to_type((*it).args[0]) == "long"
+                //     && Instruction::variant_to_type((*it).args[1]) == "long" ) {
+                //     i_val_1 = std::get<long> ((*it).args[0]);   // size args
+                //     i_val_2 = std::get<long> ((*it).args[1]);   // sizeof(retType)
+                //     std::cout << logger << "[O_RET] " << i_val_1 << " " << i_val_2 << "\n";
+                //     old_sp = stack_ptr;
+                //     stack_ptr = frame_ptr;
+                //     frame_ptr = static_cast<char *> (pop_a());
+                //     if ( stack_ptr - i_val_1 < stack ) {
+                //         std::cout << logger << "[O_RET] Not enough stack!\n";
+                //         // exit(2);
+                //     }
+                //     stack_ptr -= i_val_1;
+                //     memmove(stack_ptr, old_sp - i_val_2, i_val_2);
+                //     stack_ptr+= i_val_2;
+                // }
+                // else {
+                //     std::cout << logger << "[O_RET] Wrong structure calling!\n";
+                //     exit(2);
+                // }
                 ++it;
                 break;
             case 71:    // O_STORE
-                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ){
-                    i_val_1 = std::get<long> ((*it).args[0]);
-                    if ( stack_ptr - (sizeof(void *) + i_val_1 ) < stack ) {
-                        std::cout << logger << "[O_STORE] Not enough stack bytes for SET!\n";
-                        exit(2);
-                    }
-                    a_val = frame_ptr - sizeof(void *) - i_val_1;
-                    std::cout << logger << "[O_STORE] storing " << i_val_1 << " at "
-                        << static_cast<void *> (&a_val) << "\n";
-                    memcpy(a_val, frame_ptr - i_val_1, i_val_1);
-                    frame_ptr -= sizeof(void *) + i_val_1;
-                    // std::cout << logger << "Stack_ptr : " << static_cast<void *> (&stack_ptr)
-                    //     << "  vs  " << static_cast<void *> (&stack) << "\n";
-                    ++it;
+                if ( (*it).args.size() == 2 && Instruction::variant_to_type((*it).args[0]) == "void" ){
+                    symb = *(static_cast<Symbol *> ( std::get<void *> ((*it).args[0])));
+                    push_in_register(symb, (*it).args[1]);
                 }
                 else {
                     std::cout << logger << "[O_STORE] Wrong structure calling!\n";
                     exit(2);
                 }
+                ++it;
                 break;
             case 72:    // O_SUB_C
                 i_val_1 = pop_c();
                 i_val_2 = pop_c();
-                std::cout << logger << "[O_SUB_C] " << i_val_1 << " - " << i_val_2 << " -> "
-                    << i_val_1 - i_val_2 << "\n";
-                push_c(i_val_1 - i_val_2);
+                std::cout << logger << "[O_SUB_C] " << i_val_2 << " - " << i_val_1 << " -> "
+                    << i_val_2 - i_val_1 << "\n";
+                push_c(i_val_2 - i_val_1);
                 ++it;
                 break;
             case 73:    // O_SUB_D
@@ -901,34 +890,45 @@ void VirtualMachine::run() {
             case 74:    //  O_SUB_I
                 i_val_1 = pop_i();
                 i_val_2 = pop_i();
-                std::cout << logger << "[O_SUB_I] " << i_val_1 << " - " << i_val_2 << " -> "
-                    << i_val_1 - i_val_2 << "\n";
-                push_i(i_val_1 - i_val_2);
+                std::cout << logger << "[O_SUB_I] " << i_val_2 << " - " << i_val_1 << " -> "
+                    << i_val_2 - i_val_1 << "\n";
+                push_i(i_val_2 - i_val_1);
                 ++it;
                 break;
             case 75:    // O_LOAD
-                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
-                    i_val_1 = std::get<long> ((*it).args[0]);
-                    a_val = static_cast<char *>(pop_a());
-                    std::cout << logger << "[O_LOAD]\t" << static_cast<void *> (a_val) << " at " << 
-                         frame_ptr << " + [" << i_val_1 <<  "]\n";
-                    if ( frame_ptr + i_val_1 >= stack_after ) {
-                        std::cout << logger << "[O_LOAD] Out of stack!\n";
-                        exit(2);
+                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "void" ) {
+                    symb_val = search_register(*(static_cast<Symbol* > (std::get<void *> ((*it).args[0]))));
+                    str = Instruction::variant_to_type(symb_val);
+                    if ( str == "long" ) {
+                        i_val_1 = std::get<long> (symb_val);
+                        std::cout << logger << "[O_LOAD] A long : [" << i_val_1 << "]\n";
+                        push_i(i_val_1);
                     }
-                    memmove(frame_ptr, &a_val, i_val_1);  // loading from address a_val [i_val_1] bytes on stack
-                    frame_ptr += i_val_1;
+                    else if (str == "double" ) {
+                        d_val_1 = std::get<double>(symb_val);
+                        std::cout << logger << "[O_LOAD] A double : [" << d_val_1 << "]\n";
+                        push_d(d_val_1);
+                    }
+                    else if ( str == "void" ) {
+                        a_val = static_cast<char *> (std::get<void *>(symb_val));
+                        std::cout << logger << "[O_LOAD] An address : [" << static_cast<void *>(&a_val) << "]\n";
+                        push_a(a_val);
+                    }
+                    else {
+                        std::cout << logger << "[O_LOAD] Unsupported value!\n";
+                        exit(3);
+                    }
                 }
                 else {
                     std::cout << logger << "[O_LOAD] Wrong structure calling!\n";
-                    exit(2);
+                    // exit(2);
                 }
                 it++;
                 break;
             case 76:    // O_AND_A
                 a_val = static_cast<char *> (pop_a());
                 a_val_2 = static_cast<char*> (pop_a());
-                std::cout << logger << "[O_AND_A] Adding: " << a_val << " + " << a_val_2 << " -> "
+                std::cout << logger << "[O_AND_A] Adding: " << a_val_2 << " + " << a_val << " -> "
                     << "[" << (a_val && a_val_2) << "]\n";
                 push_i(a_val && a_val_2);
                 ++it;
@@ -936,7 +936,7 @@ void VirtualMachine::run() {
             case 77:    // O_OR_C
                 i_val_1 = pop_c();
                 i_val_2 = pop_c();
-                std::cout << logger << "[O_OR_C] [" << i_val_1 << "] || [" << i_val_2 << "] -> "
+                std::cout << logger << "[O_OR_C] [" << i_val_2 << "] || [" << i_val_1 << "] -> "
                     << (i_val_1 || i_val_2) << "\n";
                 push_i(i_val_1 || i_val_2);
                 it++;
@@ -947,4 +947,62 @@ void VirtualMachine::run() {
                 exit(2);
         }
     }
+}
+
+void VirtualMachine::push_in_register(const Symbol& symb, 
+    const std::variant<long, double, void*>& symb_val) {
+    
+    if( symb.name != "" ) {
+        auto pair = std::pair<std::string, long> (symb.name, symb.depth);
+        std::map<std::pair<std::string, long>, 
+            std::variant<long, double, void *>>::iterator itr;
+        long ok = 0;
+        for ( itr = registers.begin(); itr != registers.end(); ++itr) {
+            if ((*itr).first.first == symb.name &&
+                    (*itr).first.second == symb.depth) {
+                        (*itr).second = symb_val;
+                        ok = 1;
+                    }
+        }
+
+        if (!ok) {
+            registers.insert(std::pair<std::pair<std::string, long>, std::variant<long, double, void*>>
+                (pair, symb_val));
+        }
+
+        std::cout << logger << "[ADD_REGISTER] Value: [" << Instruction::variant_to_type(symb_val) 
+            << "] sucesfully added with key: [" << symb.name << ", " << symb.depth << "]\n"; 
+    }
+    else {
+        exit(3);
+    }
+}
+
+std::variant<long, double, void *> 
+    VirtualMachine::search_register(const Symbol& symb) {
+
+    std::cout << "[REGISTER_SEARCH]: " <<  symb.name << "\n";
+    std::map<std::pair<std::string, long>, 
+        std::variant<long, double, void *>>::iterator itr;
+    for ( itr = registers.begin(); itr != registers.end(); ++itr) {
+        if ((*itr).first.first == symb.name &&
+                (*itr).first.second == symb.depth) {
+                    std::cout << logger << "[SEARCH_REGISTER] found: [" << (*itr).first.first << ", " 
+                        << (*itr).first.second << "]\n";
+                    return (*itr).second;
+                }
+    }
+
+    return nullptr;
+}
+
+void VirtualMachine::clear_register_level(const long& depth) {
+    std::map<std::pair<std::string, long>, 
+        std::variant<long, double, void *>>::iterator itr;
+    for ( itr = registers.begin(); itr != registers.end(); ++itr) {
+        if ((*itr).first.second == depth) {
+                    // registers.erase(itr);
+        }
+    }
+    std::cout << logger << "[CLEAR_REGISTER] succesfully deleted level: [" << depth << "]\n";
 }

@@ -18,6 +18,7 @@ last_instruction(Instruction{})
     logger = Logger{class_name};
     vm = VirtualMachine{};
     add_predefined_functions();
+    symbols.reserve(1024);
 }
 
 SyntacticAnalyzer::SyntacticAnalyzer()
@@ -33,6 +34,7 @@ offset(0),
 last_instruction(Instruction{})
 {
     logger = Logger{class_name};
+    symbols.reserve(1024);
 }
 
 int SyntacticAnalyzer::expr() {
@@ -219,7 +221,10 @@ int SyntacticAnalyzer::stm_block() {
         exit(lex.RACC);
     }
 
-    symbol_table.delete_symbols_from_given_level(current_depth--);
+    vm.clear_register_level(current_depth);
+    clear_symbols_level(current_depth);
+    symbol_table.delete_symbols_from_given_level(current_depth);
+    current_depth--;
 
     return 1;
 }
@@ -740,6 +745,8 @@ int SyntacticAnalyzer::decl_func() {
         il.insert_instr(h);
     }
     current_func = "";
+    vm.clear_register_level(current_depth);
+    clear_symbols_level(current_depth);
     symbol_table.delete_symbols_from_given_level(current_depth);
     current_depth--;
     std::cout << logger << "Found a FUNCTION!\n";
@@ -995,6 +1002,7 @@ int SyntacticAnalyzer::expr_primary() {
             std::cout << logger << utils::log_error(current_token->token.line, "[ID] hasn't been defined!");
             exit(lex.ID);
         }
+        ret_val.symbol_name = possible_key;
         ret_val.type = s.type;
         ret_val.is_left_value = true;
         ret_val.is_constant_value = false;
@@ -1008,7 +1016,7 @@ int SyntacticAnalyzer::expr_primary() {
     auto it = 0;
     int size = vec.size();
 
-    if(match(lex.LPAR) ) {
+    if(match(lex.LPAR) ) {  // FUNCTION CALL
         if(size) {
             if( it >= size ) {
                 std::cout << logger << utils::log_error(current_token->token.line, "Too many arguments in function1!");
@@ -1092,16 +1100,6 @@ int SyntacticAnalyzer::expr_primary() {
             }
         }
         else {  // ID
-            if (current_depth) {
-                Instruction h{Instruction::O_PUSHFPADDR};
-                h.set_args({symb.addr_offset});
-                il.insert_instr(h);
-            }
-            else {
-                Instruction h{Instruction::O_PUSHCT_A};
-                h.set_args({symb.addr_offset});
-                il.insert_instr(h);
-            }
         }
     }
 
@@ -1225,7 +1223,7 @@ int SyntacticAnalyzer::expr_postfix_bracket() {
         }
 
         // CODE GENERATION
-        // add_cast_instr(il.instr_list.back(), ret_val.type, Type::TB_INT);
+        add_cast_instr(il.instr_list.back(), ret_val.type, Type::TB_INT);
         get_r_val(ret_val);
         if ( type_base_size(ret_val.type) >= 1) {
             Instruction h{Instruction::O_PUSHCT_I};
@@ -1560,8 +1558,8 @@ void SyntacticAnalyzer::check_add(const ReturnValue& rv, const long& tk_op) {
     
     // CODE GENERATION
     Instruction h1, h2;
-    h1 = get_r_val(ret_val);
     h2 = get_r_val(rv);
+    h1 = get_r_val(ret_val);
     
     add_cast_instr(il.instr_list.back(), ret_val.type, rv.type);
     ret_val.type = get_arithmetic_type(ret_val.type, rv.type);
@@ -1662,8 +1660,8 @@ void SyntacticAnalyzer::check_rel(const ReturnValue& rv, const long& op_code) {
 
         // CODE GENERATION
     Instruction h1, h2;
-    h1 = get_r_val(ret_val);
     h2 = get_r_val(rv);
+    h1 = get_r_val(ret_val);
     
     add_cast_instr(il.instr_list.back(), ret_val.type, rv.type);
     ret_val.type = get_arithmetic_type(ret_val.type, rv.type);
@@ -1803,8 +1801,8 @@ void SyntacticAnalyzer::check_eq(const ReturnValue& rv, const long& op_code) {
     }
     else {
         Instruction h1, h2;
-        h1 = get_r_val(ret_val);
         h2 = get_r_val(rv);
+        h1 = get_r_val(ret_val);
         
         add_cast_instr(il.instr_list.back(), ret_val.type, rv.type);
         ret_val.type = get_arithmetic_type(ret_val.type, rv.type);
@@ -1907,8 +1905,8 @@ void SyntacticAnalyzer::check_and(const ReturnValue& rv, const long& op_code) {
     }
     else {
         Instruction h1, h2;
-        h1 = get_r_val(ret_val);
         h2 = get_r_val(rv);
+        h1 = get_r_val(ret_val);
         
         add_cast_instr(il.instr_list.back(), ret_val.type, rv.type);
         ret_val.type = get_arithmetic_type(ret_val.type, rv.type);
@@ -1994,8 +1992,8 @@ void SyntacticAnalyzer::check_or(const ReturnValue& rv, const long& op_code) {
     }
     else {
         Instruction h1, h2;
-        h1 = get_r_val(ret_val);
         h2 = get_r_val(rv);
+        h1 = get_r_val(ret_val);
         
         add_cast_instr(il.instr_list.back(), ret_val.type, rv.type);
         ret_val.type = get_arithmetic_type(ret_val.type, rv.type);
@@ -2081,30 +2079,38 @@ void SyntacticAnalyzer::check_assign(const ReturnValue& rv, const long& op_code)
 
     // CODE GENERATION
     Instruction h1, h2;
-    h1 = get_r_val(rv);
-    add_cast_instr(il.instr_list.back(), ret_val.type, rv.type);
-
-    // a = 125;
-    // *(long *) (rbp + idx) -> 125
-
-    h2 = Instruction{Instruction::O_INSERT};
-    long val = sizeof(void *) + type_arg_size(rv.type);
-    long val2 = type_arg_size(rv.type);
-    h2.set_args({val, val2});
-    h1 = Instruction{Instruction::O_STORE};
-    h1.set_args({val2});
-
-    // il.insert_instr(h2);
-    // il.insert_instr(h1);
-
-    try {
-        auto x = std::get<double> (ret_val.constant_value);
-        std::cout << logger << "[ASSIGN]: " << x << "\n";
+    if ( ret_val.symbol_name != rv.symbol_name) {
+        get_r_val(ret_val);
     }
-    catch(std::exception& exception) {}
+    add_cast_instr(il.instr_list.back(), ret_val.type, rv.type);
+    std::cout << logger << "SMR: " << ret_val.symbol_name << "   " << rv.symbol_name << "\n";
     
-
-
+    try {
+        auto x = std::get<long> (ret_val.constant_value);
+        h1 = Instruction{Instruction::O_STORE};
+        Symbol sym = symbol_table.find_symbol(ret_val.symbol_name);
+        if ( sym.name != "") {
+            symbols.push_back(sym);
+            h1.set_args({static_cast<void *> (&symbols.back()), static_cast<long> (x)});
+            il.insert_instr(h1);        
+        }
+        else {
+            exit(3);
+        }
+    }
+    catch(std::exception& exception) {
+        try {
+            auto x = std::get<double> (ret_val.constant_value);
+            h1 = Instruction{Instruction::O_STORE};
+            Symbol sym = symbol_table.find_symbol(ret_val.symbol_name);
+            if ( sym.name != "") {
+                symbols.push_back(sym);
+                h1.set_args({static_cast<void *> (&symbols.back()), static_cast<double> (x)});
+                il.insert_instr(h1);
+            }
+        }
+        catch(std::exception& exception) {}  
+    }
 
     cast_type(ret_val.type, rv.type);
     ret_val.is_constant_value = false;
@@ -2474,6 +2480,14 @@ void SyntacticAnalyzer::test_vm() {
     h = Instruction{h.O_HALT};
     il.insert_instr(h);
 
+    Symbol symb;
+    symb.name = "b";
+    symb.depth = 15;
+
+    std::variant<long, double, void *> ceva = static_cast<void * > (&symb);
+    auto sth = *(static_cast<Symbol *> (std::get<void *>(ceva)));
+    std::cout << logger << "[TEST 2:] " << sth.depth << "\n";
+
     vm.set_il(il);
     vm.run();
 }
@@ -2516,16 +2530,27 @@ long SyntacticAnalyzer::type_arg_size(const Type& type) {
 
 Instruction SyntacticAnalyzer::get_r_val(const ReturnValue& ret_val) {
     Instruction instr;
+    Symbol symb;
     if ( ret_val.is_left_value ) {
         switch( ret_val.type.type_base ) {
             case Type::TB_INT:
             case Type::TB_DOUBLE:
             case Type::TB_CHAR:
             case Type::TB_STRUCT:
-                instr = Instruction{Instruction::O_LOAD};
-                instr.set_args({type_arg_size(ret_val.type)});
-                il.insert_instr(instr);
-                return instr;
+                symb = symbol_table.find_symbol(ret_val.symbol_name);
+                if ( symb.name != "") {
+                    instr = Instruction{Instruction::O_LOAD};
+                    std::cout << "{LOADING}: " << symb.name << "\n";
+                    for(auto& x: symbols) {
+                        if (x.name == symb.name &&  x.depth == symb.depth) {
+                            std::cout << "{LOADING}: " << x.name << "\n";
+                            instr.set_args({static_cast<void *> (&x)});
+                            il.insert_instr(instr);
+                            break;
+                        }
+                    } 
+                }
+                break;
             default:
                 std::cout << logger << "[GET_R_VAL] Unhandled type: " << ret_val.type.type_base << "\n";
                 exit(2);
@@ -2620,5 +2645,14 @@ Instruction SyntacticAnalyzer::create_cond_jump(const ReturnValue& ret_val) {
         }
     }
     return Instruction{};
+}
+
+void SyntacticAnalyzer::clear_symbols_level(const long& depth) {
+    // for(size_t i = 0 ; i < symbols.size(); ++i) {
+    //     if( symbols[i].name != "" && symbols[i].depth == depth) {
+    //         // symbols.erase(symbols.begin() + i);
+    //     }
+    // }
+    std::cout << logger << "[CLEAR_SYMBOLS] Succesfully deleted all symbols on level: [" << depth << "]\n";
 }
 

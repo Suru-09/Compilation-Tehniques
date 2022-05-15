@@ -5,6 +5,7 @@
 
 #include "Type.hpp"
 #include "Logger.hpp"
+#include "Symbol.hpp"
 
 class ReturnValue {
 private:
@@ -13,7 +14,9 @@ private:
     bool is_constant_value;
     std::variant<long, double, std::string> constant_value;
     std::string class_name;
+    std::string symbol_name;
     Logger logger;
+    Symbol symb;
 public:
     ReturnValue();
     ReturnValue(const Type& type, const bool& is_left_value, const bool& is_constant_value = 0);

@@ -41,6 +41,7 @@ public:
 
     friend class SymbolTable;
     friend class SyntacticAnalyzer;
+    friend class VirtualMachine;
 };
 
 #endif

@@ -33,6 +33,7 @@ private:
     // Virtual Machine
     inline static VirtualMachine vm = VirtualMachine{};
     InstructionList il;
+    std::vector<Symbol> symbols;
 
     // Code Generation
     long size_args, offset;
@@ -134,6 +135,7 @@ private:
     Instruction get_r_val(const ReturnValue& ret_val);
     void add_cast_instr(const Instruction& after, const Type& actual_t, const Type& needed_t);
     Instruction create_cond_jump(const ReturnValue& ret_val);
+    void clear_symbols_level(const long& depth);
 
 public:
     void unit();

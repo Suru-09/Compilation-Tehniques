@@ -3,12 +3,18 @@
 
 #include <string.h>
 #include<iostream>
+#include <map>
+#include <variant>
+#include <memory>
+
 
 #include "Logger.hpp"
 #include "Instruction.hpp"
 #include "InstructionList.hpp"
+#include "Symbol.hpp"
+#include "Type.hpp"
 
-#define STACK_SIZE (1024 * 1024)
+#define STACK_SIZE (1024 * 32)
 #define GLOBAL_SIZE (1024 * 1024)
 
 class VirtualMachine {
@@ -17,6 +23,8 @@ private:
     char *stack_ptr, *stack_after;
     int n_globals;
     InstructionList instr_list;
+    std::map<std::pair<std::string, long>, 
+        std::variant<long, double, void *>> registers;
 
 
     std::string class_name;
@@ -40,6 +48,10 @@ public:
     char pop_c();
     void push_a(void* a);
     void * pop_a();
+    void push_in_register(const Symbol& symb,
+        const std::variant<long, double, void*>& symb_val);
+    std::variant<long, double, void *> search_register(const Symbol& symb);
+    void clear_register_level(const long& depth);
 
     // RUN METHODS
     void run();
