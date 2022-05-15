@@ -284,9 +284,10 @@ void VirtualMachine::run() {
             case 19:    // O_ENTER
                 if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
                     i_val_1 = std::get<long> ((*it).args[0]);
-                    std::cout << logger << "[O_ENTER] ENTER: " << i_val_1 << "\n";
                     push_a(frame_ptr);
                     frame_ptr = stack_ptr;
+                    std::cout << logger << "[O_ENTER] ENTER: " << static_cast<void *> (&frame_ptr) <<
+                        " + [" << i_val_1  << "]\n";
                     stack_ptr += i_val_1;
                     ++it;
                 }
@@ -368,9 +369,13 @@ void VirtualMachine::run() {
                 ++it;
                 break;
             case 29:    // O_GREATEREQ_I
-                i_val_1 = pop_i();
-                i_val_2 = pop_i();
-                std::cout << logger << "[O_GREATEREQ_I] [" << i_val_1 << "] >= [" << i_val_2 << "] -> "
+                // i_val_1 = pop_i();
+                // i_val_2 = pop_i();
+                a_val = static_cast<char *> (pop_a());
+                a_val_2 = static_cast<char *>(pop_a());
+                // std::cout << logger << "[O_GREATEREQ_I] [" << i_val_1 << "] >= [" << i_val_2 << "] -> "
+                //     << (i_val_1 >= i_val_2) << "\n";
+                std::cout << logger << "[O_GREATEREQ_I] [" << *reinterpret_cast<long *>(a_val) << "] >= [" << *reinterpret_cast<long *>(a_val_2) << "] -> "
                     << (i_val_1 >= i_val_2) << "\n";
                 push_i(i_val_1 >= i_val_2);
                 ++it;
@@ -380,15 +385,15 @@ void VirtualMachine::run() {
                     && Instruction::variant_to_type((*it).args[1]) == "long" ) {
                     i_val_1 = std::get<long> ((*it).args[0]);   // Destination
                     i_val_2 = std::get<long> ((*it).args[1]);   // No. of bytes
-                    std::cout << logger << "[O_INSERT]  " << i_val_1 << ", " << i_val_2 << "\n";
-                    if ( stack_ptr + i_val_2 > stack_after) {
+                    std::cout << logger << "[O_INSERT]  Stack_ptr + " << i_val_1 << ", " << i_val_2 << " bytes \n";
+                    if ( frame_ptr + i_val_2 > stack_after) {
                         std::cout << logger << "[O_INSERT] OUT of stack!\n";
                         exit(2);
                     }
                     // make room
-                    memmove(stack_ptr - i_val_1 + i_val_2, stack_ptr - i_val_1, i_val_1);
-                    memmove(stack_ptr - i_val_1, stack_ptr + i_val_2, i_val_2);
-                    stack_ptr += i_val_2;
+                    memmove(frame_ptr - i_val_1 + i_val_2, frame_ptr - i_val_1, i_val_1);
+                    memmove(frame_ptr - i_val_1, frame_ptr + i_val_2, i_val_2);
+                    frame_ptr += i_val_2;
                     ++it;
                 }
                 else {
@@ -770,8 +775,12 @@ void VirtualMachine::run() {
             case 65:    // O_PUSHFPADDR
                 if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
                     i_val_1 = std::get<long> ((*it).args[0]);
-                    std::cout << logger << "[O_PUSHFPADDR] " << i_val_1 << " " 
-                        << i_val_1 << "\n"; //  + frame_ptr
+                    std::cout << logger << "[O_PUSHFPADDR] " << frame_ptr << " +  [" 
+                        << i_val_1 << "]\n";
+                    if ( frame_ptr + i_val_1 > stack_after ) {
+                        std::cout << logger << "[O_PUSHFPADDR] OUT OF STACK!\n";
+                        exit(3);
+                    }
                     push_a(frame_ptr + i_val_1);
                 }
                 else {
@@ -859,11 +868,11 @@ void VirtualMachine::run() {
                         std::cout << logger << "[O_STORE] Not enough stack bytes for SET!\n";
                         exit(2);
                     }
-                    a_val = stack_ptr - sizeof(void *) - i_val_1;
+                    a_val = frame_ptr - sizeof(void *) - i_val_1;
                     std::cout << logger << "[O_STORE] storing " << i_val_1 << " at "
                         << static_cast<void *> (&a_val) << "\n";
-                    memcpy(a_val, stack_ptr - i_val_1, i_val_1);
-                    stack_ptr -= sizeof(void *) + i_val_1;
+                    memcpy(a_val, frame_ptr - i_val_1, i_val_1);
+                    frame_ptr -= sizeof(void *) + i_val_1;
                     // std::cout << logger << "Stack_ptr : " << static_cast<void *> (&stack_ptr)
                     //     << "  vs  " << static_cast<void *> (&stack) << "\n";
                     ++it;
@@ -900,21 +909,21 @@ void VirtualMachine::run() {
             case 75:    // O_LOAD
                 if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
                     i_val_1 = std::get<long> ((*it).args[0]);
-                    a_val = static_cast<char*> (pop_a());
-                    std::cout << logger << "[O_LOAD]\t" << i_val_1 << " at " << 
-                        static_cast<void *> (&a_val) << "\n";
-                    if ( stack_ptr + i_val_1 >= stack_after ) {
+                    a_val = static_cast<char *>(pop_a());
+                    std::cout << logger << "[O_LOAD]\t" << static_cast<void *> (a_val) << " at " << 
+                         frame_ptr << " + [" << i_val_1 <<  "]\n";
+                    if ( frame_ptr + i_val_1 >= stack_after ) {
                         std::cout << logger << "[O_LOAD] Out of stack!\n";
                         exit(2);
                     }
-                    memcpy(stack_ptr, &a_val, i_val_1);  // loading from address a_val [i_val_1] bytes on stack
-                    stack_ptr += i_val_1;
-                    it++;
+                    memmove(frame_ptr, &a_val, i_val_1);  // loading from address a_val [i_val_1] bytes on stack
+                    frame_ptr += i_val_1;
                 }
                 else {
                     std::cout << logger << "[O_LOAD] Wrong structure calling!\n";
                     exit(2);
                 }
+                it++;
                 break;
             case 76:    // O_AND_A
                 a_val = static_cast<char *> (pop_a());

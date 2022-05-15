@@ -422,10 +422,10 @@ Symbol SyntacticAnalyzer::add_decl_var_to_symbol(Type& type) {
         sym.depth = current_depth;
         sym.type = type;
         if (sym.depth == 0) {
-            sym.addr_offset = reinterpret_cast<void *> (&sym);
+            sym.addr_offset = reinterpret_cast<void *> (&sym.addr_offset);
         }
         else {
-            sym.addr_offset = reinterpret_cast<void *> (&sym);
+            sym.addr_offset = reinterpret_cast<void *> (&sym.addr_offset);
         }
     }
     return sym;
@@ -1077,7 +1077,7 @@ int SyntacticAnalyzer::expr_primary() {
         ret_val.is_constant_value = false;
         ret_val.is_left_value = false;
     }
-    else {
+    else {  // Access of struct or array
         consumed_token = std::make_shared<Node>(*current_token);
         if(match(lex.LBRACKET) == 1) {
             current_token = consumed_token;
@@ -1091,7 +1091,7 @@ int SyntacticAnalyzer::expr_primary() {
                 return 1;
             }
         }
-        else {
+        else {  // ID
             if (current_depth) {
                 Instruction h{Instruction::O_PUSHFPADDR};
                 h.set_args({symb.addr_offset});
@@ -2084,6 +2084,9 @@ void SyntacticAnalyzer::check_assign(const ReturnValue& rv, const long& op_code)
     h1 = get_r_val(rv);
     add_cast_instr(il.instr_list.back(), ret_val.type, rv.type);
 
+    // a = 125;
+    // *(long *) (rbp + idx) -> 125
+
     h2 = Instruction{Instruction::O_INSERT};
     long val = sizeof(void *) + type_arg_size(rv.type);
     long val2 = type_arg_size(rv.type);
@@ -2091,8 +2094,15 @@ void SyntacticAnalyzer::check_assign(const ReturnValue& rv, const long& op_code)
     h1 = Instruction{Instruction::O_STORE};
     h1.set_args({val2});
 
-    il.insert_instr(h2);
-    il.insert_instr(h1);
+    // il.insert_instr(h2);
+    // il.insert_instr(h1);
+
+    try {
+        auto x = std::get<double> (ret_val.constant_value);
+        std::cout << logger << "[ASSIGN]: " << x << "\n";
+    }
+    catch(std::exception& exception) {}
+    
 
 
 
@@ -2151,8 +2161,6 @@ bool SyntacticAnalyzer::add_var(Type type, std::string name) {
             sym.class_  = sym.CLS_VAR;
             sym.type = type;
             sym.depth = current_depth;
-            symbol_table.add_symbol(sym);
-            return true;
         }
         else {
             std::cout << logger << utils::log_error(current_token->token.line, "2Symbol redefinition while adding ");
@@ -2170,7 +2178,6 @@ bool SyntacticAnalyzer::add_var(Type type, std::string name) {
         sym.memory_zone = sym.MEM_LOCAL;
         sym.depth = current_depth;
         sym.type = type;
-        symbol_table.add_symbol(sym);
     }
     else {
         sym = symbol_table.find_symbol(name);
@@ -2183,8 +2190,19 @@ bool SyntacticAnalyzer::add_var(Type type, std::string name) {
         sym.memory_zone = sym.MEM_GLOBAL;
         sym.depth = current_depth;
         sym.type = type;
-        symbol_table.add_symbol(sym);
     }
+
+    if ( current_func != "" || current_struct != "" ) {
+        sym.addr_offset = offset;
+    }
+    else {
+        sym.addr_offset = offset;
+    }
+    offset += type_base_size(sym.type) * (sym.type.elements > 0 ? sym.type.elements : 1);
+    
+    std::cout << logger << "[OFFSET]: " << offset << "\n";
+
+    symbol_table.add_symbol(sym);
 
     return true;
 }

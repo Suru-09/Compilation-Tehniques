@@ -8,8 +8,8 @@
 #include "Instruction.hpp"
 #include "InstructionList.hpp"
 
-#define STACK_SIZE (32 * 1024)
-#define GLOBAL_SIZE (32 * 1024)
+#define STACK_SIZE (1024 * 1024)
+#define GLOBAL_SIZE (1024 * 1024)
 
 class VirtualMachine {
 private:

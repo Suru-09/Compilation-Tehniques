@@ -10,17 +10,40 @@ int a, b;
 
 struct masina masinute[50];
 
-void ceva(int w1, char w2, int w3) {
+// void ceva(int w1, char w2, int w3) {
 
-}
+// }
 
 int main(int x, int y, double z) {
 
     a = 125;
     b = 15;
 
+    int d;
+    d = 25;
+    int e;
+    e = 75;
+
+    int k;
+    k = 475;
+
+    if ( 5 > 13) {
+        if ( 6 > 14) {
+
+        }
+    }
+
+    if ( a >= b) {
+
+    }
+
+
     get_i(b);
     put_i(125);
+
+    z = 15;
+    x = 14;
+    y = 31;
 
     if ( x < 5 && !z || y != 3 )
         break;
@@ -32,7 +55,6 @@ int main(int x, int y, double z) {
     if ( -5 ) {
         a = 123;
         b = 459;
-        return 2;
     }
 
     double zx;
@@ -57,40 +79,32 @@ int main(int x, int y, double z) {
         }
     }
 
-    if ( a > b ) {
-        a = 'd';
-        return 'c';
-    }
+    // if ( a >= b ) {
+    //     a = 'd';
+    //     // return 'c';
+    // }
     // else {
     //     return 14;
     // }
 
-    // masinute[1].viteza_maxima = 4769;
-    // else {
-    //     if( a == b) {
-    //         int c;
-    //         c = a * b;
-    //     }
-    //     else {
-    //         b = b / 100;
-    //     }
-    // }
+    masinute[1].viteza_maxima = 4769;
 
-    // double cl[10];
-    // int i;
+    double cl[10];
+    int i;
+    i = 17;
     // for(i = 0; i < 10; i = i + 1) {
     //     cl[i] = i * 10 + a - b;
     // }
     
-    // while ( i != a && z < masinute[2].viteza_maxima ) {
-    //     if( masinute[i].viteza_maxima < 20) {
-    //         masinute[i].viteza_maxima = 53.7 - 4;
-    //         return 'k';
-    //     }
-    //     else {
-    //         get_i(masinute[i].viteza_maxima);
-    //     }
-    // }
+    while ( i != a && z < masinute[1].viteza_maxima ) {
+        if( masinute[i].viteza_maxima < 20) {
+            masinute[i].viteza_maxima = 53.7 - 4;
+            // return 'k';
+        }
+        else {
+            get_i(masinute[i].viteza_maxima);
+        }
+    }
 
     // struct masina m;
     // m.nume = 's';
@@ -106,5 +120,4 @@ int main(int x, int y, double z) {
     // masinute[2] = m;
 
     // ceva(z, z, z);
-    return get_i(z);
 }

@@ -75,14 +75,6 @@ int * mamaliga(double abc, char mamaliga2, char macaroane) {
 }
 
 
-int wtf() {
-	double c;
-	char d;
-	int b[10];
-	main();
-	mamaliga(c, d, c);
-}
-
 /*struct z main() {
 	return "not ok";
 }*/
