@@ -113,6 +113,7 @@ void VirtualMachine::run() {
     stack_ptr = stack;  // we allocated continuouus memory for the stack, use it
     stack_after = stack + STACK_SIZE;   // this should be the first address after
     Symbol symb;
+    Instruction instr;
     std::string str;
     std::variant<long, double, void *> symb_val;
     // the stack's memory
@@ -470,29 +471,17 @@ void VirtualMachine::run() {
                 }
                 break;
             case 34:    // O_JF_I
-                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "void" ) {
+                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
                     i_val_1 = pop_i();
-                    auto val = std::get<void *> ((*it).args[0]);
-                    std::cout << logger << "[O_JF_I] " << val << " (" << i_val_1 << ")\n";
-                    // Instruction copy = (*static_cast<Instruction *> (val));
-                    auto itr = std::find(instr_list.instr_list.begin(), instr_list.instr_list.end(), (*static_cast<Instruction *> (val)));
-                    // std::list<Instruction>::iterator itr;
-                    if ( itr != instr_list.instr_list.end()) {
-                        it = !i_val_1 ? itr : ++it;
-                    } 
-                    else {
-                        if (i_val_1 == 0) {
-                            std::cout << logger << "[O_JF_I] Given Instruction is not valid!\n";
-                            exit(2);
-                        }
-                        std::cout << logger << "[O_JF_I] Given instruction was not found ++it!\n";
-                        ++it;
-                    }
+                    i_val_2 = std::get<long> ((*it).args[0]);
+                    std::cout << logger << "[O_JF_I] " << i_val_2 << " (" << i_val_1 << ")\n";
+                    it = !i_val_1 ? std::next(instr_list.instr_list.begin(), i_val_2) : ++it;
                 }
                 else {
                     std::cout << logger << "[O_JF_I] Wrong structure calling!\n";
                     exit(2);
                 }
+                ++it;
                 break;
             case 35:    // O_JMP
                 if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "void" ) {
@@ -863,7 +852,21 @@ void VirtualMachine::run() {
             case 71:    // O_STORE
                 if ( (*it).args.size() == 2 && Instruction::variant_to_type((*it).args[0]) == "void" ){
                     symb = *(static_cast<Symbol *> ( std::get<void *> ((*it).args[0])));
-                    push_in_register(symb, (*it).args[1]);
+                    if ( Instruction::variant_to_type((*it).args[1]) == "long" ) {
+                        push_in_register(symb, pop_i());
+                    }
+                    else if ( Instruction::variant_to_type((*it).args[1]) == "double" ) {
+                        push_in_register(symb, pop_d());
+                    }
+                    else if ( Instruction::variant_to_type((*it).args[1]) == "void" ) {
+                        push_in_register(symb, pop_a());
+                    }
+                    else {
+                        std::cout << logger << "[O_STORE] Error while storing value!\n";
+                        exit(4);
+                    }
+
+                    // push_in_register(symb, (*it).args[1]);
                 }
                 else {
                     std::cout << logger << "[O_STORE] Wrong structure calling!\n";
@@ -961,7 +964,10 @@ void VirtualMachine::push_in_register(const Symbol& symb,
             if ((*itr).first.first == symb.name &&
                     (*itr).first.second == symb.depth) {
                         (*itr).second = symb_val;
+                        std::cout << logger << "wow\n";
                         ok = 1;
+                        std::cout << logger << std::get<long> (symb_val) << '\n';
+                        registers[pair] = symb_val;
                     }
         }
 
@@ -981,7 +987,6 @@ void VirtualMachine::push_in_register(const Symbol& symb,
 std::variant<long, double, void *> 
     VirtualMachine::search_register(const Symbol& symb) {
 
-    std::cout << "[REGISTER_SEARCH]: " <<  symb.name << "\n";
     std::map<std::pair<std::string, long>, 
         std::variant<long, double, void *>>::iterator itr;
     for ( itr = registers.begin(); itr != registers.end(); ++itr) {

@@ -828,9 +828,10 @@ int SyntacticAnalyzer::r_if() {
     h1 = create_cond_jump(ret_val);
 
     auto tmp = Instruction{Instruction::O_NOP};
-    h1.set_args({reinterpret_cast<void *>(&tmp)});
+    h1.set_args({static_cast<long> ((il.instr_list.size() + 1))});
     il.insert_instr(h1);
     il.insert_instr(tmp);
+    
 
     if(!stm()) {
         std::cout << logger << utils::log_error(current_token->token.line, "Missing statement ");
@@ -838,17 +839,17 @@ int SyntacticAnalyzer::r_if() {
     }
 
     if(match(lex.ELSE)) {
+        h1.set_args({ static_cast<long> ((il.instr_list.size() - 1))});
+        std::cout << "Am intrat" << il.instr_list.size() - 1 << "\n";
+        il.update_instr(h1);
+
+
         if(!stm()) {
             std::cout << logger << utils::log_error(current_token->token.line, "Else with empty body ");
             exit(lex.ELSE);
         }
 
         // CODE GENERATION
-        h2 = Instruction{Instruction::O_JMP};
-        h2.set_args({reinterpret_cast<void *> (&il.instr_list.back())});
-        h1.set_args({reinterpret_cast<void *> (&h2)});
-        il.insert_instr(h1);
-        il.insert_instr(h2);
     }
     return 1;
 }
@@ -1006,6 +1007,8 @@ int SyntacticAnalyzer::expr_primary() {
         ret_val.type = s.type;
         ret_val.is_left_value = true;
         ret_val.is_constant_value = false;
+
+        // get_r_val(ret_val);
     }
 
     if(!match(lex.ID)) {
@@ -2079,37 +2082,70 @@ void SyntacticAnalyzer::check_assign(const ReturnValue& rv, const long& op_code)
 
     // CODE GENERATION
     Instruction h1, h2;
+    add_cast_instr(il.instr_list.back(), ret_val.type, rv.type);
     if ( ret_val.symbol_name != rv.symbol_name) {
         get_r_val(ret_val);
-    }
-    add_cast_instr(il.instr_list.back(), ret_val.type, rv.type);
-    std::cout << logger << "SMR: " << ret_val.symbol_name << "   " << rv.symbol_name << "\n";
-    
-    try {
-        auto x = std::get<long> (ret_val.constant_value);
-        h1 = Instruction{Instruction::O_STORE};
-        Symbol sym = symbol_table.find_symbol(ret_val.symbol_name);
-        if ( sym.name != "") {
-            symbols.push_back(sym);
-            h1.set_args({static_cast<void *> (&symbols.back()), static_cast<long> (x)});
-            il.insert_instr(h1);        
-        }
-        else {
-            exit(3);
-        }
-    }
-    catch(std::exception& exception) {
+
         try {
-            auto x = std::get<double> (ret_val.constant_value);
+            auto x = std::get<long> (ret_val.constant_value);
+            auto y = std::get<long>(rv.constant_value);
+            std::cout << logger << "SMR: " << ret_val.symbol_name << "   " << rv.symbol_name << "\n";
+            std::cout << logger << "SMR: " << x << "   " << y << "\n";
             h1 = Instruction{Instruction::O_STORE};
-            Symbol sym = symbol_table.find_symbol(ret_val.symbol_name);
+            Symbol sym = symbol_table.find_symbol(rv.symbol_name);
             if ( sym.name != "") {
                 symbols.push_back(sym);
-                h1.set_args({static_cast<void *> (&symbols.back()), static_cast<double> (x)});
-                il.insert_instr(h1);
+                h1.set_args({static_cast<void *> (&symbols.back()), static_cast<long> (x)});
+                il.insert_instr(h1);        
+            }
+            else {
+                exit(3);
             }
         }
-        catch(std::exception& exception) {}  
+        catch(std::exception& exception) {
+            try {
+                auto x = std::get<double> (ret_val.constant_value);
+                h1 = Instruction{Instruction::O_STORE};
+                Symbol sym = symbol_table.find_symbol(ret_val.symbol_name);
+                if ( sym.name != "") {
+                    symbols.push_back(sym);
+                    h1.set_args({static_cast<void *> (&symbols.back()), static_cast<double> (x)});
+                    il.insert_instr(h1);
+                }
+            }
+            catch(std::exception& exception) {}  
+        }
+    }
+    else {
+        try {
+            auto x = std::get<long> (rv.constant_value);
+            auto y = std::get<long>(rv.constant_value);
+            std::cout << logger << "SMR: " << ret_val.symbol_name << "   " << rv.symbol_name << "\n";
+            std::cout << logger << "SMR: " << x << "   " << y << "\n";
+            h1 = Instruction{Instruction::O_STORE};
+            Symbol sym = symbol_table.find_symbol(rv.symbol_name);
+            if ( sym.name != "") {
+                symbols.push_back(sym);
+                h1.set_args({static_cast<void *> (&symbols.back()), static_cast<long> (x)});
+                il.insert_instr(h1);        
+            }
+            else {
+                exit(3);
+            }
+        }
+        catch(std::exception& exception) {
+            try {
+                auto x = std::get<double> (ret_val.constant_value);
+                h1 = Instruction{Instruction::O_STORE};
+                Symbol sym = symbol_table.find_symbol(rv.symbol_name);
+                if ( sym.name != "") {
+                    symbols.push_back(sym);
+                    h1.set_args({static_cast<void *> (&symbols.back()), static_cast<double> (x)});
+                    il.insert_instr(h1);
+                }
+            }
+            catch(std::exception& exception) {}  
+        }
     }
 
     cast_type(ret_val.type, rv.type);
@@ -2648,11 +2684,11 @@ Instruction SyntacticAnalyzer::create_cond_jump(const ReturnValue& ret_val) {
 }
 
 void SyntacticAnalyzer::clear_symbols_level(const long& depth) {
-    // for(size_t i = 0 ; i < symbols.size(); ++i) {
-    //     if( symbols[i].name != "" && symbols[i].depth == depth) {
-    //         // symbols.erase(symbols.begin() + i);
-    //     }
-    // }
+    for(size_t i = 0 ; i < symbols.size(); ++i) {
+        if( symbols[i].name != "" && symbols[i].depth == depth) {
+            // symbols.erase(symbols.begin() + i);
+        }
+    }
     std::cout << logger << "[CLEAR_SYMBOLS] Succesfully deleted all symbols on level: [" << depth << "]\n";
 }
 

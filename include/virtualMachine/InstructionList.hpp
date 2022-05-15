@@ -16,7 +16,7 @@ public:
     InstructionList();
     // INSERT METHODS
     void insert_instr_after(const Instruction& after, const Instruction& i);
-    void insert_instr(const Instruction& i);
+    Instruction insert_instr(const Instruction& i);
 
     // Create and insert instruction methods
     void create_insert_instr_after(const Instruction& after, const int& op_code);

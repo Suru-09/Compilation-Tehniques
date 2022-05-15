@@ -45,6 +45,7 @@ std::string Instruction::variant_to_type(std::variant<long, double, void *> x) {
 }
 
 void Instruction::set_args(const std::vector<std::variant<long, double, void *>>& arr) {
+    args.clear();
     for ( const auto& x: arr) {
         try {
             args.push_back(std::get<long> (x));

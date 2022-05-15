@@ -16,8 +16,9 @@ void InstructionList::insert_instr_after(const Instruction& after, const Instruc
     }
 }
 
-void InstructionList::insert_instr(const Instruction& i) {
+Instruction InstructionList::insert_instr(const Instruction& i) {
     instr_list.push_back(i);
+    return instr_list.back();
 }
 
 void InstructionList::create_insert_instr_after(const Instruction& after, const int& op_code) {
@@ -40,12 +41,18 @@ void InstructionList::delete_instr_after(const Instruction& start) {
 }
 
 void InstructionList::update_instr(const Instruction& to_update) {
-    auto it = std::find(instr_list.begin(), instr_list.end(), to_update);
-    if ( it != instr_list.end() ) {
-        insert_instr_after( (*it), to_update);
-        instr_list.erase(it);
+    long ok = 0;
+    for (auto itr = instr_list.rbegin() ; itr != instr_list.rend(); ) {
+        if ( (*itr).op_code == to_update.op_code ) {
+            (*itr).args = to_update.args;
+            std::cout << logger << "[OMEGA] : " << Instruction::variant_to_type((*itr).args[0]) << "\n";
+            ok = 1;
+            break;
+        }
+        ++itr;
     }
-    else {
+
+    if (!ok) {
         std::cout << logger << "[UPDATE_INSTR] Element: [" << to_update << "] NOT FOUND in INSTRUCTION_LIST!\n";
         exit(1);
     }

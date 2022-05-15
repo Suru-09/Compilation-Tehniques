@@ -17,11 +17,11 @@ int b;
 
 int main(int x, int y, double z) {
 
-    a = 125;
+    a = 125 - 26;
     b = 15;
 
     int d;
-    d = 25;
+    d = 35 - 14;
     int omega;
     omega = 1750;
     int e;
@@ -33,9 +33,9 @@ int main(int x, int y, double z) {
     portocala = 3;
 
     int k;
-    k = 475;
+    k = 475 + 23;
 
-    k = e;
+    k = 25 + e + 43;
 
     if ( 13 >= 5) {
         if ( 14 > 6) {
@@ -46,65 +46,73 @@ int main(int x, int y, double z) {
     if ( a >= d) {
         int banana;
         banana = 25;
-        if ( a >= b ) {
+        if ( k >= e ) {
             return 3;
         }
     }
 
 
-    // if ( a || b ) {
+    if ( a || b ) {
 
-    // }
+    }
 
 
-    // get_i(b);
-    // put_i(125);
+    get_i(b);
+    put_i(125);
 
-    // z = 15;
-    // x = 14;
-    // y = 31;
+    z = 15;
+    x = 14;
+    y = 31;
 
-    // if ( x < 5 && !z || y != 3 )
-    //     break;
+    if ( x < 5 && !z || y != 3 )
+        break;
     
-    // if ( 2 > 3 ) {
-    //     a = a - b;
-    // }
+    double de;
 
-    // if ( -5 ) {
-    //     a = 123;
-    //     b = 459;
-    // }
+    if ( 2 > 3 ) {
+        a = a - b;
+        a = b - a;
+        a = 36;
+        b = 34;
+    }
+    else {
+        de = 23.475;
+    }
 
-    // double zx;
-    // zx = 15;
+    if ( -5 ) {
+        a = 123;
+        b = 459;
+    }
 
-    // int alfa;
-    // if ( 2.3 * 5 ) {
-    //     if ( 14.67 / 5 ) {
-    //         if (2 + 3 ) {
-    //             if ( 15 - 10) {
-    //                 if ( 10 == 10 ) {
-    //                     if ( 15 <= 15) {
-    //                         if ( 10 && 15) {
-    //                             if ( 15 || -20 ) {
+    double zx;
+    zx = 15;
+
+    int alfa;
+    if ( 15 * 5 ) {
+        if ( 10 / 5 ) {
+            if (2 + 3 ) {
+                if ( 15 - 10) {
+                    if ( 10 == 10 ) {
+                        if ( 15 <= 15) {
+                            if ( 10 && 15) {
+                                if ( 15 || -20 ) {
                                     
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-    // if ( a >= b ) {
-    //     a = 'd';
-    //     // return 'c';
-    // }
-    // else {
-    //     return 14;
-    // }
+    if ( a >= b ) {
+        a = 'd';
+        return 'c';
+    }
+    else {
+        return 14;
+    }
 
     // masinute[1].viteza_maxima = 4769;
 
