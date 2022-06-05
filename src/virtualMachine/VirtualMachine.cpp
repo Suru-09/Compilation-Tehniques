@@ -475,7 +475,7 @@ void VirtualMachine::run() {
                     i_val_1 = pop_i();
                     i_val_2 = std::get<long> ((*it).args[0]);
                     std::cout << logger << "[O_JF_I] " << i_val_2 << " (" << i_val_1 << ")\n";
-                    it = !i_val_1 ? std::next(instr_list.instr_list.begin(), i_val_2) : ++it;
+                    it = !i_val_1 ? std::next(instr_list.instr_list.begin(), i_val_2) : std::next(it, 1);
                 }
                 else {
                     std::cout << logger << "[O_JF_I] Wrong structure calling!\n";
@@ -484,17 +484,10 @@ void VirtualMachine::run() {
                 ++it;
                 break;
             case 35:    // O_JMP
-                if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "void" ) {
-                    auto val = std::get<void *> ((*it).args[0]);
-                    std::cout << logger << "[O_JMP] " << val << "\n";
-                    auto itr = std::find(instr_list.instr_list.begin(), instr_list.instr_list.end(), (*static_cast<Instruction *> (val)));
-                    if ( itr != instr_list.instr_list.end()) {
-                        it = itr;
-                    } 
-                    else {
-                        std::cout << logger << "[O_JMP] Given Instruction is not valid!\n";
-                        exit(2);
-                    }
+                 if ( (*it).args.size() == 1 && Instruction::variant_to_type((*it).args[0]) == "long" ) {
+                    i_val_2 = std::get<long> ((*it).args[0]);
+                    std::cout << logger << "[O_JMP] " << i_val_2 << " ("  << ")\n";
+                    it = std::next(instr_list.instr_list.begin(), i_val_2);
                 }
                 else {
                     std::cout << logger << "[O_JMP] Wrong structure calling!\n";
@@ -964,7 +957,6 @@ void VirtualMachine::push_in_register(const Symbol& symb,
             if ((*itr).first.first == symb.name &&
                     (*itr).first.second == symb.depth) {
                         (*itr).second = symb_val;
-                        std::cout << logger << "wow\n";
                         ok = 1;
                         std::cout << logger << std::get<long> (symb_val) << '\n';
                         registers[pair] = symb_val;

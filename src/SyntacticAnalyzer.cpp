@@ -235,7 +235,6 @@ void SyntacticAnalyzer::unit() {
             symbol_table.print_symbol_table();
             vm.set_il(il);
             il.print_instruction_list();
-            vm.run();
             break;
         }
 
@@ -766,9 +765,32 @@ int SyntacticAnalyzer::r_for() {
     }
 
     int cnt = 3;
+    ReturnValue rv1, rv2, rv3;
+    Instruction h1, h2;
+    long jump_val;
     while(cnt--) {
         if ( expr() && cnt == 1) {  // check only for middle thing
             check_r_if();
+        }
+
+        if(cnt == 2) {
+            rv1 = ret_val;
+            jump_val = il.instr_list.size();
+            std::cout << logger << "[JUMP_VAL]: " << jump_val << "\n";
+        }
+        else if(cnt == 1) {
+            rv2 = ret_val;
+            // get_r_val(rv2);
+            h1 = create_cond_jump(rv2);
+            h2 = Instruction{Instruction::O_NOP};
+            h1.set_args({static_cast<long>(il.instr_list.size() - 2)});
+            std::cout << logger << "[VAL]: " << std::get<long> (ret_val.constant_value) << "\n";
+            
+            // il.insert_instr(h2);
+        }
+        else if(cnt == 0) {
+            rv3 = ret_val;
+            // get_r_val(rv3);
         }
 
         if(cnt > 0) {
@@ -788,6 +810,8 @@ int SyntacticAnalyzer::r_for() {
         std::cout << logger << utils::log_error(current_token->token.line, "Missing statement ");
         exit(-1);
     }
+
+    // il.insert_instr(h1);
 
     return 1;
 }
@@ -817,6 +841,7 @@ int SyntacticAnalyzer::r_if() {
     }
 
     check_r_if();
+    ReturnValue rv = ret_val;
 
     if(!match(lex.RPAR)) {
         std::cout << logger << utils::log_error(current_token->token.line, "Missing ) ");
@@ -840,14 +865,19 @@ int SyntacticAnalyzer::r_if() {
 
     if(match(lex.ELSE)) {
         h1.set_args({ static_cast<long> ((il.instr_list.size() - 1))});
+        std::cout << "Am intrat" << std::get<long> (rv.constant_value) << "\n";
         std::cout << "Am intrat" << il.instr_list.size() - 1 << "\n";
         il.update_instr(h1);
 
 
+        // h2 = Instruction{Instruction::O_JMP};
+        // h2.set_args({ static_cast<long> ((il.instr_list.size() + 1)) });
+        // il.insert_instr(h2);
         if(!stm()) {
             std::cout << logger << utils::log_error(current_token->token.line, "Else with empty body ");
             exit(lex.ELSE);
         }
+        
 
         // CODE GENERATION
     }
@@ -1033,7 +1063,7 @@ int SyntacticAnalyzer::expr_primary() {
             if ( ret_val.type.elements < 0 ) {
                 last_instruction = get_r_val(ret_val);
             }
-            // add_cast_instr(il.instr_list.back(), vec[it].second.type, ret_val.type);
+            add_cast_instr(il.instr_list.back(), vec[it].second.type, ret_val.type);
 
             ++it;
         }
@@ -1050,7 +1080,7 @@ int SyntacticAnalyzer::expr_primary() {
                 if ( ret_val.type.elements < 0 ) {
                     last_instruction = get_r_val(ret_val);
                 }
-                // add_cast_instr(il.instr_list.back(), vec[it].second.type, ret_val.type);
+                add_cast_instr(il.instr_list.back(), vec[it].second.type, ret_val.type);
                 ++it;
             }
         }
@@ -1075,7 +1105,7 @@ int SyntacticAnalyzer::expr_primary() {
         }
 
         // CODE GENERATION
-        Instruction h{symb.class_ == Symbol::CLS_FUNC ? Instruction::O_CALLEXT : Instruction::O_CALLEXT};
+        Instruction h{symb.class_ == Symbol::CLS_FUNC ? Instruction::O_CALL : Instruction::O_CALLEXT};
         h.set_args({symb.addr_offset});
         il.insert_instr(h);
 
@@ -1671,7 +1701,7 @@ void SyntacticAnalyzer::check_rel(const ReturnValue& rv, const long& op_code) {
 
     Instruction h;
     switch (op_code) {
-        case lex.LESS:
+        case 23:    // LESS
             switch (ret_val.type.type_base) {
                 case Type::TB_INT:
                     h = Instruction{Instruction::O_LESS_I};
@@ -1687,7 +1717,7 @@ void SyntacticAnalyzer::check_rel(const ReturnValue& rv, const long& op_code) {
                     break;
             }
             break;
-        case lex.LESSEQ:
+        case 22:    // LESSEQ
             switch (ret_val.type.type_base) {
                 case Type::TB_INT:
                     h = Instruction{Instruction::O_LESSEQ_I};
@@ -1703,7 +1733,7 @@ void SyntacticAnalyzer::check_rel(const ReturnValue& rv, const long& op_code) {
                     break;
             }
             break;
-        case lex.GREATER:
+        case 26:    // GREATER
             switch (ret_val.type.type_base) {
                 case Type::TB_INT:
                     h = Instruction{Instruction::O_GREATER_I};
@@ -1719,7 +1749,7 @@ void SyntacticAnalyzer::check_rel(const ReturnValue& rv, const long& op_code) {
                     break;
             }
             break;
-        case lex.GREATEREQ:
+        case 25:    // GREATEREQ
             switch (ret_val.type.type_base) {
                 case Type::TB_INT:
                     h = Instruction{Instruction::O_GREATEREQ_I};
@@ -2659,20 +2689,17 @@ void SyntacticAnalyzer::add_cast_instr(const Instruction& after,
 
 Instruction SyntacticAnalyzer::create_cond_jump(const ReturnValue& ret_val) {
     if (ret_val.type.elements >= 0) {
-        il.insert_instr(Instruction{Instruction::O_JF_A});
+        // il.insert_instr(Instruction{Instruction::O_JF_A});
         return Instruction{Instruction::O_JF_A};
     }
     else {
         Instruction i = get_r_val(ret_val);
         switch( ret_val.type.type_base ) {
             case Type::TB_CHAR:
-                // il.insert_instr(Instruction{Instruction::O_JF_C});
                 return Instruction{Instruction::O_JF_C};
             case Type::TB_INT:
-                // il.insert_instr(Instruction{Instruction::O_JF_I});
                 return Instruction{Instruction::O_JF_I};
             case Type::TB_DOUBLE:
-                // il.insert_instr(Instruction{Instruction::O_JF_D});
                 return Instruction{Instruction::O_JF_D};
             default:
                 std::cout << logger << "[CREATE_COND_JUMP] Trying to create a conditional jump on: " <<
@@ -2690,5 +2717,9 @@ void SyntacticAnalyzer::clear_symbols_level(const long& depth) {
         }
     }
     std::cout << logger << "[CLEAR_SYMBOLS] Succesfully deleted all symbols on level: [" << depth << "]\n";
+}
+
+void SyntacticAnalyzer::run_vm() {
+    vm.run();
 }
 

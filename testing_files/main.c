@@ -1,21 +1,21 @@
-// struct masina {
-//     char nume;
-//     char culoare;
-//     int viteza_maxima;
-//     int is_elektric, banana;
-//     int vector[50];
-// };
+struct masina {
+    char nume;
+    char culoare;
+    int viteza_maxima;
+    int is_elektric, banana;
+    int vector[50];
+};
 
 int a;
 int b;
 
-// struct masina masinute[50];
+struct masina masinute[50];
 
-// void ceva(int w1, char w2, int w3) {
+void ceva(int w1, char w2, int w3) {
 
-// }
+}
 
-int main(int x, int y, double z) {
+int main() {
 
     a = 125 - 26;
     b = 15;
@@ -60,6 +60,7 @@ int main(int x, int y, double z) {
     get_i(b);
     put_i(125);
 
+    int x, y, z;
     z = 15;
     x = 14;
     y = 31;
@@ -77,6 +78,9 @@ int main(int x, int y, double z) {
     }
     else {
         de = 23.475;
+        z = 15;
+        x = 14;
+        y = 31;
     }
 
     if ( -5 ) {
@@ -106,45 +110,39 @@ int main(int x, int y, double z) {
         }
     }
 
-    if ( a >= b ) {
+    if ( a <= b ) {
         a = 'd';
-        return 'c';
+        return 15;
     }
     else {
         return 14;
     }
 
-    // masinute[1].viteza_maxima = 4769;
+    int j;
+    int val;
+    val = 2;
+    int alfa_omega;
+    alfa_omega = 2;
+    for( j = val; j < a; j = j + 1) {
+        alfa_omega = 0;
+    }
 
-    // double cl[10];
-    // int i;
-    // i = 17;
-    // for(i = 0; i < 10; i = i + 1) {
-    //     cl[i] = i * 10 + a - b;
-    // }
+    masinute[1].viteza_maxima = 4769;
+
+    double cl[10];
+    int i;
+    i = 17;
+    for(i = 0; i < 10; i = i + 1) {
+        cl[i] = i * 10 + a - b;
+    }
     
-    // while ( i != a && z < masinute[1].viteza_maxima ) {
-    //     if( masinute[i].viteza_maxima < 20) {
-    //         masinute[i].viteza_maxima = 53.7 - 4;
-    //         // return 'k';
-    //     }
-    //     else {
-    //         get_i(masinute[i].viteza_maxima);
-    //     }
-    // }
-
-    // struct masina m;
-    // m.nume = 's';
-    // m.vector[50] = 20;
-    // m.culoare = 'n';
-    // m.viteza_maxima = 469;
-    // m.is_elektric = 1;
-
-    // 1 / ;
-
-    // put_i(a);
-
-    // masinute[2] = m;
-
-    // ceva(z, z, z);
+    while ( i != a && z < masinute[1].viteza_maxima ) {
+        if( masinute[i].viteza_maxima < 20) {
+            masinute[i].viteza_maxima = 53.7 - 4;
+            return 5;
+        }
+        else {
+            get_i(masinute[i].viteza_maxima);
+        }
+    }
 }

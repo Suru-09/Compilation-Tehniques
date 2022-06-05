@@ -9,8 +9,6 @@
 #include "Type.hpp"
 #include "ReturnValue.hpp"
 #include "VirtualMachine.hpp"
-#include "Instruction.hpp"
-#include "InstructionList.hpp"
 
 class SyntacticAnalyzer {
 private:
@@ -18,26 +16,17 @@ private:
     Logger logger;
     std::string class_name;
     std::shared_ptr<Node> current_token, consumed_token;
-
-    // SymbolTable
+    //SymbolTable
     SymbolTable symbol_table;
     int current_depth;
     std::string current_struct;
     std::string current_func;
     Symbol tmp;
     bool is_struct;
-
-    // Type checking
+    //Type checking
     ReturnValue ret_val;
-
     // Virtual Machine
     inline static VirtualMachine vm = VirtualMachine{};
-    InstructionList il;
-    std::vector<Symbol> symbols;
-
-    // Code Generation
-    long size_args, offset;
-    Instruction last_instruction;
 
     //  STATEMENTS
     int stm_block();
@@ -101,13 +90,13 @@ private:
     void check_postfix(const ReturnValue& rv);
     void check_unary_sub();
     void check_unary_not();
-    void check_mul(const ReturnValue& rv, const long& tk_op);
-    void check_add(const ReturnValue& rv, const long& tk_op);
-    void check_rel(const ReturnValue& rv, const long& tk_op);
-    void check_eq(const ReturnValue& rv, const long& tk_op);
-    void check_or(const ReturnValue& rv, const long& tk_op);
-    void check_and(const ReturnValue& rv, const long& tk_op);
-    void check_assign(const ReturnValue& rv, const long& tk_op);
+    void check_mul(const ReturnValue& rv);
+    void check_add(const ReturnValue& rv);
+    void check_rel(const ReturnValue& rv);
+    void check_eq(const ReturnValue& rv);
+    void check_or(const ReturnValue& rv);
+    void check_and(const ReturnValue& rv);
+    void check_assign(const ReturnValue& rv);
     void check_r_if();
     void check_r_return();
     void check_array_decl();
@@ -129,18 +118,9 @@ private:
     void static get_c();
     void static seconds();
 
-    //CODE GENERATION
-    long type_base_size(const Type& type);
-    long type_arg_size(const Type& type);
-    Instruction get_r_val(const ReturnValue& ret_val);
-    void add_cast_instr(const Instruction& after, const Type& actual_t, const Type& needed_t);
-    Instruction create_cond_jump(const ReturnValue& ret_val);
-    void clear_symbols_level(const long& depth);
-
 public:
     void unit();
     void test_vm();
-    void run_vm();
 
     SyntacticAnalyzer(const LexicalAnalyzer &lex_analiz);
     SyntacticAnalyzer();

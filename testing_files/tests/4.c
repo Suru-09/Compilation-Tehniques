@@ -1,12 +1,13 @@
-int isdigit(char ch)
-{
-	return ch>='0'&&ch<='9';
+void printGreater() {
+	int x, y;
+	x = 1;
+	y = 2;
+	if (x > y)
+		put_i(x);
+	else
+		put_i(y);
 }
 
-void main()
-{
-	char		c;
-	put_s("c=");
-	c=get_c();
-	put_i(isdigit(c));
+void main() {
+	// printGreater();
 }
