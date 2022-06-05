@@ -56,6 +56,7 @@ bool Symbol::add_member(Symbol s) {
         std::cout << logger << " Wrong type given in add_member() function!\n";
         exit(-1);
     }
+    return true;
 }
 
 Symbol& Symbol::operator=(const Symbol& symbol) {
@@ -65,6 +66,7 @@ Symbol& Symbol::operator=(const Symbol& symbol) {
         memory_zone = symbol.memory_zone;
         depth = symbol.depth;
         type = symbol.type;
+        addr_offset = symbol.addr_offset;
 
         members.clear();
         for(auto x: symbol.members) {

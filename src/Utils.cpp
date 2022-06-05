@@ -46,8 +46,9 @@ namespace utils {
         SyntacticAnalyzer syn{lexic_int};
         std::cout << logger << "Starting the syntactic analysis: \n";
         syn.unit();
+        syn.run_vm();
 
-        syn.test_mv();
+        // syn.test_vm();
     }
 
     void test_diagrams() {
@@ -59,18 +60,11 @@ namespace utils {
         // test_file("../testing_files/dfa/delimiters+operators.txt");
         // test_file("../testing_files/dfa/line_comment.txt");
         // test_file("../testing_files/dfa/block_comment.txt");
+        test_file("../testing_files/tests/1.c");
+        test_file("../testing_files/tests/2.c");
+        test_file("../testing_files/tests/3.c");
+        test_file("../testing_files/tests/4.c");
         test_file("../testing_files/main.c");
-        // test_file("../testing_files/input.txt");
-        // test_file("../testing_files/tests/0.c");
-        // test_file("../testing_files/tests/1.c");
-        // test_file("../testing_files/tests/2.c");
-        // test_file("../testing_files/tests/3.c");
-        // test_file("../testing_files/tests/4.c");
-        // test_file("../testing_files/tests/5.c");
-        // test_file("../testing_files/tests/6.c");
-        // test_file("../testing_files/tests/7.c");
-        // test_file("../testing_files/tests/8.c");
-        // test_file("../testing_files/tests/9.c");
     }
 
     void test_symbol_structure() {

@@ -10,13 +10,6 @@
 
 class Symbol {
 private:
-    enum CLASS { 
-        CLS_VAR = 0, CLS_FUNC = 1, CLS_EXTFUNC = 2, CLS_STRUCT = 3
-    };
-    enum MEMORY {
-        MEM_GLOBAL = 0, MEM_ARG = 1, MEM_LOCAL = 2
-    };
-    
     std::string class_name;
     Logger logger;
     std::string name;
@@ -28,6 +21,13 @@ private:
     std::variant<long, double, void *> addr_offset;
 
 public:
+    enum CLASS { 
+        CLS_VAR = 0, CLS_FUNC = 1, CLS_EXTFUNC = 2, CLS_STRUCT = 3
+    };
+    enum MEMORY {
+        MEM_GLOBAL = 0, MEM_ARG = 1, MEM_LOCAL = 2
+    };
+
     std::string get_name();
     Symbol(const std::string& name, const int& class_, const Type& type);
     Symbol();
@@ -41,6 +41,7 @@ public:
 
     friend class SymbolTable;
     friend class SyntacticAnalyzer;
+    friend class VirtualMachine;
 };
 
 #endif

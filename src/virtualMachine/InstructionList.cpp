@@ -8,16 +8,17 @@ logger(Logger{class_name})
 void InstructionList::insert_instr_after(const Instruction& after, const Instruction& i) {
     auto it = std::find(instr_list.begin(), instr_list.end(), after);
     if( it != instr_list.end() ) {
-        instr_list.insert(it, i);
+        instr_list.insert(++it, i);
     }
     else {
-        std::cout << logger << "Element: [" << i << "] NOT FOUND in INSTRUCTION_LIST!\n";
+        std::cout << logger <<" [INSERT_AFTER] Element: [" << i << "] NOT FOUND in INSTRUCTION_LIST!\n";
         exit(1);
     }
 }
 
-void InstructionList::insert_instr(const Instruction& i) {
+Instruction InstructionList::insert_instr(const Instruction& i) {
     instr_list.push_back(i);
+    return instr_list.back();
 }
 
 void InstructionList::create_insert_instr_after(const Instruction& after, const int& op_code) {
@@ -37,4 +38,52 @@ void InstructionList::delete_instr_after(const Instruction& start) {
         std::cout << logger << "Element: [" << start << "] NOT FOUND in INSTRUCTION_LIST!\n";
         exit(1);
     }    
+}
+
+void InstructionList::update_instr(const Instruction& to_update) {
+    long ok = 0;
+    for (auto itr = instr_list.rbegin() ; itr != instr_list.rend(); ) {
+        if ( (*itr).op_code == to_update.op_code ) {
+            (*itr).args = to_update.args;
+            std::cout << logger << "[OMEGA] : " << Instruction::variant_to_type((*itr).args[0]) << "\n";
+            ok = 1;
+            break;
+        }
+        ++itr;
+    }
+
+    if (!ok) {
+        std::cout << logger << "[UPDATE_INSTR] Element: [" << to_update << "] NOT FOUND in INSTRUCTION_LIST!\n";
+        exit(1);
+    }
+}
+
+
+void InstructionList::print_instruction_list() {
+    std::vector<std::string> headers{"Count", "Operation CODE", "Arg 1", "Arg 2"};
+    VariadicTable<int, int, std::string, std::string> vt(headers);
+    vt.setColumnFormat({VariadicTableColumnFormat::AUTO,
+                        VariadicTableColumnFormat::AUTO,
+                        VariadicTableColumnFormat::AUTO,
+                        VariadicTableColumnFormat::AUTO});
+
+    std::cout << logger << " Printing the Instruction List: \n";
+    int counter = 0;
+    for (const auto& x: instr_list) {
+        counter++;
+        int op_code = x.op_code;
+        std::string s1 = std::string{"Empty"}, s2 = std::string{"Empty"};
+        int count = 0;
+        for (const auto& y: x.args) {
+             if ( count == 0) {
+                 s1 = x.variant_to_type(y);
+             }
+             else if( count == 1) {
+                 s2 = x.variant_to_type(y);
+             }
+             count++;
+        }
+        vt.addRow(counter, op_code, s1, s2);
+    }
+    vt.print(std::cout);    
 }

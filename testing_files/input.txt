@@ -57,6 +57,7 @@ int * mamaliga(double abc, char mamaliga2, char macaroane) {
 	if( k == "string" ) {
 		return 5;
 	}
+	
 
 	if (omega > 3 && z[1].x < 2 || z[2].b > 4.5) {
 		return 3;
@@ -73,14 +74,6 @@ int * mamaliga(double abc, char mamaliga2, char macaroane) {
 
 }
 
-
-int wtf() {
-	double c;
-	char d;
-	int b[10];
-	main();
-	mamaliga(c, d, c);
-}
 
 /*struct z main() {
 	return "not ok";

@@ -1,7 +1,7 @@
 #include "Instruction.hpp"
 
 Instruction::Instruction()
-: op_code(0),
+: op_code(-1),
 class_name("Instruction"),
 logger(Logger{class_name})
 {}
@@ -45,6 +45,7 @@ std::string Instruction::variant_to_type(std::variant<long, double, void *> x) {
 }
 
 void Instruction::set_args(const std::vector<std::variant<long, double, void *>>& arr) {
+    args.clear();
     for ( const auto& x: arr) {
         try {
             args.push_back(std::get<long> (x));
@@ -64,4 +65,8 @@ void Instruction::set_args(const std::vector<std::variant<long, double, void *>>
             }
         }
     }
+}
+
+bool Instruction::empty() {
+    return op_code == 0 ? true : false;
 }

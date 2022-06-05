@@ -18,28 +18,19 @@ class_name("ReturnValue")
     logger = Logger{class_name};
 }
 
-bool ReturnValue::set_constant_value(long val) {
-    if( is_constant_value ) {
-        constant_value = val;
-        return true;
-    }
-    return false;
+bool ReturnValue::set_constant_value(const long& val) {
+    constant_value = val;
+    return true;
 }
 
-bool ReturnValue::set_constant_value(double val) {
-    if( is_constant_value ) {
-        constant_value = val;
-        return true;
-    }
-    return false;
+bool ReturnValue::set_constant_value(const double& val) {
+    constant_value = val;
+    return true;
 }
 
-bool ReturnValue::set_constant_value(std::string val) {
-    if( is_constant_value ) {
-        constant_value = val;
-        return true;
-    }
-    return false;
+bool ReturnValue::set_constant_value(const std::string& val) {
+    constant_value = val;
+    return true;
 }
 
 ReturnValue& ReturnValue::operator=(const ReturnValue& ret_val) {
@@ -47,6 +38,7 @@ ReturnValue& ReturnValue::operator=(const ReturnValue& ret_val) {
         is_left_value = ret_val.is_left_value;
         is_constant_value = ret_val.is_constant_value;
         type = ret_val.type;
+        symbol_name = ret_val.symbol_name;
         if(ret_val.is_constant_value) {
             try {
                 auto x = std::get<std::string> (ret_val.constant_value);
